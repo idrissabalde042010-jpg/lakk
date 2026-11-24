@@ -8,7 +8,12 @@
   import Music from './routes/Music.svelte';
   import Profile from './routes/Profile.svelte';
   import BottomNav from './components/BottomNav.svelte';
+  import IntroStory from './components/IntroStory.svelte';
   import { maybeStartTour } from './lib/guidedTour';
+
+  // L'histoire se montre une seule fois (clé localStorage lakk.intro.v1),
+  // et peut être relancée depuis le profil.
+  let showIntro = $derived(app.introOpen);
 
   // Reset scroll position when screen changes
   $effect(() => {
@@ -17,35 +22,44 @@
     if (screen) screen.scrollTo(0, 0);
   });
 
-  // Visite guidée au tout premier lancement (une seule fois).
+  // Visite guidée : au premier lancement, ou juste après l'histoire.
   onMount(() => {
-    maybeStartTour();
+    if (!app.introOpen) maybeStartTour();
   });
+
+  function finishIntro(): void {
+    app.closeIntro();
+    maybeStartTour(500);
+  }
 </script>
 
 <div class="phone">
-  <main class="screen" class:no-nav={app.screen === 'lesson'}>
-    {#if app.screen === 'home'}
-      <Home />
-    {:else if app.screen === 'lesson'}
-      <Lesson />
-    {:else if app.screen === 'review'}
-      <Review />
-    {:else if app.screen === 'games'}
-      <Games />
-    {:else if app.screen === 'music'}
-      <Music />
-    {:else}
-      <Profile />
+  {#if showIntro}
+    <IntroStory onDone={finishIntro} />
+  {:else}
+    <main class="screen" class:no-nav={app.screen === 'lesson'}>
+      {#if app.screen === 'home'}
+        <Home />
+      {:else if app.screen === 'lesson'}
+        <Lesson />
+      {:else if app.screen === 'review'}
+        <Review />
+      {:else if app.screen === 'games'}
+        <Games />
+      {:else if app.screen === 'music'}
+        <Music />
+      {:else}
+        <Profile />
+      {/if}
+    </main>
+
+    {#if app.screen !== 'lesson'}
+      <BottomNav />
     {/if}
-  </main>
 
-  {#if app.screen !== 'lesson'}
-    <BottomNav />
-  {/if}
-
-  {#if app.toast}
-    <div class="toast">{app.toast}</div>
+    {#if app.toast}
+      <div class="toast">{app.toast}</div>
+    {/if}
   {/if}
 </div>
 

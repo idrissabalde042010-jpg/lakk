@@ -6,6 +6,8 @@
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
   import { resetTour } from '../lib/tour';
   import { startTour } from '../lib/guidedTour';
+  import { resetIntro } from '../lib/intro';
+  import { isBgmMuted, toggleBgmMuted } from '../lib/bgm.svelte';
 
   const p = $derived(app.profile);
   const cards = $derived(Object.values(app.data.cards));
@@ -87,6 +89,12 @@
     resetTour();
     app.setScreen('home');
     window.setTimeout(() => startTour(), 450);
+  }
+
+  function replayIntro(): void {
+    resetIntro();
+    app.setScreen('home');
+    app.openIntro();
   }
 
   async function handleAuth(): Promise<void> {
@@ -269,6 +277,19 @@
     </div>
 
     <div class="set-row">
+      <span>Musique d'ambiance<small class="muted">{isBgmMuted() ? 'coupée' : 'douce · 30 %'}</small></span>
+      <button
+        class="switch"
+        class:on={!isBgmMuted()}
+        onclick={toggleBgmMuted}
+        aria-pressed={!isBgmMuted()}
+        aria-label="Musique d'ambiance"
+      >
+        <span></span>
+      </button>
+    </div>
+
+    <div class="set-row">
       <span>Énergie illimitée<small class="muted">toujours gratuit</small></span>
       <button
         class="switch"
@@ -284,6 +305,11 @@
     <div class="set-row">
       <span>Visite guidée<small class="muted">revoir les 3 étapes</small></span>
       <button class="mini-btn" onclick={replayTour}>Revoir</button>
+    </div>
+
+    <div class="set-row">
+      <span>Histoire d'introduction<small class="muted">revoir l'histoire de Lakk</small></span>
+      <button class="mini-btn" onclick={replayIntro}>Revoir</button>
     </div>
   </section>
 

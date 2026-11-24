@@ -176,3 +176,22 @@ with open('content/fr-en-a1.json', 'w') as f:
 | Git status | ✅ | **PROPRE** — working tree clean |
 
 **PROJET LAKK A1 — COMPLET ET VALIDÉ** ✅
+
+---
+
+## 9. Histoire d'introduction & musique d'ambiance
+
+### Histoire (`IntroStory.svelte`)
+- Affichée au tout premier lancement, avant l'application.
+- 3 étapes : Sénégal → livre magique → « C'est parti ! ».
+- État persistant : `localStorage['lakk.intro.v1'] = 'done'` (module `src/lib/intro.ts`).
+- Bouton « Passer » pour les utilisateurs pressés, et « Revoir » dans le profil.
+- À la fin (ou au passage), la visite guidée driver.js démarre automatiquement.
+
+### Musique (`src/lib/bgm.svelte.ts`)
+- Fichier : `public/audio/bgm.mp3` (ajouté au précache du service worker).
+- Démarrage **uniquement** au premier clic « Suivant » (règle d'autoplay).
+- Fondu d'entrée de 2 s, volume final **0,3**, lecture en boucle.
+- Le lecteur est un module partagé : la musique continue en changeant d'écran.
+- Coupure / reprise : bouton **Son** dans la barre de navigation + réglage dans le profil.
+- Préférence conservée : `localStorage['lakk.bgm.muted']`.

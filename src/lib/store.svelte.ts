@@ -12,6 +12,7 @@ import {
 } from './engine';
 import { isTauri, nativeCourse, nativeReview, nativeStats, type NativeStats } from './native';
 import { DEFAULT_AVATAR, isValidAvatar, sanitizeName } from './profile';
+import { introSeen } from './intro';
 
 export interface Persist {
   profile: Profile;
@@ -56,6 +57,8 @@ class AppState {
   data = $state<Persist>(loadState());
   active = $state<{ u: number; l: number } | null>(null);
   toast = $state<string | null>(null);
+  /** Histoire d'introduction ouverte (premier lancement ou relecture). */
+  introOpen = $state(!introSeen());
 
   /** Contenu actif : Rust en application native, copie locale sur le web. */
   course = $state<CourseData>(defaultCourse);
@@ -76,6 +79,16 @@ class AppState {
 
   setScreen(s: Screen): void {
     this.screen = s;
+  }
+
+  /** Rouvre l'histoire (depuis le profil). */
+  openIntro(): void {
+    this.introOpen = true;
+  }
+
+  /** Ferme l'histoire une fois terminée. */
+  closeIntro(): void {
+    this.introOpen = false;
   }
 
   /** Charge le contenu et les statistiques depuis `lakk-core` (Rust). */
