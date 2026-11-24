@@ -179,7 +179,36 @@ with open('content/fr-en-a1.json', 'w') as f:
 
 ---
 
-## 9. Histoire d'introduction & musique d'ambiance
+## 10. i18n + Architecture multi-langues (Tâche 2)
+
+### Sélection de langue (`LanguageSelect.svelte`)
+- Affichée au tout premier lancement, avant l'histoire d'introduction.
+- Deux choix : « Langue de l'interface » (Français / Anglais) et « Je veux apprendre » (Anglais disponible, Espagnol et Wolof grisés « bientôt »).
+- Sauvegarde dans le profil (`uiLang`, `learnLang`).
+- Applique la locale i18n immédiatement via `setLocale()`.
+
+### Internationalisation (`svelte-i18n`)
+- Installation de `svelte-i18n` v4.
+- Locales : `src/lib/locales/fr.json` et `src/lib/locales/en.json` (tous les textes de l'UI).
+- Initialisation dans `src/lib/i18n.ts` avec fallback français.
+- Utilisation dans les composants via `$_( 'key' )` ou `_` (réactif).
+
+### Contenu multi-langues dynamique
+- `src/lib/content.ts` : fonction `loadCourse(sourceLang, targetLang)` qui charge dynamiquement `content/{source}-{target}-a1.json`.
+- Import dynamique Vite (chunks séparés par paire de langues).
+- Fallback sur `fr-en-a1.json` si le fichier n'existe pas.
+- Rechargement automatique du contenu quand l'utilisateur change les langues dans le profil.
+
+### Profil
+- Nouvelles préférences dans `Profile.svelte` : deux `<select>` pour l'interface et l'apprentissage.
+- Changement immédiat de la locale i18n + rechargement du contenu.
+- Persistance dans `lakk.v1`.
+
+### Tests & Build
+- `svelte-check` : 0 erreurs, 5 warnings (accessibilité labels)
+- `vitest` : 25/25
+- `pnpm build` : OK (15 fichiers précachés, chunks `fr-*.js` et `en-*.js` pour i18n)
+- `cargo test` : 29/29
 
 ### Histoire (`IntroStory.svelte`)
 - Affichée au tout premier lancement, avant l'application.

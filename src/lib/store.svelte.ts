@@ -1,5 +1,5 @@
 // État global de l'application (Svelte 5 runes) + persistance locale.
-import { defaultCourse, fallbackPhrases, lessonRefs, type LessonRef } from './content';
+import { defaultCourse, fallbackPhrases, lessonRefs, loadCourse, type LessonRef } from './content';
 import type { Card, CourseData, Grade, LessonData, Phrase, Profile, Vocab } from './engine';
 import {
   dailyGoalPercent,
@@ -91,15 +91,30 @@ class AppState {
     this.introOpen = false;
   }
 
+  /** Charge le contenu pour les langues du profil. */
+  async loadContent(): Promise<void> {
+    const { uiLang, learnLang } = this.data.profile;
+    if (isTauri) {
+      // En Tauri, on essaie d'abord le Rust, sinon fallback dynamique
+      const [course, stats] = await Promise.all([nativeCourse(), nativeStats()]);
+      if (course && course.units?.length) {
+        this.course = course;
+        this.engine = 'rust';
+      } else {
+        this.course = await loadCourse(uiLang, learnLang);
+        this.engine = 'typescript';
+      }
+      if (stats) this.stats = stats;
+    } else {
+      // Sur le web : chargement dynamique selon les langues
+      this.course = await loadCourse(uiLang, learnLang);
+      this.engine = 'typescript';
+    }
+  }
+
   /** Charge le contenu et les statistiques depuis `lakk-core` (Rust). */
   async init(): Promise<void> {
-    if (!isTauri) return;
-    const [course, stats] = await Promise.all([nativeCourse(), nativeStats()]);
-    if (course && course.units?.length) {
-      this.course = course;
-      this.engine = 'rust';
-    }
-    if (stats) this.stats = stats;
+    await this.loadContent();
   }
 
   // ------------------------------ Parcours ------------------------------
@@ -205,6 +220,22 @@ class AppState {
   setAvatar(avatar: string): void {
     this.data.profile.avatar = isValidAvatar(avatar) ? avatar : DEFAULT_AVATAR;
     this.save();
+  }
+
+  /** Change la langue de l'interface. */
+  setUILang(lang: 'fr' | 'en'): void {
+    this.data.profile.uiLang = lang;
+    this.save();
+    // Recharge le contenu avec la nouvelle langue
+    this.loadContent();
+  }
+
+  /** Change la langue d'apprentissage. */
+  setLearnLang(lang: 'en' | 'es' | 'wo'): void {
+    this.data.profile.learnLang = lang;
+    this.save();
+    // Recharge le contenu avec la nouvelle langue
+    this.loadContent();
   }
 
   toggleEnergy(): void {

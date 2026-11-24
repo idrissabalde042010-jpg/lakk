@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { app } from './lib/store.svelte';
+  import { locale, setLocale } from './lib/i18n';
   import Home from './routes/Home.svelte';
   import Lesson from './routes/Lesson.svelte';
   import Review from './routes/Review.svelte';
@@ -9,11 +10,20 @@
   import Profile from './routes/Profile.svelte';
   import BottomNav from './components/BottomNav.svelte';
   import IntroStory from './components/IntroStory.svelte';
+  import LanguageSelect from './components/LanguageSelect.svelte';
   import { maybeStartTour } from './lib/guidedTour';
+  import { introSeen } from './lib/intro';
 
-  // L'histoire se montre une seule fois (clé localStorage lakk.intro.v1),
-  // et peut être relancée depuis le profil.
-  let showIntro = $derived(app.introOpen);
+  // État des écrans d'onboarding
+  let showLanguageSelect = $state(!introSeen() && !app.profile.uiLang);
+  let showIntro = $derived(app.introOpen || (!introSeen() && app.profile.uiLang));
+
+  // Initialise la locale i18n depuis le profil au démarrage
+  onMount(() => {
+    if (app.profile.uiLang) {
+      setLocale(app.profile.uiLang);
+    }
+  });
 
   // Reset scroll position when screen changes
   $effect(() => {
@@ -24,8 +34,16 @@
 
   // Visite guidée : au premier lancement, ou juste après l'histoire.
   onMount(() => {
-    if (!app.introOpen) maybeStartTour();
+    if (!app.introOpen && introSeen()) maybeStartTour();
   });
+
+  function finishLanguageSelect(): void {
+    showLanguageSelect = false;
+    // Si l'intro n'a pas été vue, on l'affiche ensuite
+    if (!introSeen()) {
+      app.openIntro();
+    }
+  }
 
   function finishIntro(): void {
     app.closeIntro();
@@ -34,7 +52,9 @@
 </script>
 
 <div class="phone">
-  {#if showIntro}
+  {#if showLanguageSelect}
+    <LanguageSelect onDone={finishLanguageSelect} />
+  {:else if showIntro}
     <IntroStory onDone={finishIntro} />
   {:else}
     <main class="screen" class:no-nav={app.screen === 'lesson'}>

@@ -8,6 +8,8 @@
   import { startTour } from '../lib/guidedTour';
   import { resetIntro } from '../lib/intro';
   import { isBgmMuted, toggleBgmMuted } from '../lib/bgm.svelte';
+  import { setLocale, SUPPORTED_LOCALES, LEARN_LANGUAGES } from '../lib/i18n';
+  import { locale, _ } from 'svelte-i18n';
 
   const p = $derived(app.profile);
   const cards = $derived(Object.values(app.data.cards));
@@ -300,6 +302,32 @@
       >
         <span></span>
       </button>
+    </div>
+
+    <!-- Langues -->
+    <div class="set-row">
+      <span>{$_( 'profile.language' )}</span>
+    </div>
+
+    <div class="set-row lang-row">
+      <div class="lang-field">
+        <label>{$_( 'profile.ui_language' )}</label>
+        <select bind:value={p.uiLang} onchange={() => { setLocale(p.uiLang); app.save(); }}>
+          {#each SUPPORTED_LOCALES as lang}
+            <option value={lang}>{lang === 'fr' ? 'Français' : 'English'}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="lang-field">
+        <label>{$_( 'profile.learn_language' )}</label>
+        <select bind:value={p.learnLang} onchange={() => app.save()}>
+          {#each LEARN_LANGUAGES as lang}
+            <option value={lang.code} disabled={!lang.available}>
+              {lang.name} {#if !lang.available}({$_( 'profile.lang_coming_soon' )}){/if}
+            </option>
+          {/each}
+        </select>
+      </div>
     </div>
 
     <div class="set-row">
@@ -900,5 +928,45 @@
     font-family: monospace;
     font-size: 11px;
     resize: vertical;
+  }
+
+  /* --- Langues --- */
+  .lang-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .lang-row > span {
+    flex-direction: row;
+    gap: 8px;
+    font-weight: 500;
+  }
+  .lang-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lang-field label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .lang-field select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .lang-field select:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+  .lang-field select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 </style>

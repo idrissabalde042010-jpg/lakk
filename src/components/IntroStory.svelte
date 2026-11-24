@@ -11,16 +11,40 @@
   const last = $derived(step === INTRO_STEPS.length - 1);
   let speaking = $state(false);
 
-  /** Lit l'étape courante. */
+  /** Timeout de sécurité max (10 s) pour éviter le blocage sur Linux/WebKitGTK. */
+  const SPEAK_TIMEOUT_MS = 10_000;
+
+  /** Lit l'étape courante avec timeout de sécurité. */
   async function readStep(): Promise<void> {
     if (speaking) return;
     speaking = true;
-    await speak(current.text, 'fr-FR');
+
+    // Lance la lecture (speak gère déjà le fallback Rust/espeak)
+    const speakPromise = speak(current.text, 'fr-FR');
+
+    // Timeout de sécurité : si speak ne résout pas dans les 10 s, on débloque
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        if (speaking) {
+          console.warn('[IntroStory] timeout speak → déblocage forcé');
+          speaking = false;
+        }
+        resolve();
+      }, SPEAK_TIMEOUT_MS);
+    });
+
+    await Promise.race([speakPromise, timeoutPromise]);
     speaking = false;
   }
 
   /** Passe à l'étape suivante (et lance la musique au premier « Suivant »). */
   async function next(): Promise<void> {
+    // Si on clique pendant la lecture : on coupe la voix et on passe à la suite
+    if (speaking) {
+      cancelSpeech();
+      speaking = false;
+    }
+
     if (step === 0) startBgm();
 
     if (last) {
@@ -34,6 +58,11 @@
 
   function back(): void {
     if (step === 0) return;
+    // Coupe la voix en cours si on revient en arrière
+    if (speaking) {
+      cancelSpeech();
+      speaking = false;
+    }
     step -= 1;
   }
 
@@ -52,7 +81,7 @@
     }
   });
 
-  // Re-lire si l'étape change
+  // Re-lire si l'étape change (et qu'on ne lit pas déjà)
   $effect(() => {
     if (mounted && !speaking) {
       readStep();
@@ -95,7 +124,8 @@
     {#if step > 0}
       <button class="btn ghost block" type="button" onclick={back}>Retour</button>
     {/if}
-    <button class="btn orange block" type="button" onclick={next} disabled={speaking}>
+    <!-- Bouton toujours cliquable : s'il est cliqué pendant la lecture, cancelSpeech() + next -->
+    <button class="btn orange block" type="button" onclick={next}>
       {speaking ? '…' : current.cta}
     </button>
   </div>

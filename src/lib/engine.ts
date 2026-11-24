@@ -240,6 +240,10 @@ export function mastery(card: Card): { label: string; pct: number } {
 export interface Profile {
   name: string;
   avatar: string;
+  /** Langue de l'interface (code ISO) : 'fr' | 'en' */
+  uiLang: 'fr' | 'en';
+  /** Langue d'apprentissage (code ISO) : 'en' | 'es' | 'wo' */
+  learnLang: 'en' | 'es' | 'wo';
   dailyGoalXp: number;
   xpTotal: number;
   xpToday: number;
@@ -256,6 +260,8 @@ export function newProfile(name: string): Profile {
   return {
     name,
     avatar: '🦁',
+    uiLang: 'fr',
+    learnLang: 'en',
     dailyGoalXp: 20,
     xpTotal: 0,
     xpToday: 0,
