@@ -237,10 +237,35 @@ with open('content/fr-en-a1.json', 'w') as f:
 - Persistance dans `lakk.v1`.
 
 ### Tests & Build
-- `svelte-check` : 0 erreurs, 5 warnings (accessibilité labels)
+- `svelte-check` : 0 erreurs (warnings accessibilité labels connus, non bloquants)
 - `vitest` : 25/25
-- `pnpm build` : OK (15 fichiers précachés, chunks `fr-*.js` et `en-*.js` pour i18n)
+- `pnpm build` : OK (14 fichiers précachés, chunks `fr-*.js` et `en-*.js` pour i18n)
 - `cargo test` : 29/29
+
+### Retrait de la connexion Google/Apple (OAuth)
+- **Plugin retiré** : `tauri-plugin-auth-session` (Rust) + `tauri-plugin-auth-session-api` (JS)
+- **Fichiers modifiés** : `Cargo.toml`, `lib.rs`, `tauri.conf.json`, `capabilities/default.json`, `package.json`, `Profile.svelte`
+- **Boutons OAuth dans le profil** : conservés mais **désactivés** avec mention « Bientôt disponible » (clés i18n `profile.oauth_google`, `profile.oauth_apple`, `profile.oauth_coming_soon`)
+- **Variables d'env** : commentées dans `.env.example` avec note « Retiré, à refaire plus tard avec Supabase »
+- **Aucun code d'authentification OAuth** ne reste (pas d'appel réseau, pas de crash si clés manquantes)
+- **Raison** : pas de clés développeur, API du plugin mal utilisée, à refaire plus tard avec Supabase Auth
+
+### Mise à jour automatique (Tauri Updater)
+- Plugin : `tauri-plugin-updater` activé, `createUpdaterArtifacts: true`
+- Endpoint GitHub Releases configuré, `pubkey` renseignée
+- Vérification 5s après lancement : `check()` avec `try/catch`, erreur loggée via `console.warn` **sans bannière ni message pour l'utilisateur** si échec (réseau absent, release inexistante, etc.)
+- Téléchargement : `update.downloadAndInstall()` avec barre de progression, puis `install()` + `relaunch()`
+- `pubkey` renseignée dans `tauri.conf.json`
+
+### Tests & Build (final)
+- `svelte-check` : 0 erreurs (warnings accessibilité labels connus, non bloquants)
+- `vitest` : 25/25
+- `pnpm build` : OK (14 fichiers précachés, chunks `fr-*.js` et `en-*.js` pour i18n)
+- `cargo test` : 29/29
+- `cargo check` : OK
+
+### Prochaine étape
+- Phase 3 : Supabase Auth + Multijoueur + Bots (Supabase, matchmaking, bots)
 
 ### Histoire (`IntroStory.svelte`)
 - Affichée au tout premier lancement, avant l'application.

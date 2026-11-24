@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Capacités par défaut de Lakk",
   "windows": ["main"],
-  "permissions": ["core:default", "auth-session:default"]
+  "permissions": ["core:default"]
 }

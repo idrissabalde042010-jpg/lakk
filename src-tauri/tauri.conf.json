@@ -39,9 +39,6 @@
     "createUpdaterArtifacts": true
   },
   "plugins": {
-    "auth-session": {
-      "callbackUrlScheme": "lakk"
-    },
     "updater": {
       "active": true,
       "endpoints": [

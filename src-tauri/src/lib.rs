@@ -10,8 +10,6 @@ use lakk_core::bridge::{self, CardWire, CourseStats};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 
-// Plugin d'authentification OAuth (Google, Apple, etc.)
-use tauri_plugin_auth_session::AuthSessionExt;
 // Plugin de mise à jour automatique
 use tauri_plugin_updater::UpdaterExt;
 
@@ -202,7 +200,6 @@ pub fn run() {
     disable_dmabuf_renderer();
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_auth_session::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             app_info,

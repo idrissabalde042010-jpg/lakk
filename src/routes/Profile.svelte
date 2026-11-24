@@ -10,7 +10,6 @@
   import { isBgmMuted, toggleBgmMuted } from '../lib/bgm.svelte';
   import { setLocale, SUPPORTED_LOCALES, LEARN_LANGUAGES } from '../lib/i18n';
   import { locale, _ } from 'svelte-i18n';
-  import { start } from 'tauri-plugin-auth-session-api';
 
   const p = $derived(app.profile);
   const cards = $derived(Object.values(app.data.cards));
@@ -117,160 +116,6 @@
     } finally {
       authLoading = false;
     }
-  }
-
-  /** Lance le flux OAuth (Google ou Apple) avec PKCE. */
-  async function handleOAuth(provider: 'google' | 'apple'): Promise<void> {
-    authError = null;
-    authLoading = true;
-
-    try {
-      // Récupère les variables d'environnement
-      const clientId = provider === 'google'
-        ? import.meta.env.PUBLIC_GOOGLE_CLIENT_ID
-        : import.meta.env.PUBLIC_APPLE_CLIENT_ID;
-
-      if (!clientId) {
-        throw new Error(
-          provider === 'google'
-            ? 'PUBLIC_GOOGLE_CLIENT_ID manquant dans .env'
-            : 'PUBLIC_APPLE_CLIENT_ID manquant dans .env'
-        );
-      }
-
-      // Construit l'URL d'autorisation avec PKCE
-      const authUrl = await buildAuthUrl(provider, clientId);
-
-      // Lance la session d'authentification native
-      const callbackUrl = await start(authUrl, 'lakk', { ephemeral: false });
-
-      // Extrait le code d'autorisation
-      const url = new URL(callbackUrl);
-      const code = url.searchParams.get('code');
-      const error = url.searchParams.get('error');
-
-      if (error) {
-        throw new Error(`OAuth error: ${error}`);
-      }
-
-      if (!code) {
-        throw new Error('Aucun code d\'autorisation reçu');
-      }
-
-      // Échange le code contre des tokens
-      await exchangeCodeForTokens(provider, code);
-
-    } catch (e) {
-      authError = e instanceof Error ? e.message : 'Erreur OAuth';
-    } finally {
-      authLoading = false;
-    }
-  }
-
-  /** Construit l'URL d'autorisation OAuth avec PKCE. */
-  async function buildAuthUrl(provider: 'google' | 'apple', clientId: string): Promise<string> {
-    // Génère un code verifier PKCE
-    const codeVerifier = generateCodeVerifier();
-    const codeChallenge = await generateCodeChallenge(codeVerifier);
-    const state = crypto.randomUUID();
-
-    // Sauvegarde le code_verifier pour l'échange
-    sessionStorage.setItem('oauth_code_verifier', codeVerifier);
-    sessionStorage.setItem('oauth_state', state);
-
-    const baseUrl = provider === 'google'
-      ? 'https://accounts.google.com/o/oauth2/v2/auth'
-      : 'https://appleid.apple.com/auth/authorize';
-
-    const redirectUri = 'lakk://callback';
-    const scope = provider === 'google'
-      ? 'openid email profile'
-      : 'name email';
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope,
-      state,
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-    });
-
-    return `${baseUrl}?${params.toString()}`;
-  }
-
-  /** Génère un code_verifier PKCE (43-128 caractères, URL-safe). */
-  function generateCodeVerifier(): string {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    return btoa(String.fromCharCode(...array))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-  }
-
-  /** Génère le code_challenge (SHA256 du code_verifier, base64url). */
-  async function generateCodeChallenge(verifier: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(verifier);
-    const digest = await crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-  }
-
-  /** Échange le code d'autorisation contre des tokens. */
-  async function exchangeCodeForTokens(provider: 'google' | 'apple', code: string): Promise<void> {
-    const codeVerifier = sessionStorage.getItem('oauth_code_verifier');
-    const state = sessionStorage.getItem('oauth_state');
-
-    if (!codeVerifier) {
-      throw new Error('Code verifier manquant');
-    }
-
-    const tokenUrl = provider === 'google'
-      ? 'https://oauth2.googleapis.com/token'
-      : 'https://appleid.apple.com/auth/token';
-
-    const redirectUri = 'lakk://callback';
-    const clientId = provider === 'google'
-      ? import.meta.env.PUBLIC_GOOGLE_CLIENT_ID
-      : import.meta.env.PUBLIC_APPLE_CLIENT_ID;
-    const clientSecret = provider === 'google'
-      ? import.meta.env.PUBLIC_GOOGLE_CLIENT_SECRET
-      : import.meta.env.PUBLIC_APPLE_CLIENT_SECRET;
-
-    const params = new URLSearchParams({
-      client_id: clientId!,
-      client_secret: clientSecret || '',
-      code,
-      code_verifier: codeVerifier,
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUri,
-    });
-
-    // NOTE: En production, cet échange devrait se faire côté backend
-    // pour ne pas exposer le client_secret. Ici on appelle l'API directement
-    // pour la démo, mais ce n'est pas sécurisé pour la production.
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString(),
-    });
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error_description || data.error);
-    }
-
-    // TODO: Stocker les tokens et créer/connecter l'utilisateur
-    console.log(`[OAuth ${provider}] Tokens reçus:`, data);
-
-    // Pour l'instant, on simule une connexion réussie
-    app.setScreen('home');
   }
 
   function handleLogout(): void {
@@ -511,12 +356,13 @@
       <div class="auth-panel">
         <p class="small muted">Crée un compte pour synchroniser ta progression sur plusieurs appareils (optionnel, gratuit).</p>
 
-        <!-- OAuth Buttons -->
+        <!-- OAuth Buttons (désactivés, bientôt disponibles) -->
         <div class="oauth-buttons">
           <button
             class="btn oauth google block"
-            onclick={() => handleOAuth('google')}
-            disabled={authLoading}
+            disabled
+            aria-disabled="true"
+            title={$_( 'profile.oauth_coming_soon' )}
           >
             <svg class="oauth-icon" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -524,17 +370,18 @@
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.02-3.02C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            <span>Continuer avec Google</span>
+            <span>{$_( 'profile.oauth_google' )}</span>
           </button>
           <button
             class="btn oauth apple block"
-            onclick={() => handleOAuth('apple')}
-            disabled={authLoading}
+            disabled
+            aria-disabled="true"
+            title={$_( 'profile.oauth_coming_soon' )}
           >
             <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.05 20.697c-.878.266-1.836.405-2.817.405-1.733 0-3.27-1.047-3.86-2.64-.03-.08-.05-.173-.05-.254 0-.094.033-.18.05-.26.586-1.58 2.12-2.63 3.86-2.63.98 0 1.94.14 2.82.4.88.26 1.68.65 2.38 1.16l.57-.57c-.56-.6-1.27-1.32-1.84-2.1-.64-.88-1.1-1.93-1.38-3.14h-.03c.4-1.55 1.07-2.95 2.03-4.18.12-.16.23-.32.33-.49l-.6-.6c-.15.25-.32.5-.52.74-1.22 1.48-2.06 3.33-2.06 5.46 0 3.17 1.29 5.8 3.3 7.78.25.25.56.4 1 .42l.63-.62zM12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.75.22-1.55.33-2.38.33-.79 0-1.55-.14-2.27-.4l.59-.58c.72.4 1.48.66 2.27.66 1.84 0 3.35-1.33 3.76-3.37.04-.25.06-.5.06-.76 0-.25-.02-.5-.06-.75-.52-.84-1.27-1.55-2.18-2.14l.6-.6c1.33 1.07 2.2 2.5 2.59 4.2.16.68.2 1.37.18 2.06-.04 1.78-.72 3.4-2.05 4.77l.6.6c1.44-1.3 2.27-3.15 2.27-5.2 0-2.73-1.2-5.1-3.14-6.73-.1-.1-.22-.19-.34-.26l-.57.57c.24 1.15.7 2.26 1.38 3.26.07.1.14.2.2.31.93-.4 1.63-1.05 2.04-2.06l.6.6c-.72 1.8-1.84 3.4-3.24 4.72-.22.2-.46.33-.7.33z"/>
             </svg>
-            <span>Continuer avec Apple</span>
+            <span>{$_( 'profile.oauth_apple' )}</span>
           </button>
         </div>
 
@@ -1169,14 +1016,7 @@
     background: var(--card);
     color: var(--ink);
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-  }
-  .oauth:hover:not(:disabled) {
-    border-color: var(--orange);
-    box-shadow: 0 4px 16px -4px var(--orange);
-  }
-  .oauth:active:not(:disabled) {
-    transform: scale(0.98);
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
   .oauth:disabled {
     opacity: 0.5;

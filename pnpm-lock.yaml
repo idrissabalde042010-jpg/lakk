@@ -26,9 +26,6 @@ importers:
       svelte-i18n:
         specifier: ^4.0.1
         version: 4.0.1(svelte@5.59.1)
-      tauri-plugin-auth-session-api:
-        specifier: ^0.2.2
-        version: 0.2.2(@tauri-apps/api@2.12.5)
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
@@ -976,11 +973,6 @@ packages:
     resolution: {integrity: sha512-ADG20W/jYSQut/79AavRRfbXQYebFKMVWT/xAbjVVZfZA4XzIoFfcpanEfYTyN+uWQUaPP+nstFx4qVKwEVnQQ==}
     engines: {node: '>=18'}
 
-  tauri-plugin-auth-session-api@0.2.2:
-    resolution: {integrity: sha512-4kqQ4XZo0z3F8pW88/ckz5tUk3TX/sI8MJMgMNRC+7hrlasYIxweLalgI8h5cayk2/WEDHb4zyLQaCU84eUUbw==}
-    peerDependencies:
-      '@tauri-apps/api': '>=2.0.0'
-
   timers-ext@0.1.8:
     resolution: {integrity: sha512-wFH7+SEAcKfJpfLPkrgMPvvwnEtj8W4IurvEyrKsDleXnKLCDw71w8jltvfLa8Rm4qQxxT4jmDBYbJG/z7qoww==}
     engines: {node: '>=0.12'}
@@ -1883,10 +1875,6 @@ snapshots:
       zimmerframe: 1.1.5
     transitivePeerDependencies:
       - '@typescript-eslint/types'
-
-  tauri-plugin-auth-session-api@0.2.2(@tauri-apps/api@2.12.5):
-    dependencies:
-      '@tauri-apps/api': 2.12.5
 
   timers-ext@0.1.8:
     dependencies:
