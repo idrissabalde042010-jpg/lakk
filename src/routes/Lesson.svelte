@@ -189,14 +189,13 @@
           Écouter
         </button>
       {:else if ex.vocab}
-        <span class="speak muted" title="Audio indisponible" aria-label="Audio indisponible">
+        <button class="speak" onclick={hear} aria-label="Écouter la prononciation">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M11 5 6 9H3v6h3l5 4z" />
             <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" />
           </svg>
-          Audio indisponible
-        </span>
+          🔊
+        </button>
       {/if}
     {/if}
 
@@ -205,14 +204,27 @@
         <div class="choices">
           {#if shuffledChoiceIndices && ex.choices}
             {#each shuffledChoiceIndices as choiceIdx, displayIdx}
-              <button
-                class="choice"
-                class:sel={selected === displayIdx}
-                onclick={() => choose(displayIdx)}
-                disabled={phase !== 'answer'}
-              >
-                {getChoice(choiceIdx)}
-              </button>
+              <div class="choice-row">
+                <button
+                  class="choice"
+                  class:sel={selected === displayIdx}
+                  onclick={() => choose(displayIdx)}
+                  disabled={phase !== 'answer'}
+                >
+                  {getChoice(choiceIdx)}
+                </button>
+                <button
+                  class="speak-small"
+                  type="button"
+                  onclick={() => speak(getChoice(choiceIdx), 'en-US')}
+                  aria-label={`Écouter ${getChoice(choiceIdx)}`}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 5 6 9H3v6h3l5 4z" />
+                    <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                  </svg>
+                </button>
+              </div>
             {/each}
           {/if}
         </div>
@@ -230,14 +242,27 @@
         <div class="bank">
           {#if shuffledBankIndices && ex.word_bank}
             {#each shuffledBankIndices as bankIdx, displayIdx}
-              <button
-                class="word bank-word"
-                class:used={picked.includes(bankIdx)}
-                onclick={() => pickWord(bankIdx)}
-                disabled={picked.includes(bankIdx) || phase !== 'answer'}
-              >
-                {getBankWord(bankIdx)}
-              </button>
+              <div class="bank-item" class:used={picked.includes(bankIdx)}>
+                <button
+                  class="word bank-word"
+                  class:used={picked.includes(bankIdx)}
+                  onclick={() => pickWord(bankIdx)}
+                  disabled={picked.includes(bankIdx) || phase !== 'answer'}
+                >
+                  {getBankWord(bankIdx)}
+                </button>
+                <button
+                  class="speak-small compact"
+                  type="button"
+                  onclick={() => speak(getBankWord(bankIdx), 'en-US')}
+                  aria-label={`Écouter ${getBankWord(bankIdx)}`}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 5 6 9H3v6h3l5 4z" />
+                    <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                  </svg>
+                </button>
+              </div>
             {/each}
           {/if}
         </div>
@@ -386,6 +411,15 @@
     flex-direction: column;
     gap: 10px;
   }
+  .choice-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .choice-row .choice {
+    flex: 1;
+    min-width: 0;
+  }
   .choice {
     text-align: left;
     padding: 15px 16px;
@@ -405,6 +439,30 @@
   .choice.sel {
     border-color: var(--orange);
     background: var(--orange-soft);
+  }
+  .speak-small {
+    flex: none;
+    width: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    border: 2px solid var(--line);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.08s ease;
+  }
+  .speak-small:active {
+    transform: scale(0.95);
+  }
+  .speak-small svg {
+    width: 18px;
+    height: 18px;
+  }
+  .speak-small.compact {
+    width: 34px;
+    border-width: 1.5px;
+    border-radius: 10px;
   }
   .tray {
     min-height: 60px;
@@ -428,6 +486,15 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+  }
+  .bank-item {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .bank-item.used {
+    opacity: 0.3;
+    pointer-events: none;
   }
   .word {
     padding: 9px 13px;

@@ -80,24 +80,18 @@
       {#if revealed}
         <div class="answer">
           <p class="en">{current.vocab.en}</p>
-          {#if speechAvailable}
-            <button class="speak" onclick={() => speak(current.vocab.en)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 5 6 9H3v6h3l5 4z" />
-                <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-              </svg>
-              Réécouter
-            </button>
-          {:else}
-            <span class="speak muted" aria-label="Audio indisponible" title="Audio indisponible">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 5 6 9H3v6h3l5 4z" />
-                <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-                <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" />
-              </svg>
-              Audio indisponible
-            </span>
-          {/if}
+          <button
+            class="speak"
+            type="button"
+            onclick={() => speak(current.vocab.en)}
+            aria-label={`Écouter ${current.vocab.en}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 5 6 9H3v6h3l5 4z" />
+              <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+            </svg>
+            🔊 Réécouter
+          </button>
         </div>
       {:else}
         <button class="btn block reveal-btn" onclick={reveal}>Afficher la réponse</button>
