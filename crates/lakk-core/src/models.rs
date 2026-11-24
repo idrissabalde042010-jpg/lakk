@@ -19,6 +19,8 @@ pub enum ExerciseKind {
     FillBlank,
     /// Remettre les mots dans l'ordre.
     OrderWords,
+    /// Épellation (spelling bee).
+    SpellingBee,
 }
 
 /// Un mot de vocabulaire, cœur de la répétition espacée.

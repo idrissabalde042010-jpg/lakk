@@ -8,7 +8,8 @@ export type ExerciseKind =
   | 'listen_type'
   | 'match'
   | 'fill_blank'
-  | 'order_words';
+  | 'order_words'
+  | 'spelling_bee';
 
 export interface Vocab {
   en: string;

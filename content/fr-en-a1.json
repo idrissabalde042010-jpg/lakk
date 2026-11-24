@@ -94,7 +94,7 @@
           "exercises": [
             { "kind": "multiple_choice", "prompt": "Comment dit-on « grand-père » ?", "choices": ["grandfather", "grandmother", "uncle", "father"], "answer": "grandfather", "vocab": { "en": "grandfather", "fr": "grand-père" } },
             { "kind": "translate", "prompt": "Ma tante est gentille.", "word_bank": ["My", "aunt", "is", "nice", "kind", "sister"], "answer": "My aunt is nice", "vocab": { "en": "My aunt is nice", "fr": "ma tante est gentille" } },
-            { "kind": "multiple_choice", "prompt": "Comment dit-on « cousin » ?", "choices": ["cousin", "uncle", "nephew", "brother"], "answer": "cousin", "vocab": { "en": "cousin", "fr": "cousin" } },
+            { "kind": "spelling_bee", "prompt": "Épelle « cousin ».", "answer": "cousin", "vocab": { "en": "cousin", "fr": "cousin" } },
             { "kind": "fill_blank", "prompt": "My ___ is my mother's sister.", "answer": "aunt", "vocab": { "en": "aunt", "fr": "tante" } },
             { "kind": "translate", "prompt": "Nous rendons visite à nos grands-parents.", "word_bank": ["We", "visit", "our", "grandparents", "parents", "friends"], "answer": "We visit our grandparents", "vocab": { "en": "We visit our grandparents", "fr": "nous rendons visite à nos grands-parents" } }
           ]
@@ -112,7 +112,7 @@
         {
           "title": "Les meubles et objets",
           "exercises": [
-            { "kind": "multiple_choice", "prompt": "Comment dit-on « table » ?", "choices": ["table", "chair", "bed", "sofa"], "answer": "table", "vocab": { "en": "table", "fr": "table" } },
+            { "kind": "spelling_bee", "prompt": "Épelle « table ».", "answer": "table", "vocab": { "en": "table", "fr": "table" } },
             { "kind": "translate", "prompt": "Le livre est sur la table.", "word_bank": ["The", "book", "is", "on", "the", "table"], "answer": "The book is on the table", "vocab": { "en": "The book is on the table", "fr": "le livre est sur la table" } },
             { "kind": "multiple_choice", "prompt": "Comment dit-on « chaise » ?", "choices": ["chair", "table", "bed", "desk"], "answer": "chair", "vocab": { "en": "chair", "fr": "chaise" } },
             { "kind": "fill_blank", "prompt": "I sit on a ___.", "answer": "chair", "vocab": { "en": "chair", "fr": "chaise" } },
@@ -388,7 +388,7 @@
         {
           "title": "Les transports",
           "exercises": [
-            { "kind": "multiple_choice", "prompt": "Comment dit-on « bus » ?", "choices": ["bus", "train", "car", "plane"], "answer": "bus", "vocab": { "en": "bus", "fr": "bus" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « pilote » ?", "choices": ["pilot", "driver", "captain", "conductor"], "answer": "pilot", "vocab": { "en": "pilot", "fr": "pilote" } },
             { "kind": "translate", "prompt": "Je prends le train.", "word_bank": ["I", "take", "the", "train", "bus", "car"], "answer": "I take the train", "vocab": { "en": "I take the train", "fr": "je prends le train" } },
             { "kind": "multiple_choice", "prompt": "Comment dit-on « avion » ?", "choices": ["plane", "train", "boat", "car"], "answer": "plane", "vocab": { "en": "plane", "fr": "avion" } },
             { "kind": "fill_blank", "prompt": "I go to work by ___.", "answer": "car", "vocab": { "en": "car", "fr": "voiture" } },
@@ -462,7 +462,7 @@
           "exercises": [
             { "kind": "multiple_choice", "prompt": "Comment dit-on « football » ?", "choices": ["football", "soccer", "tennis", "basketball"], "answer": "football", "vocab": { "en": "football/soccer", "fr": "football" } },
             { "kind": "translate", "prompt": "J'aime jouer au tennis.", "word_bank": ["I", "like", "playing", "tennis", "football", "swimming"], "answer": "I like playing tennis", "vocab": { "en": "I like playing tennis", "fr": "j'aime jouer au tennis" } },
-            { "kind": "multiple_choice", "prompt": "Comment dit-on « nager » ?", "choices": ["swim", "run", "walk", "cycle"], "answer": "swim", "vocab": { "en": "swim", "fr": "nager" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « randonnée » ?", "choices": ["hiking", "walking", "climbing", "camping"], "answer": "hiking", "vocab": { "en": "hiking", "fr": "randonnée" } },
             { "kind": "fill_blank", "prompt": "He plays ___ every Sunday.", "answer": "football", "vocab": { "en": "football", "fr": "football" } },
             { "kind": "translate", "prompt": "Nous faisons du vélo.", "word_bank": ["We", "ride", "bikes", "bicycles", "drive", "cars"], "answer": "We ride bikes", "vocab": { "en": "We ride bikes", "fr": "nous faisons du vélo" } }
           ]
@@ -498,7 +498,7 @@
           "exercises": [
             { "kind": "multiple_choice", "prompt": "Comment dit-on « téléphone » ?", "choices": ["phone", "computer", "tablet", "camera"], "answer": "phone", "vocab": { "en": "phone", "fr": "téléphone" } },
             { "kind": "translate", "prompt": "Je t'appelle plus tard.", "word_bank": ["I", "will", "call", "you", "later", "now"], "answer": "I will call you later", "vocab": { "en": "I will call you later", "fr": "je t'appelle plus tard" } },
-            { "kind": "multiple_choice", "prompt": "Comment dit-on « message » ?", "choices": ["message", "call", "email", "letter"], "answer": "message", "vocab": { "en": "message", "fr": "message" } },
+            { "kind": "spelling_bee", "prompt": "Épelle « message ».", "answer": "message", "vocab": { "en": "message", "fr": "message" } },
             { "kind": "fill_blank", "prompt": "Send me a ___.", "answer": "message", "vocab": { "en": "message", "fr": "message" } },
             { "kind": "translate", "prompt": "As-tu internet ?", "word_bank": ["Do", "you", "have", "internet", "wifi", "phone"], "answer": "Do you have internet", "vocab": { "en": "Do you have internet", "fr": "as-tu internet" } }
           ]
