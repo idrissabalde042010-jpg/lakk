@@ -43,11 +43,20 @@
           "host": "callback"
         }
       ]
-    }
+    },
+    "createUpdaterArtifacts": true
   },
   "plugins": {
     "auth-session": {
       "callbackUrlScheme": "lakk"
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/nexus/lakk/releases/latest/download/{{target}}/{{arch}}/{{current_version}}.json"
+      ],
+      "dialog": true,
+      "pubkey": ""
     }
   }
 }

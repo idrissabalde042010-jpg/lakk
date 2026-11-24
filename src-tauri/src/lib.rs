@@ -12,6 +12,8 @@ use std::sync::{Mutex, OnceLock};
 
 // Plugin d'authentification OAuth (Google, Apple, etc.)
 use tauri_plugin_auth_session::AuthSessionExt;
+// Plugin de mise à jour automatique
+use tauri_plugin_updater::UpdaterExt;
 
 #[cfg(target_os = "linux")]
 fn disable_dmabuf_renderer() {
@@ -201,6 +203,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_auth_session::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             app_info,
             course_json,

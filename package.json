@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-process": "^2.4.0",
+    "@tauri-apps/plugin-updater": "^2.14.1",
     "driver.js": "^1.14.0",
     "svelte-i18n": "^4.0.1",
     "tauri-plugin-auth-session-api": "^0.2.2"
