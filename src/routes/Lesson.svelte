@@ -2,7 +2,7 @@
   import { app } from '../lib/store.svelte';
   import { answersMatch, loseEnergy } from '../lib/engine';
   import type { Grade, Exercise } from '../lib/engine';
-  import { sfx, speak, isSpeechAvailable } from '../lib/audio';
+  import { speak, isSpeechAvailable } from '../lib/audio';
   import { shuffle, shuffledIndices } from '../lib/shuffle';
 
   const ctx = app.active!;
@@ -93,10 +93,8 @@
     ok = answersMatch(ex.answer, given, ex.accepted);
     if (ok) {
       correct += 1;
-      sfx.correct();
     } else {
       wrong += 1;
-      sfx.wrong();
       loseEnergy(app.profile);
       app.save();
       shake = true;
@@ -128,18 +126,15 @@
     accuracy = Math.round((correct / Math.max(1, correct + wrong)) * 100);
     app.completeLesson(ctx.u, ctx.l, earnedXp, accuracy);
     done = true;
-    sfx.win();
   }
 
   function choose(i: number): void {
     if (phase !== 'answer') return;
     selected = i;
-    sfx.tap();
   }
   function pickWord(i: number): void {
     if (phase !== 'answer' || picked.includes(i)) return;
     picked = [...picked, i];
-    sfx.tap();
   }
   function unpick(i: number): void {
     if (phase !== 'answer') return;

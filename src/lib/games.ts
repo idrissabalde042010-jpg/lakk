@@ -3,7 +3,6 @@
 
 import { app } from './store.svelte';
 import type { Vocab } from './engine';
-import { sfx } from './audio';
 import { shuffle, sample } from './shuffle';
 
 export type GameType =
@@ -364,17 +363,14 @@ export function completeRound(session: GameSession, correct: boolean): void {
     session.score += 10 + session.streak * 2;
     session.streak += 1;
     session.bestStreak = Math.max(session.bestStreak, session.streak);
-    sfx.correct();
   } else {
     session.streak = 0;
-    sfx.wrong();
   }
   session.round += 1;
 
   if (session.round >= session.maxRounds) {
     session.completed = true;
     session.xpEarned = calculateGameXP(session);
-    sfx.win();
   }
 }
 

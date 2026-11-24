@@ -2,39 +2,62 @@
   import Baobab from './Baobab.svelte';
   import { INTRO_STEPS, markIntroSeen } from '../lib/intro';
   import { startBgm } from '../lib/bgm.svelte';
-  import { sfx } from '../lib/audio';
+  import { speak, cancelSpeech } from '../lib/audio';
 
   let { onDone }: { onDone: () => void } = $props();
 
   let step = $state(0);
   const current = $derived(INTRO_STEPS[step]);
   const last = $derived(step === INTRO_STEPS.length - 1);
+  let speaking = $state(false);
+
+  /** Lit l'étape courante. */
+  async function readStep(): Promise<void> {
+    if (speaking) return;
+    speaking = true;
+    await speak(current.text, 'fr-FR');
+    speaking = false;
+  }
 
   /** Passe à l'étape suivante (et lance la musique au premier « Suivant »). */
-  function next(): void {
-    sfx.tap();
+  async function next(): Promise<void> {
     if (step === 0) startBgm();
 
     if (last) {
       markIntroSeen();
-      sfx.win();
       onDone();
       return;
     }
     step += 1;
+    await readStep();
   }
 
   function back(): void {
     if (step === 0) return;
-    sfx.tap();
     step -= 1;
   }
 
-  function skip(): void {
-    sfx.tap();
+  async function skip(): Promise<void> {
+    cancelSpeech();
     markIntroSeen();
     onDone();
   }
+
+  // Lecture automatique de la première étape au montage
+  let mounted = $state(false);
+  $effect(() => {
+    if (!mounted) {
+      mounted = true;
+      readStep();
+    }
+  });
+
+  // Re-lire si l'étape change
+  $effect(() => {
+    if (mounted && !speaking) {
+      readStep();
+    }
+  });
 </script>
 
 <div class="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
@@ -72,7 +95,9 @@
     {#if step > 0}
       <button class="btn ghost block" type="button" onclick={back}>Retour</button>
     {/if}
-    <button class="btn orange block" type="button" onclick={next}>{current.cta}</button>
+    <button class="btn orange block" type="button" onclick={next} disabled={speaking}>
+      {speaking ? '…' : current.cta}
+    </button>
   </div>
 </div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
-  import { sfx, speak } from '../lib/audio';
+  import { speak } from '../lib/audio';
   import {
     newGame,
     generateRound,
@@ -28,7 +28,6 @@
   function startGame(type: GameType): void {
     selectedGame = type;
     session = newGame(type);
-    sfx.tap();
     nextRound();
   }
 
@@ -55,15 +54,8 @@
     completeRound(session, roundCorrect);
     showResult = true;
 
-    if (roundCorrect) {
-      sfx.correct();
-    } else {
-      sfx.wrong();
-    }
-
     if (session.completed) {
       // Jeu fini : donner l'XP
-      if (roundCorrect) sfx.win();
       app.completeLesson(99, 99, session.xpEarned, 100);
     }
   }
@@ -82,13 +74,11 @@
   function addLetter(letter: string): void {
     if (session?.type === 'word_builder' && !showResult) {
       wordBuilderInput += letter;
-      sfx.tap();
     }
   }
   function removeLetter(): void {
     if (session?.type === 'word_builder' && !showResult) {
       wordBuilderInput = wordBuilderInput.slice(0, -1);
-      sfx.tap();
     }
   }
   function clearWordBuilder(): void {
@@ -99,7 +89,6 @@
   function addWord(word: string): void {
     if (session?.type === 'sentence_scramble' && !showResult) {
       answer = answer ? `${answer} ${word}` : word;
-      sfx.tap();
     }
   }
   function removeWord(): void {
@@ -107,7 +96,6 @@
       const words = answer.split(' ');
       words.pop();
       answer = words.join(' ');
-      sfx.tap();
     }
   }
   function clearSentence(): void {
@@ -143,7 +131,7 @@
   {:else}
     <!-- Jeu en cours -->
     <header class="head">
-      <button class="x" onclick={() => { selectedGame = null; session = null; sfx.tap(); }} aria-label="Quitter">✕</button>
+      <button class="x" onclick={() => { selectedGame = null; session = null; }} aria-label="Quitter">✕</button>
       <div class="game-header-info">
         <span class="game-icon">{GAME_LABELS[selectedGame!].icon}</span>
         <div>
@@ -227,7 +215,7 @@
                       class:sel={answer === choice}
                       class:correct={showResult && roundCorrect && choice === round.answer}
                       class:wrong={showResult && !roundCorrect && choice === answer && choice !== round.answer}
-                      onclick={() => { if (!showResult) { answer = choice; sfx.tap(); } }}
+                      onclick={() => { if (!showResult) { answer = choice; } }}
                       disabled={showResult}
                     >
                       {choice}

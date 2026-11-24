@@ -3,7 +3,7 @@
   import Baobab from '../components/Baobab.svelte';
   import ProgressRing from '../components/ProgressRing.svelte';
   import PathNode from '../components/PathNode.svelte';
-  import { sfx, speak, warmUpSpeech, isSpeechAvailable } from '../lib/audio';
+  import { speak, warmUpSpeech, isSpeechAvailable } from '../lib/audio';
   import { generateDailyChallenge, checkDailyChallenge, type DailyChallenge } from '../lib/dailyChallenge';
 
   const p = $derived(app.profile);
@@ -25,7 +25,6 @@
   }
 
   function continueLesson(): void {
-    sfx.tap();
     const next = lessons.find((r) => !app.isCompleted(r.u, r.l) && app.isUnlocked(r.u, r.l));
     const target = next ?? lessons[0];
     app.startLesson(target.u, target.l);
@@ -33,7 +32,6 @@
 
   function open(u: number, l: number): void {
     if (app.isUnlocked(u, l)) {
-      sfx.tap();
       app.startLesson(u, l);
     }
   }
@@ -43,7 +41,6 @@
 
   // --- Défi quotidien ---
   function speakChallenge(): void {
-    sfx.tap();
     if (dailyChallenge?.audioText) speak(dailyChallenge.audioText);
   }
 
@@ -52,11 +49,8 @@
     challengeOk = checkDailyChallenge(dailyChallenge, challengeAnswer);
     challengePhase = 'feedback';
     if (challengeOk) {
-      sfx.correct();
       app.completeLesson(99, 99, dailyChallenge.xp, 100); // XP bonus sans leçon réelle
       challengeDone = true;
-    } else {
-      sfx.wrong();
     }
   }
 
@@ -85,20 +79,18 @@
     warmUpSpeech();
   }
 
-  /** Clic sur la carte « Défi du jour » : petit retour sonore. */
+  /** Clic sur la carte « Défi du jour » : préchauffe l'audio. */
   function onChallengeTap(event: MouseEvent): void {
     primeAudio();
     const target = event.target as HTMLElement | null;
     if (target?.closest('button, input, label, a, select, textarea')) return;
-    sfx.tap();
   }
 
-  /** Même retour sonore au clavier (Entrée / Espace). */
+  /** Même au clavier (Entrée / Espace). */
   function onChallengeKey(event: KeyboardEvent): void {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     primeAudio();
-    sfx.tap();
   }
 </script>
 
@@ -164,7 +156,7 @@
               <button
                 class="choice"
                 class:sel={challengeAnswer === choice}
-                onclick={() => { challengeAnswer = choice; sfx.tap(); }}
+                onclick={() => { challengeAnswer = choice; }}
               >
                 {choice}
               </button>
@@ -177,7 +169,7 @@
                 <button
                   type="button"
                   class="word"
-                  onclick={() => { challengeAnswer = dc.answer; sfx.tap(); }}
+                  onclick={() => { challengeAnswer = dc.answer; }}
                 >{dc.answer}</button>
               {:else}
                 {#each challengeAnswer.split(' ') as w}
@@ -196,7 +188,6 @@
                   onclick={() => {
                     if (!challengeAnswer.includes(w)) {
                       challengeAnswer = challengeAnswer ? `${challengeAnswer} ${w}` : w;
-                      sfx.tap();
                     }
                   }}
                   disabled={challengeAnswer.includes(w)}

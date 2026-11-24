@@ -2,7 +2,7 @@
   import { app } from '../lib/store.svelte';
   import type { Card, Grade } from '../lib/engine';
   import { mastery } from '../lib/engine';
-  import { sfx, speak, isSpeechAvailable } from '../lib/audio';
+  import { speak, isSpeechAvailable } from '../lib/audio';
   import { shuffle, shuffledIndices } from '../lib/shuffle';
 
   let due = $state<Card[]>(app.dueCards());
@@ -30,7 +30,6 @@
 
   function reveal(): void {
     revealed = true;
-    sfx.tap();
     if (current && speechAvailable) speak(current.vocab.en);
   }
 
@@ -40,7 +39,6 @@
     reviewed += 1;
     revealed = false;
     due = app.dueCards();
-    sfx.tap();
     shuffleGrades();
   }
 

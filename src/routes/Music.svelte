@@ -1,6 +1,6 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
-  import { sfx, speak, cancelSpeech, isSpeechAvailable } from '../lib/audio';
+  import { speak, cancelSpeech, isSpeechAvailable } from '../lib/audio';
   import { SONGS, getLineAtTime, getWordAtTime, playLine, playWord, formatTime, type Song, type KaraokeState, type LyricLine } from '../lib/music';
 
   let selectedSong = $state<Song | null>(null);
@@ -14,7 +14,6 @@
   function selectSong(song: Song): void {
     selectedSong = song;
     karaoke = { song, currentLine: 0, currentWord: -1, isPlaying: false, currentTime: 0, showTranslation: true, speed: 1 };
-    sfx.tap();
   }
 
   function goBack(): void {

@@ -223,9 +223,21 @@ function processQueue(): void {
 
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
-  u.rate = 0.88;
-  u.pitch = 1.02;
-  u.volume = 1.0;
+  
+  // Paramètres par langue pour une meilleure qualité
+  if (lang.startsWith('fr')) {
+    u.rate = 0.9;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+  } else if (lang.startsWith('en')) {
+    u.rate = 0.88;
+    u.pitch = 1.02;
+    u.volume = 1.0;
+  } else {
+    u.rate = 0.92;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+  }
 
   const voice = pickVoice(lang);
   if (voice) {
@@ -299,6 +311,7 @@ export async function speak(text: string, lang = 'en-US'): Promise<void> {
   if (!ok) {
     console.warn('[audio] aucun moteur TTS disponible pour :', text);
   }
+  // Toujours résoudre pour ne pas bloquer la file d'attente
 }
 
 /** Arrête toute synthèse en cours. */
