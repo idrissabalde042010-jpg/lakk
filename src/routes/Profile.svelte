@@ -1,0 +1,733 @@
+<script lang="ts">
+  import { app } from '../lib/store.svelte';
+  import { dayKey, mastery } from '../lib/engine';
+  import Baobab from '../components/Baobab.svelte';
+  import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
+
+  const p = $derived(app.profile);
+  const cards = $derived(Object.values(app.data.cards));
+  const solid = $derived(cards.filter((c) => mastery(c).pct >= 70).length);
+  const due = $derived(app.dueCards().length);
+
+  let dark = $state(document.documentElement.classList.contains('dark'));
+  function toggleDark(): void {
+    dark = !dark;
+    document.documentElement.classList.toggle('dark', dark);
+    try {
+      localStorage.setItem('lakk.theme', dark ? 'dark' : 'light');
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const week = $derived(
+    Array.from({ length: 7 }, (_, i) => {
+      const ts = Date.now() - (6 - i) * 86_400_000;
+      const k = dayKey(ts);
+      return {
+        k,
+        label: new Date(ts).toLocaleDateString('fr-FR', { weekday: 'narrow' }),
+        xp: app.data.history[k] ?? 0,
+      };
+    }),
+  );
+  const maxXp = $derived(Math.max(1, ...week.map((w) => w.xp)));
+  const emptyWeek = $derived(week.every((w) => w.xp === 0));
+
+  const notebook = $derived(
+    [...cards].sort((a, b) => mastery(a).pct - mastery(b).pct).slice(0, 6),
+  );
+
+  const contentSummary = $derived(
+    app.stats
+      ? `${app.stats.lessons} leçons · ${app.stats.exercises} exercices · ${app.stats.words} mots`
+      : `${app.lessons.length} leçons · ${app.lessons.reduce((n, l) => n + l.data.exercises.length, 0)} exercices`,
+  );
+
+  // --- Compte ---
+  const account = $derived(getAccount());
+  const auth = $derived(getAuthState());
+  const syncStatus = $derived(getSyncStatus());
+  const lastError = $derived(getLastError());
+
+  let showAuth = $state(false);
+  let authMode = $state<'login' | 'register'>('login');
+  let authEmail = $state('');
+  let authPassword = $state('');
+  let authError = $state<string | null>(null);
+  let authLoading = $state(false);
+  let showBackup = $state(false);
+  let backupPassword = $state('');
+  let backupResult = $state<string | null>(null);
+  let restoreFile = $state<File | null>(null);
+
+  async function handleAuth(): Promise<void> {
+    authError = null;
+    authLoading = true;
+    try {
+      if (authMode === 'login') {
+        await login(authEmail, authPassword);
+      } else {
+        await createAccount(authEmail, authPassword);
+      }
+      showAuth = false;
+      authEmail = '';
+      authPassword = '';
+    } catch (e) {
+      authError = e instanceof Error ? e.message : 'Erreur';
+    } finally {
+      authLoading = false;
+    }
+  }
+
+  function handleLogout(): void {
+    if (confirm('Déconnexion ? Tes données restent sur cet appareil.')) {
+      logout();
+    }
+  }
+
+  async function handleSyncUp(): Promise<void> {
+    await syncToCloud();
+  }
+
+  async function handleSyncDown(): Promise<void> {
+    await syncFromCloud();
+  }
+
+  async function handleBackup(): Promise<void> {
+    try {
+      const json = await backupNow(backupPassword || undefined);
+      backupResult = json;
+    } catch (e) {
+      backupResult = 'Erreur : ' + (e instanceof Error ? e.message : 'inconnue');
+    }
+  }
+
+  async function handleRestore(): Promise<void> {
+    if (!restoreFile) return;
+    const text = await restoreFile.text();
+    try {
+      await restoreBackup(text, backupPassword || undefined);
+      backupResult = 'Restauré avec succès !';
+      restoreFile = null;
+    } catch (e) {
+      backupResult = 'Erreur : ' + (e instanceof Error ? e.message : 'inconnue');
+    }
+  }
+
+  function reset(): void {
+    if (confirm('Effacer toute la progression et repartir de zéro ?')) {
+      app.reset();
+    }
+  }
+</script>
+
+<div class="profile rise">
+  <header class="head">
+    <div class="avatar" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 2.6c1 3.1 3.4 5.5 6.5 6.5-3.1 1-5.5 3.4-6.5 6.5-1-3.1-3.4-5.5-6.5-6.5 3.1-1 5.5-3.4 6.5-6.5Z"
+          fill="#fff"
+          opacity="0.95"
+        />
+        <path
+          d="M12 15.4c.55 1.7 1.9 3.05 3.6 3.6-1.7.55-3.05 1.9-3.6 3.6-.55-1.7-1.9-3.05-3.6-3.6 1.7-.55 3.05-1.9 3.6-3.6Z"
+          fill="#fff"
+          opacity="0.6"
+        />
+      </svg>
+    </div>
+    <div>
+      <h1>{p.name}</h1>
+      <p class="small muted">Rufisque, Sénégal</p>
+    </div>
+  </header>
+
+  <section class="card baobab-card">
+    <Baobab streak={p.streakDays} size={108} />
+    <div class="grow">
+      <p class="eyebrow">Ton baobab</p>
+      <p class="big"><strong>{p.streakDays}</strong> jour{p.streakDays > 1 ? 's' : ''}</p>
+      <p class="small muted">{p.xpTotal} graines au total</p>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="stat">
+      <span class="v">{cards.length}</span>
+      <span class="k">mots appris</span>
+    </div>
+    <div class="stat">
+      <span class="v">{solid}</span>
+      <span class="k">bien retenus</span>
+    </div>
+    <div class="stat">
+      <span class="v">{due}</span>
+      <span class="k">à réviser</span>
+    </div>
+  </section>
+
+  <section class="card chart-card">
+    <div class="row between">
+      <p class="eyebrow">Cette semaine</p>
+      <span class="small muted">graines / jour</span>
+    </div>
+    <div class="chart">
+      {#each week as w}
+        <div class="col">
+          <div class="bar-wrap">
+            <div
+              class="bar"
+              style={`height:${Math.max(6, Math.round((w.xp / maxXp) * 100))}%`}
+              class:zero={w.xp === 0}
+              title={`${w.xp} graines`}
+            ></div>
+          </div>
+          <span class="day">{w.label}</span>
+        </div>
+      {/each}
+    </div>
+    {#if emptyWeek}
+      <p class="chart-empty small muted">Ta première graine t’attend aujourd’hui.</p>
+    {/if}
+  </section>
+
+  <section class="card settings">
+    <p class="eyebrow">Réglages</p>
+
+    <div class="set-row">
+      <span>Objectif par jour</span>
+      <div class="goals">
+        {#each [10, 20, 30, 50] as g}
+          <button class="goal-chip" class:on={p.dailyGoalXp === g} onclick={() => app.setGoal(g)}>
+            {g}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span>Thème sombre</span>
+      <button class="switch" class:on={dark} onclick={toggleDark} aria-pressed={dark} aria-label="Thème sombre">
+        <span></span>
+      </button>
+    </div>
+
+    <div class="set-row">
+      <span>Énergie illimitée<small class="muted">toujours gratuit</small></span>
+      <button
+        class="switch"
+        class:on={p.unlimitedEnergy}
+        onclick={() => app.toggleEnergy()}
+        aria-pressed={p.unlimitedEnergy}
+        aria-label="Énergie illimitée"
+      >
+        <span></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Compte & Synchronisation -->
+  <section class="card account">
+    <div class="row between">
+      <p class="eyebrow">Compte</p>
+      {#if auth}
+        <span class="badge sync" class:synced={syncStatus === 'synced'} class:error={syncStatus === 'error'} class:pending={syncStatus === 'syncing'}>
+          {syncStatus === 'synced' ? '✓ Synchronisé' : syncStatus === 'syncing' ? '⟳ Sync…' : syncStatus === 'error' ? '⚠ Erreur' : '☁ Cloud'}
+        </span>
+      {/if}
+    </div>
+
+    {#if !auth}
+      <div class="auth-panel">
+        <p class="small muted">Crée un compte pour synchroniser ta progression sur plusieurs appareils (optionnel, gratuit).</p>
+        <button class="btn block" onclick={() => { showAuth = true; authMode = 'register'; }}>Créer un compte</button>
+        <button class="btn ghost block" onclick={() => { showAuth = true; authMode = 'login'; }}>Se connecter</button>
+      </div>
+    {:else}
+      <div class="account-info">
+        <div class="row">
+          <span class="small muted">Connecté en tant que</span>
+          <strong>{account?.email}</strong>
+        </div>
+        <div class="row">
+          <span class="small muted">Dernière sync</span>
+          <strong>{account?.lastSync ? new Date(account.lastSync).toLocaleString('fr-FR') : 'Jamais'}</strong>
+        </div>
+        <div class="sync-actions">
+          <button class="btn block" onclick={handleSyncUp} disabled={syncStatus === 'syncing'}>☁ Sauvegarder (cloud)</button>
+          <button class="btn ghost block" onclick={handleSyncDown} disabled={syncStatus === 'syncing'}>⬇ Restaurer (cloud)</button>
+        </div>
+        {#if lastError}
+          <p class="small muted" style="color: var(--rose);">{lastError}</p>
+        {/if}
+        <button class="btn ghost block" onclick={handleLogout}>Se déconnecter</button>
+      </div>
+    {/if}
+
+    {#if showAuth}
+      <form class="auth-form" onsubmit={(e) => { e.preventDefault(); handleAuth(); }}>
+        <h4>{authMode === 'login' ? 'Connexion' : 'Créer un compte'}</h4>
+        <label>
+          <span class="small">Email</span>
+          <input type="email" bind:value={authEmail} placeholder="toi@exemple.com" required autocomplete="email" />
+        </label>
+        <label>
+          <span class="small">Mot de passe</span>
+          <input type="password" bind:value={authPassword} placeholder="••••••••" required minlength={6} autocomplete={authMode === 'login' ? 'current-password' : 'new-password'} />
+        </label>
+        {#if authError}
+          <p class="small" style="color: var(--rose);">{authError}</p>
+        {/if}
+        <div class="row">
+          <button class="btn orange block" type="submit" disabled={authLoading || !authEmail || !authPassword}>
+            {authLoading ? '⟳' : authMode === 'login' ? 'Se connecter' : 'Créer le compte'}
+          </button>
+          <button class="btn ghost block" type="button" onclick={() => { showAuth = false; authError = null; }}>Annuler</button>
+        </div>
+      </form>
+    {/if}
+
+    <details class="backup-section">
+      <summary>💾 Sauvegarde locale (fichier chiffré)</summary>
+      <p class="small muted">Exporte ou importe ta progression complète (profil + vocabulaire + historique) dans un fichier JSON chiffré.</p>
+      <label>
+        <span class="small">Mot de passe (optionnel, pour chiffrer)</span>
+        <input type="password" bind:value={backupPassword} placeholder="Laisser vide = non chiffré" autocomplete="new-password" />
+      </label>
+      <div class="row">
+        <button class="btn block" onclick={handleBackup}>Exporter la sauvegarde</button>
+        <label class="btn ghost block">
+          Importer
+          <input type="file" accept=".json" onchange={(e) => { const t = e.target as HTMLInputElement; restoreFile = t.files?.[0] ?? null; handleRestore(); }} style="display:none" />
+        </label>
+      </div>
+      {#if backupResult}
+        <textarea class="backup-output" readonly>{backupResult}</textarea>
+        <button class="btn ghost block" onclick={() => { if (backupResult) navigator.clipboard.writeText(backupResult); backupResult = 'Copié !'; }}>Copier</button>
+      {/if}
+    </details>
+  </section>
+
+  {#if notebook.length > 0}
+    <details class="card notebook">
+      <summary>Mon carnet de mots <span class="small muted">({cards.length})</span></summary>
+      {#each notebook as c}
+        <div class="word-row">
+          <div class="word-main">
+            <strong>{c.vocab.en}</strong>
+            <span class="small muted">{c.vocab.fr}</span>
+          </div>
+          <div class="mini-bar"><span style={`width:${mastery(c).pct}%`}></span></div>
+        </div>
+      {/each}
+      {#if cards.length > notebook.length}
+        <p class="small muted more">+ {cards.length - notebook.length} autre(s) mot(s)</p>
+      {/if}
+    </details>
+  {/if}
+
+  <section class="card about">
+    <p class="eyebrow">À propos</p>
+    <div class="about-row">
+      <span>Moteur</span>
+      <strong>{app.engine === 'rust' ? 'lakk-core (Rust)' : 'Miroir TypeScript'}</strong>
+    </div>
+    <div class="about-row">
+      <span>Contenu</span>
+      <strong>{contentSummary}</strong>
+    </div>
+    <div class="about-row">
+      <span>Version</span>
+      <strong>0.1.0 · MIT</strong>
+    </div>
+  </section>
+
+  <button class="btn ghost block reset" onclick={reset}>Réinitialiser</button>
+  <p class="footer-note">Lakk · gratuit · sans compte</p>
+</div>
+
+<style>
+  .profile {
+    padding: 0 16px 24px;
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 0 16px;
+  }
+  .head h1 {
+    font-size: 24px;
+  }
+  .avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: radial-gradient(120% 120% at 30% 20%, #ff8a53, var(--orange));
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 0 var(--orange-deep);
+    flex: none;
+  }
+  .avatar svg {
+    width: 34px;
+    height: 34px;
+  }
+  .baobab-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .big {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 600;
+    margin: 2px 0;
+    line-height: 1;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
+  .stat .v {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--teal);
+  }
+  .stat .k {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.15;
+  }
+  .chart-card {
+    margin-bottom: 10px;
+  }
+  .chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 108px;
+    margin-top: 14px;
+  }
+  .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+  }
+  .bar-wrap {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .bar {
+    width: 66%;
+    border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, var(--mango), var(--orange));
+    transition: height 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .bar.zero {
+    background: var(--line);
+  }
+  .chart-empty {
+    text-align: center;
+    margin-top: 10px;
+  }
+  .day {
+    font-size: 10.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .settings {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .set-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .set-row > span {
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+  }
+  .set-row small {
+    font-size: 11px;
+    font-weight: 400;
+  }
+  .goals {
+    display: flex;
+    gap: 6px;
+  }
+  .goal-chip {
+    width: 36px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink-soft);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .goal-chip.on {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+    color: var(--orange-deep);
+  }
+  .switch {
+    width: 46px;
+    height: 27px;
+    border-radius: 999px;
+    border: 0;
+    background: var(--line);
+    position: relative;
+    cursor: pointer;
+    flex: none;
+    transition: background 0.15s ease;
+  }
+  .switch span {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.18s ease;
+  }
+  .switch.on {
+    background: var(--teal);
+  }
+  .switch.on span {
+    transform: translateX(19px);
+  }
+  .notebook {
+    margin-bottom: 10px;
+  }
+  .notebook summary {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .notebook summary::-webkit-details-marker {
+    display: none;
+  }
+  .notebook summary::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: 8px;
+    color: var(--teal);
+    transition: transform 0.15s ease;
+  }
+  .notebook[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .word-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 0 0;
+  }
+  .word-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .word-main strong {
+    font-size: 15px;
+  }
+  .mini-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .mini-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--teal);
+  }
+  .more {
+    margin-top: 10px;
+  }
+  .about {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .about-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .about-row span {
+    color: var(--muted);
+  }
+  .about-row strong {
+    font-weight: 600;
+    text-align: right;
+  }
+  .reset {
+    margin-top: 4px;
+    color: var(--rose);
+    border-color: var(--rose-soft);
+  }
+  .footer-note {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 16px;
+  }
+
+  /* --- Compte --- */
+  .account {
+    margin-bottom: 10px;
+  }
+  .badge.sync {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--line);
+    color: var(--muted);
+  }
+  .badge.sync.synced {
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+  }
+  .badge.sync.pending {
+    background: var(--blue-soft);
+    color: var(--blue);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .badge.sync.error {
+    background: var(--rose-soft);
+    color: var(--rose);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .auth-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .sync-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--paper);
+    border-radius: 12px;
+  }
+  .auth-form h4 {
+    margin: 0 0 8px;
+    font-size: 15px;
+  }
+  .auth-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+  }
+  .auth-form input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+  }
+  .auth-form input:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+  .auth-form .row {
+    display: flex;
+    gap: 8px;
+  }
+  .auth-form .btn {
+    flex: 1;
+  }
+  .backup-section {
+    margin-top: 12px;
+  }
+  .backup-section summary {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .backup-section summary::-webkit-details-marker { display: none; }
+  .backup-section summary::before { content: '▸'; margin-right: 8px; color: var(--teal); transition: transform 0.15s; }
+  .backup-section[open] summary::before { transform: rotate(90deg); }
+  .backup-section label { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 13px; }
+  .backup-section input { padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; }
+  .backup-section .row { display: flex; gap: 8px; margin-top: 10px; }
+  .backup-section .btn { flex: 1; }
+  .backup-output {
+    width: 100%;
+    min-height: 80px;
+    max-height: 200px;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--ink);
+    color: var(--mango);
+    font-family: monospace;
+    font-size: 11px;
+    resize: vertical;
+  }
+</style>

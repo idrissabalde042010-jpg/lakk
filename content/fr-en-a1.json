@@ -1,0 +1,519 @@
+{
+  "course": {
+    "source": "fr",
+    "target": "en",
+    "title": "Lakk — Anglais A1 Complet (Niveau Débutant)"
+  },
+  "phrases": [
+    { "en": "How are you today?", "fr": "Comment vas-tu aujourd’hui ?", "tip": "Réponds : “I’m fine, thank you!”" },
+    { "en": "What is your name?", "fr": "Comment t'appelles-tu ?", "tip": "Réponds : “My name is…”" },
+    { "en": "Where are you from?", "fr": "Tu viens d'où ?", "tip": "Réponds : “I’m from Senegal.”" },
+    { "en": "Do you speak English?", "fr": "Est-ce que tu parles anglais ?", "tip": "Réponds : “Yes, a little.”" },
+    { "en": "I like learning English.", "fr": "J'aime apprendre l'anglais.", "tip": "Verbe like + -ing" },
+    { "en": "It is a beautiful day.", "fr": "C'est une belle journée.", "tip": "It is = it’s" },
+    { "en": "Can you help me?", "fr": "Peux-tu m'aider ?", "tip": "Can = pouvoir (capacité)" },
+    { "en": "What time is it?", "fr": "Quelle heure est-il ?", "tip": "It's + heure" },
+    { "en": "I don't understand.", "fr": "Je ne comprends pas.", "tip": "Don't = do not" },
+    { "en": "Could you repeat please?", "fr": "Pourriez-vous répéter s'il vous plaît ?", "tip": "Could = pourrais (politesse)" },
+    { "en": "Have a nice day!", "fr": "Bonne journée !", "tip": "Expression de politesse" },
+    { "en": "See you later!", "fr": "À plus tard !", "tip": "See you = à plus / à bientôt" }
+  ],
+  "units": [
+    {
+      "title": "Les bases",
+      "color": "#0e9f7e",
+      "lessons": [
+        {
+          "title": "Se présenter",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « bonjour » ?", "choices": ["hello", "goodbye", "please", "thanks"], "answer": "hello", "vocab": { "en": "hello", "fr": "bonjour" } },
+            { "kind": "translate", "prompt": "Je suis étudiant.", "word_bank": ["I", "am", "a", "student", "you", "is"], "answer": "I am a student", "vocab": { "en": "I am a student", "fr": "je suis étudiant" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « merci » ?", "choices": ["thank you", "hello", "sorry", "yes"], "answer": "thank you", "vocab": { "en": "thank you", "fr": "merci" } },
+            { "kind": "translate", "prompt": "Comment vas-tu ?", "word_bank": ["How", "are", "you", "I", "am", "fine"], "answer": "How are you", "vocab": { "en": "How are you", "fr": "comment vas-tu" } },
+            { "kind": "fill_blank", "prompt": "My name ___ Idrissa.", "answer": "is", "vocab": { "en": "My name is", "fr": "je m'appelle" } }
+          ]
+        },
+        {
+          "title": "Les salutations",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « au revoir » ?", "choices": ["goodbye", "hello", "please", "welcome"], "answer": "goodbye", "vocab": { "en": "goodbye", "fr": "au revoir" } },
+            { "kind": "translate", "prompt": "Bonjour, comment tu t'appelles ?", "word_bank": ["Hello", "what", "is", "your", "name", "my"], "answer": "Hello what is your name", "vocab": { "en": "what is your name", "fr": "comment tu t'appelles" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « s'il te plaît » ?", "choices": ["please", "sorry", "thanks", "yes"], "answer": "please", "vocab": { "en": "please", "fr": "s'il te plaît" } },
+            { "kind": "translate", "prompt": "Je m'appelle Idrissa.", "word_bank": ["My", "name", "is", "Idrissa", "your", "am"], "answer": "My name is Idrissa", "vocab": { "en": "My name is Idrissa", "fr": "je m'appelle Idrissa" } },
+            { "kind": "fill_blank", "prompt": "Nice to ___ you.", "answer": "meet", "vocab": { "en": "nice to meet you", "fr": "enchanté" } }
+          ]
+        },
+        {
+          "title": "Les nombres 1-20",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « trois » ?", "choices": ["three", "two", "ten", "five"], "answer": "three", "vocab": { "en": "three", "fr": "trois" } },
+            { "kind": "translate", "prompt": "J'ai seize ans.", "word_bank": ["I", "am", "sixteen", "years", "old", "have"], "answer": "I am sixteen years old", "vocab": { "en": "I am sixteen years old", "fr": "j'ai seize ans" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « dix » ?", "choices": ["ten", "three", "six", "one"], "answer": "ten", "vocab": { "en": "ten", "fr": "dix" } },
+            { "kind": "fill_blank", "prompt": "I have ___ brothers.", "answer": "two", "vocab": { "en": "two", "fr": "deux" } },
+            { "kind": "translate", "prompt": "Il y a cinq livres.", "word_bank": ["There", "are", "five", "books", "is", "book"], "answer": "There are five books", "vocab": { "en": "There are five books", "fr": "il y a cinq livres" } }
+          ]
+        },
+        {
+          "title": "Les nombres 20-100",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « vingt » ?", "choices": ["twenty", "thirty", "twelve", "twice"], "answer": "twenty", "vocab": { "en": "twenty", "fr": "vingt" } },
+            { "kind": "translate", "prompt": "J'ai trente ans.", "word_bank": ["I", "am", "thirty", "years", "old", "have"], "answer": "I am thirty years old", "vocab": { "en": "I am thirty years old", "fr": "j'ai trente ans" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « cinquante » ?", "choices": ["fifty", "fifteen", "five", "fourty"], "answer": "fifty", "vocab": { "en": "fifty", "fr": "cinquante" } },
+            { "kind": "fill_blank", "prompt": "My father is ___ years old.", "answer": "forty", "vocab": { "en": "forty", "fr": "quarante" } },
+            { "kind": "translate", "prompt": "Il y a cent élèves.", "word_bank": ["There", "are", "one", "hundred", "students", "is"], "answer": "There are one hundred students", "vocab": { "en": "one hundred", "fr": "cent" } }
+          ]
+        },
+        {
+          "title": "L'alphabet et l'orthographe",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment s'écrit la lettre A ?", "choices": ["A", "E", "I", "O"], "answer": "A", "vocab": { "en": "A", "fr": "la lettre A" } },
+            { "kind": "translate", "prompt": "Épelez votre nom.", "word_bank": ["Spell", "your", "name", "please", "write", "say"], "answer": "Spell your name please", "vocab": { "en": "Spell your name", "fr": "épelez votre nom" } },
+            { "kind": "multiple_choice", "prompt": "Quelle lettre fait le son /i/ ?", "choices": ["E", "I", "A", "O"], "answer": "I", "vocab": { "en": "I", "fr": "la lettre I" } },
+            { "kind": "fill_blank", "prompt": "My name starts with the letter ___.", "answer": "I", "vocab": { "en": "the letter I", "fr": "la lettre I" } },
+            { "kind": "translate", "prompt": "L'alphabet anglais a 26 lettres.", "word_bank": ["The", "English", "alphabet", "has", "twenty-six", "letters"], "answer": "The English alphabet has twenty-six letters", "vocab": { "en": "The English alphabet has twenty-six letters", "fr": "l'alphabet anglais a 26 lettres" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Au quotidien",
+      "color": "#3d6bff",
+      "lessons": [
+        {
+          "title": "La famille",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « mère » ?", "choices": ["mother", "father", "sister", "brother"], "answer": "mother", "vocab": { "en": "mother", "fr": "mère" } },
+            { "kind": "translate", "prompt": "C'est mon père.", "word_bank": ["This", "is", "my", "father", "her", "he"], "answer": "This is my father", "vocab": { "en": "This is my father", "fr": "c'est mon père" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « sœur » ?", "choices": ["sister", "brother", "mother", "aunt"], "answer": "sister", "vocab": { "en": "sister", "fr": "sœur" } },
+            { "kind": "fill_blank", "prompt": "She ___ two brothers.", "answer": "has", "vocab": { "en": "she has", "fr": "elle a" } },
+            { "kind": "translate", "prompt": "Nous sommes une grande famille.", "word_bank": ["We", "are", "a", "big", "family", "small"], "answer": "We are a big family", "vocab": { "en": "We are a big family", "fr": "nous sommes une grande famille" } }
+          ]
+        },
+        {
+          "title": "Les membres de la famille élargie",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « grand-père » ?", "choices": ["grandfather", "grandmother", "uncle", "father"], "answer": "grandfather", "vocab": { "en": "grandfather", "fr": "grand-père" } },
+            { "kind": "translate", "prompt": "Ma tante est gentille.", "word_bank": ["My", "aunt", "is", "nice", "kind", "sister"], "answer": "My aunt is nice", "vocab": { "en": "My aunt is nice", "fr": "ma tante est gentille" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « cousin » ?", "choices": ["cousin", "uncle", "nephew", "brother"], "answer": "cousin", "vocab": { "en": "cousin", "fr": "cousin" } },
+            { "kind": "fill_blank", "prompt": "My ___ is my mother's sister.", "answer": "aunt", "vocab": { "en": "aunt", "fr": "tante" } },
+            { "kind": "translate", "prompt": "Nous rendons visite à nos grands-parents.", "word_bank": ["We", "visit", "our", "grandparents", "parents", "friends"], "answer": "We visit our grandparents", "vocab": { "en": "We visit our grandparents", "fr": "nous rendons visite à nos grands-parents" } }
+          ]
+        },
+        {
+          "title": "La maison et les pièces",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « porte » ?", "choices": ["door", "window", "wall", "floor"], "answer": "door", "vocab": { "en": "door", "fr": "porte" } },
+            { "kind": "translate", "prompt": "La fenêtre est ouverte.", "word_bank": ["The", "window", "is", "open", "closed", "door"], "answer": "The window is open", "vocab": { "en": "The window is open", "fr": "la fenêtre est ouverte" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « cuisine » ?", "choices": ["kitchen", "bedroom", "bathroom", "garden"], "answer": "kitchen", "vocab": { "en": "kitchen", "fr": "cuisine" } },
+            { "kind": "fill_blank", "prompt": "I sleep in the ___.", "answer": "bedroom", "vocab": { "en": "bedroom", "fr": "chambre" } },
+            { "kind": "translate", "prompt": "Où est la salle de bain ?", "word_bank": ["Where", "is", "the", "bathroom", "kitchen", "house"], "answer": "Where is the bathroom", "vocab": { "en": "Where is the bathroom", "fr": "où est la salle de bain" } }
+          ]
+        },
+        {
+          "title": "Les meubles et objets",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « table » ?", "choices": ["table", "chair", "bed", "sofa"], "answer": "table", "vocab": { "en": "table", "fr": "table" } },
+            { "kind": "translate", "prompt": "Le livre est sur la table.", "word_bank": ["The", "book", "is", "on", "the", "table"], "answer": "The book is on the table", "vocab": { "en": "The book is on the table", "fr": "le livre est sur la table" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « chaise » ?", "choices": ["chair", "table", "bed", "desk"], "answer": "chair", "vocab": { "en": "chair", "fr": "chaise" } },
+            { "kind": "fill_blank", "prompt": "I sit on a ___.", "answer": "chair", "vocab": { "en": "chair", "fr": "chaise" } },
+            { "kind": "translate", "prompt": "Le lit est dans la chambre.", "word_bank": ["The", "bed", "is", "in", "the", "bedroom"], "answer": "The bed is in the bedroom", "vocab": { "en": "The bed is in the bedroom", "fr": "le lit est dans la chambre" } }
+          ]
+        },
+        {
+          "title": "Les couleurs",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « rouge » ?", "choices": ["red", "blue", "green", "yellow"], "answer": "red", "vocab": { "en": "red", "fr": "rouge" } },
+            { "kind": "translate", "prompt": "Le ciel est bleu.", "word_bank": ["The", "sky", "is", "blue", "red", "green"], "answer": "The sky is blue", "vocab": { "en": "The sky is blue", "fr": "le ciel est bleu" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « vert » ?", "choices": ["green", "yellow", "white", "black"], "answer": "green", "vocab": { "en": "green", "fr": "vert" } },
+            { "kind": "fill_blank", "prompt": "My car is ___.", "answer": "black", "vocab": { "en": "black", "fr": "noir" } },
+            { "kind": "translate", "prompt": "J'aime le jaune.", "word_bank": ["I", "like", "yellow", "blue", "red", "green"], "answer": "I like yellow", "vocab": { "en": "I like yellow", "fr": "j'aime le jaune" } }
+          ]
+        },
+        {
+          "title": "Les vêtements",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « chemise » ?", "choices": ["shirt", "pants", "shoes", "hat"], "answer": "shirt", "vocab": { "en": "shirt", "fr": "chemise" } },
+            { "kind": "translate", "prompt": "Je porte un pantalon bleu.", "word_bank": ["I", "wear", "blue", "pants", "jeans", "skirt"], "answer": "I wear blue pants", "vocab": { "en": "I wear blue pants", "fr": "je porte un pantalon bleu" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « chaussures » ?", "choices": ["shoes", "socks", "boots", "sandals"], "answer": "shoes", "vocab": { "en": "shoes", "fr": "chaussures" } },
+            { "kind": "fill_blank", "prompt": "She wears a red ___.", "answer": "dress", "vocab": { "en": "dress", "fr": "robe" } },
+            { "kind": "translate", "prompt": "Il fait froid, mets ton manteau.", "word_bank": ["It", "is", "cold", "put", "on", "your", "coat"], "answer": "It is cold put on your coat", "vocab": { "en": "It is cold, put on your coat", "fr": "il fait froid, mets ton manteau" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Nourriture et repas",
+      "color": "#f0435e",
+      "lessons": [
+        {
+          "title": "Fruits et légumes",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « pomme » ?", "choices": ["apple", "orange", "banana", "pear"], "answer": "apple", "vocab": { "en": "apple", "fr": "pomme" } },
+            { "kind": "translate", "prompt": "J'aime les bananes.", "word_bank": ["I", "like", "bananas", "eat", "fruit", "apple"], "answer": "I like bananas", "vocab": { "en": "I like bananas", "fr": "j'aime les bananes" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « carotte » ?", "choices": ["carrot", "tomato", "potato", "onion"], "answer": "carrot", "vocab": { "en": "carrot", "fr": "carotte" } },
+            { "kind": "fill_blank", "prompt": "I eat an ___ every day.", "answer": "apple", "vocab": { "en": "apple", "fr": "pomme" } },
+            { "kind": "translate", "prompt": "La salade est verte.", "word_bank": ["The", "salad", "is", "green", "red", "fresh"], "answer": "The salad is green", "vocab": { "en": "The salad is green", "fr": "la salade est verte" } }
+          ]
+        },
+        {
+          "title": "Viandes, poissons et protéines",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « poulet » ?", "choices": ["chicken", "beef", "fish", "pork"], "answer": "chicken", "vocab": { "en": "chicken", "fr": "poulet" } },
+            { "kind": "translate", "prompt": "Je mange du poisson.", "word_bank": ["I", "eat", "fish", "meat", "chicken", "like"], "answer": "I eat fish", "vocab": { "en": "I eat fish", "fr": "je mange du poisson" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « œuf » ?", "choices": ["egg", "milk", "cheese", "butter"], "answer": "egg", "vocab": { "en": "egg", "fr": "œuf" } },
+            { "kind": "fill_blank", "prompt": "We have ___ for breakfast.", "answer": "eggs", "vocab": { "en": "eggs", "fr": "œufs" } },
+            { "kind": "translate", "prompt": "Le bœuf est délicieux.", "word_bank": ["The", "beef", "is", "delicious", "good", "bad"], "answer": "The beef is delicious", "vocab": { "en": "The beef is delicious", "fr": "le bœuf est délicieux" } }
+          ]
+        },
+        {
+          "title": "Boissons",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « eau » ?", "choices": ["water", "milk", "juice", "tea"], "answer": "water", "vocab": { "en": "water", "fr": "eau" } },
+            { "kind": "translate", "prompt": "Je bois du lait.", "word_bank": ["I", "drink", "milk", "water", "juice", "tea"], "answer": "I drink milk", "vocab": { "en": "I drink milk", "fr": "je bois du lait" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « jus d'orange » ?", "choices": ["orange juice", "apple juice", "water", "milk"], "answer": "orange juice", "vocab": { "en": "orange juice", "fr": "jus d'orange" } },
+            { "kind": "fill_blank", "prompt": "Would you like some ___?", "answer": "tea", "vocab": { "en": "tea", "fr": "thé" } },
+            { "kind": "translate", "prompt": "Le café est chaud.", "word_bank": ["The", "coffee", "is", "hot", "cold", "good"], "answer": "The coffee is hot", "vocab": { "en": "The coffee is hot", "fr": "le café est chaud" } }
+          ]
+        },
+        {
+          "title": "Les repas de la journée",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « petit-déjeuner » ?", "choices": ["breakfast", "lunch", "dinner", "snack"], "answer": "breakfast", "vocab": { "en": "breakfast", "fr": "petit-déjeuner" } },
+            { "kind": "translate", "prompt": "Je prends mon déjeuner à midi.", "word_bank": ["I", "have", "lunch", "at", "noon", "midnight"], "answer": "I have lunch at noon", "vocab": { "en": "I have lunch at noon", "fr": "je prends mon déjeuner à midi" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « dîner » ?", "choices": ["dinner", "lunch", "breakfast", "supper"], "answer": "dinner", "vocab": { "en": "dinner", "fr": "dîner" } },
+            { "kind": "fill_blank", "prompt": "What time is ___?", "answer": "dinner", "vocab": { "en": "dinner", "fr": "dîner" } },
+            { "kind": "translate", "prompt": "Le petit-déjeuner est prêt.", "word_bank": ["Breakfast", "is", "ready", "lunch", "dinner", "hot"], "answer": "Breakfast is ready", "vocab": { "en": "Breakfast is ready", "fr": "le petit-déjeuner est prêt" } }
+          ]
+        },
+        {
+          "title": "Au restaurant",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « menu » ?", "choices": ["menu", "bill", "table", "waiter"], "answer": "menu", "vocab": { "en": "menu", "fr": "menu/la carte" } },
+            { "kind": "translate", "prompt": "Je voudrais un café s'il vous plaît.", "word_bank": ["I", "would", "like", "a", "coffee", "please"], "answer": "I would like a coffee please", "vocab": { "en": "I would like a coffee please", "fr": "je voudrais un café s'il vous plaît" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « l'addition » ?", "choices": ["the bill", "the menu", "the tip", "the change"], "answer": "the bill", "vocab": { "en": "the bill", "fr": "l'addition" } },
+            { "kind": "fill_blank", "prompt": "Can I have the ___, please?", "answer": "bill", "vocab": { "en": "the bill", "fr": "l'addition" } },
+            { "kind": "translate", "prompt": "C'est délicieux, merci.", "word_bank": ["It", "is", "delicious", "thank", "you", "good"], "answer": "It is delicious thank you", "vocab": { "en": "It is delicious, thank you", "fr": "c'est délicieux, merci" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Actions & Verbes",
+      "color": "#ff6a2b",
+      "lessons": [
+        {
+          "title": "Être & Avoir",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Choisis la bonne forme : I ___ happy.", "choices": ["am", "is", "are", "be"], "answer": "am", "vocab": { "en": "I am", "fr": "je suis" } },
+            { "kind": "translate", "prompt": "Elle est française.", "word_bank": ["She", "is", "French", "he", "are", "from"], "answer": "She is French", "vocab": { "en": "She is French", "fr": "elle est française" } },
+            { "kind": "multiple_choice", "prompt": "Choisis : They ___ students.", "choices": ["are", "is", "am", "be"], "answer": "are", "vocab": { "en": "they are", "fr": "ils/elles sont" } },
+            { "kind": "fill_blank", "prompt": "We ___ a cat.", "answer": "have", "vocab": { "en": "we have", "fr": "nous avons" } },
+            { "kind": "translate", "prompt": "Tu as un chien.", "word_bank": ["You", "have", "a", "dog", "cat", "are"], "answer": "You have a dog", "vocab": { "en": "You have a dog", "fr": "tu as un chien" } }
+          ]
+        },
+        {
+          "title": "Verbes d'action courants",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « manger » ?", "choices": ["eat", "drink", "sleep", "read"], "answer": "eat", "vocab": { "en": "eat", "fr": "manger" } },
+            { "kind": "translate", "prompt": "Je bois de l'eau.", "word_bank": ["I", "drink", "water", "eat", "milk", "juice"], "answer": "I drink water", "vocab": { "en": "I drink water", "fr": "je bois de l'eau" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « dormir » ?", "choices": ["sleep", "eat", "run", "walk"], "answer": "sleep", "vocab": { "en": "sleep", "fr": "dormir" } },
+            { "kind": "fill_blank", "prompt": "He ___ football.", "answer": "plays", "vocab": { "en": "plays", "fr": "joue (il joue)" } },
+            { "kind": "translate", "prompt": "Nous lisons un livre.", "word_bank": ["We", "read", "a", "book", "are", "reading"], "answer": "We read a book", "vocab": { "en": "We read a book", "fr": "nous lisons un livre" } }
+          ]
+        },
+        {
+          "title": "Verbes de mouvement",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « marcher » ?", "choices": ["walk", "run", "jump", "swim"], "answer": "walk", "vocab": { "en": "walk", "fr": "marcher" } },
+            { "kind": "translate", "prompt": "Il court vite.", "word_bank": ["He", "runs", "fast", "walks", "slowly", "jumps"], "answer": "He runs fast", "vocab": { "en": "He runs fast", "fr": "il court vite" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « nager » ?", "choices": ["swim", "run", "walk", "fly"], "answer": "swim", "vocab": { "en": "swim", "fr": "nager" } },
+            { "kind": "fill_blank", "prompt": "Birds can ___.", "answer": "fly", "vocab": { "en": "fly", "fr": "voler" } },
+            { "kind": "translate", "prompt": "Nous marchons à l'école.", "word_bank": ["We", "walk", "to", "school", "run", "home"], "answer": "We walk to school", "vocab": { "en": "We walk to school", "fr": "nous marchons à l'école" } }
+          ]
+        },
+        {
+          "title": "Présent simple vs Présent continu",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Choisis : I ___ reading.", "choices": ["am", "is", "are", "be"], "answer": "am", "vocab": { "en": "I am reading", "fr": "je suis en train de lire" } },
+            { "kind": "translate", "prompt": "Elle est en train de manger.", "word_bank": ["She", "is", "eating", "eat", "eats", "food"], "answer": "She is eating", "vocab": { "en": "She is eating", "fr": "elle est en train de manger" } },
+            { "kind": "multiple_choice", "prompt": "Choisis : They ___ playing.", "choices": ["are", "is", "am", "be"], "answer": "are", "vocab": { "en": "they are playing", "fr": "ils/elles sont en train de jouer" } },
+            { "kind": "fill_blank", "prompt": "We ___ learning English.", "answer": "are", "vocab": { "en": "we are learning", "fr": "nous sommes en train d'apprendre" } },
+            { "kind": "translate", "prompt": "Qu'est-ce que tu fais ?", "word_bank": ["What", "are", "you", "doing", "is", "he"], "answer": "What are you doing", "vocab": { "en": "What are you doing", "fr": "qu'est-ce que tu fais" } }
+          ]
+        },
+        {
+          "title": "Verbes irréguliers courants",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Passé de « go » ?", "choices": ["went", "goed", "gone", "going"], "answer": "went", "vocab": { "en": "went", "fr": "allé (went)" } },
+            { "kind": "translate", "prompt": "J'ai vu un film hier.", "word_bank": ["I", "saw", "a", "movie", "yesterday", "see"], "answer": "I saw a movie yesterday", "vocab": { "en": "I saw a movie yesterday", "fr": "j'ai vu un film hier" } },
+            { "kind": "multiple_choice", "prompt": "Passé de « eat » ?", "choices": ["ate", "eated", "eaten", "eating"], "answer": "ate", "vocab": { "en": "ate", "fr": "mangé (ate)" } },
+            { "kind": "fill_blank", "prompt": "Yesterday I ___ to school.", "answer": "went", "vocab": { "en": "went", "fr": "suis allé" } },
+            { "kind": "translate", "prompt": "Il a pris le bus.", "word_bank": ["He", "took", "the", "bus", "take", "took"], "answer": "He took the bus", "vocab": { "en": "He took the bus", "fr": "il a pris le bus" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Questions & Réponses",
+      "color": "#7a5cff",
+      "lessons": [
+        {
+          "title": "Questions simples (Do/Does)",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment commence une question avec « do » ?", "choices": ["Do you…", "Are you…", "Is he…", "Does she…"], "answer": "Do you…", "vocab": { "en": "Do you", "fr": "est-ce que tu" } },
+            { "kind": "translate", "prompt": "Est-ce que tu aimes le café ?", "word_bank": ["Do", "you", "like", "coffee", "tea", "are"], "answer": "Do you like coffee", "vocab": { "en": "Do you like coffee", "fr": "est-ce que tu aimes le café" } },
+            { "kind": "multiple_choice", "prompt": "Choisis : ___ she speak English?", "choices": ["Does", "Do", "Is", "Are"], "answer": "Does", "vocab": { "en": "Does she", "fr": "est-ce qu'elle" } },
+            { "kind": "fill_blank", "prompt": "___ they live here?", "answer": "Do", "vocab": { "en": "Do they", "fr": "est-ce qu'ils/elles" } },
+            { "kind": "translate", "prompt": "Où habites-tu ?", "word_bank": ["Where", "do", "you", "live", "does", "he"], "answer": "Where do you live", "vocab": { "en": "Where do you live", "fr": "où habites-tu" } }
+          ]
+        },
+        {
+          "title": "Répondre oui/non",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Réponse courte positive : Do you like it? →", "choices": ["Yes, I do", "Yes, I am", "Yes, I like", "Yes, I can"], "answer": "Yes, I do", "vocab": { "en": "Yes, I do", "fr": "oui" } },
+            { "kind": "translate", "prompt": "Non, je n'aime pas.", "word_bank": ["No", "I", "don't", "do", "like", "it"], "answer": "No, I don't like it", "vocab": { "en": "No, I don't like it", "fr": "non, je n'aime pas" } },
+            { "kind": "multiple_choice", "prompt": "Réponse : Are you ready? →", "choices": ["Yes, I am", "Yes, I do", "Yes, I can", "Yes, I ready"], "answer": "Yes, I am", "vocab": { "en": "Yes, I am", "fr": "oui, je suis prêt" } },
+            { "kind": "fill_blank", "prompt": "Can you swim? Yes, I ___.", "answer": "can", "vocab": { "en": "Yes, I can", "fr": "oui, je sais nager" } },
+            { "kind": "translate", "prompt": "Est-ce qu'il vient ? Non, il ne vient pas.", "word_bank": ["Does", "he", "come", "No", "he", "doesn't"], "answer": "Does he come No he doesn't", "vocab": { "en": "Does he come? No, he doesn't", "fr": "est-ce qu'il vient ? Non, il ne vient pas" } }
+          ]
+        },
+        {
+          "title": "Questions ouvertes (Wh-questions)",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment demande-t-on l'âge ?", "choices": ["How old are you?", "What is your name?", "Where are you from?", "How are you?"], "answer": "How old are you?", "vocab": { "en": "How old are you", "fr": "quel âge as-tu" } },
+            { "kind": "translate", "prompt": "Quelle heure est-il ?", "word_bank": ["What", "time", "is", "it", "hour", "now"], "answer": "What time is it", "vocab": { "en": "What time is it", "fr": "quelle heure est-il" } },
+            { "kind": "multiple_choice", "prompt": "Comment demande-t-on le prix ?", "choices": ["How much is it?", "How many?", "What is it?", "Which one?"], "answer": "How much is it?", "vocab": { "en": "How much is it", "fr": "combien ça coûte" } },
+            { "kind": "fill_blank", "prompt": "___ is your phone number?", "answer": "What", "vocab": { "en": "What is your phone number", "fr": "quel est ton numéro" } },
+            { "kind": "translate", "prompt": "Pourquoi apprends-tu l'anglais ?", "word_bank": ["Why", "do", "you", "learn", "English", "French"], "answer": "Why do you learn English", "vocab": { "en": "Why do you learn English", "fr": "pourquoi apprends-tu l'anglais" } }
+          ]
+        },
+        {
+          "title": "Questions avec prépositions",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Avec qui vas-tu ?", "choices": ["Who are you going with?", "Where are you going?", "When are you going?", "Why are you going?"], "answer": "Who are you going with?", "vocab": { "en": "Who are you going with", "fr": "avec qui vas-tu" } },
+            { "kind": "translate", "prompt": "De quoi parles-tu ?", "word_bank": ["What", "are", "you", "talking", "about", "saying"], "answer": "What are you talking about", "vocab": { "en": "What are you talking about", "fr": "de quoi parles-tu" } },
+            { "kind": "multiple_choice", "prompt": "Pour qui est ce cadeau ?", "choices": ["Who is this gift for?", "What is this gift?", "Where is the gift?", "Whose gift is this?"], "answer": "Who is this gift for?", "vocab": { "en": "Who is this gift for", "fr": "pour qui est ce cadeau" } },
+            { "kind": "fill_blank", "prompt": "___ are you waiting for?", "answer": "Who", "vocab": { "en": "Who are you waiting for", "fr": "qui attends-tu" } },
+            { "kind": "translate", "prompt": "Dans quelle ville habites-tu ?", "word_bank": ["Which", "city", "do", "you", "live", "in"], "answer": "Which city do you live in", "vocab": { "en": "Which city do you live in", "fr": "dans quelle ville habites-tu" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Le temps et les dates",
+      "color": "#ffc531",
+      "lessons": [
+        {
+          "title": "Les jours de la semaine",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « lundi » ?", "choices": ["Monday", "Tuesday", "Sunday", "Friday"], "answer": "Monday", "vocab": { "en": "Monday", "fr": "lundi" } },
+            { "kind": "translate", "prompt": "Aujourd'hui c'est mardi.", "word_bank": ["Today", "is", "Tuesday", "Monday", "Wednesday", "is"], "answer": "Today is Tuesday", "vocab": { "en": "Today is Tuesday", "fr": "aujourd'hui c'est mardi" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « week-end » ?", "choices": ["weekend", "week", "holiday", "vacation"], "answer": "weekend", "vocab": { "en": "weekend", "fr": "week-end" } },
+            { "kind": "fill_blank", "prompt": "I work from Monday to ___.", "answer": "Friday", "vocab": { "en": "Friday", "fr": "vendredi" } },
+            { "kind": "translate", "prompt": "Le dimanche je me repose.", "word_bank": ["On", "Sunday", "I", "rest", "work", "sleep"], "answer": "On Sunday I rest", "vocab": { "en": "On Sunday I rest", "fr": "le dimanche je me repose" } }
+          ]
+        },
+        {
+          "title": "Les mois de l'année",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « janvier » ?", "choices": ["January", "June", "July", "December"], "answer": "January", "vocab": { "en": "January", "fr": "janvier" } },
+            { "kind": "translate", "prompt": "Nous sommes en juillet.", "word_bank": ["We", "are", "in", "July", "January", "June"], "answer": "We are in July", "vocab": { "en": "We are in July", "fr": "nous sommes en juillet" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « décembre » ?", "choices": ["December", "November", "October", "September"], "answer": "December", "vocab": { "en": "December", "fr": "décembre" } },
+            { "kind": "fill_blank", "prompt": "Christmas is in ___.", "answer": "December", "vocab": { "en": "December", "fr": "décembre" } },
+            { "kind": "translate", "prompt": "Mon anniversaire est en mars.", "word_bank": ["My", "birthday", "is", "in", "March", "May"], "answer": "My birthday is in March", "vocab": { "en": "My birthday is in March", "fr": "mon anniversaire est en mars" } }
+          ]
+        },
+        {
+          "title": "Dire l'heure",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « il est 3 heures » ?", "choices": ["It is three o'clock", "It is three hours", "The time is three", "Three hours it is"], "answer": "It is three o'clock", "vocab": { "en": "It is three o'clock", "fr": "il est 3 heures" } },
+            { "kind": "translate", "prompt": "Il est midi.", "word_bank": ["It", "is", "noon", "midnight", "morning", "evening"], "answer": "It is noon", "vocab": { "en": "It is noon", "fr": "il est midi" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « et quart » ?", "choices": ["quarter past", "half past", "quarter to", "o'clock"], "answer": "quarter past", "vocab": { "en": "quarter past", "fr": "et quart" } },
+            { "kind": "fill_blank", "prompt": "It is half ___ six.", "answer": "past", "vocab": { "en": "half past", "fr": "et demie" } },
+            { "kind": "translate", "prompt": "Il est 10 heures moins le quart.", "word_bank": ["It", "is", "quarter", "to", "ten", "past"], "answer": "It is quarter to ten", "vocab": { "en": "It is quarter to ten", "fr": "il est 10 heures moins le quart" } }
+          ]
+        },
+        {
+          "title": "Les saisons et la météo",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « printemps » ?", "choices": ["spring", "summer", "autumn", "winter"], "answer": "spring", "vocab": { "en": "spring", "fr": "printemps" } },
+            { "kind": "translate", "prompt": "En été, il fait chaud.", "word_bank": ["In", "summer", "it", "is", "hot", "cold"], "answer": "In summer it is hot", "vocab": { "en": "In summer it is hot", "fr": "en été il fait chaud" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « il pleut » ?", "choices": ["It is raining", "It is snowing", "It is sunny", "It is windy"], "answer": "It is raining", "vocab": { "en": "It is raining", "fr": "il pleut" } },
+            { "kind": "fill_blank", "prompt": "In winter it is ___.", "answer": "cold", "vocab": { "en": "cold", "fr": "froid" } },
+            { "kind": "translate", "prompt": "Quel temps fait-il aujourd'hui ?", "word_bank": ["What", "is", "the", "weather", "like", "today"], "answer": "What is the weather like today", "vocab": { "en": "What is the weather like today", "fr": "quel temps fait-il aujourd'hui" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "L'école et le travail",
+      "color": "#0e9f7e",
+      "lessons": [
+        {
+          "title": "L'école et les matières",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « école » ?", "choices": ["school", "home", "work", "park"], "answer": "school", "vocab": { "en": "school", "fr": "école" } },
+            { "kind": "translate", "prompt": "J'aime les mathématiques.", "word_bank": ["I", "like", "mathematics", "math", "English", "French"], "answer": "I like mathematics", "vocab": { "en": "I like mathematics", "fr": "j'aime les mathématiques" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « professeur » ?", "choices": ["teacher", "student", "doctor", "driver"], "answer": "teacher", "vocab": { "en": "teacher", "fr": "professeur" } },
+            { "kind": "fill_blank", "prompt": "I go to ___ by bus.", "answer": "school", "vocab": { "en": "school", "fr": "école" } },
+            { "kind": "translate", "prompt": "La classe commence à 8 heures.", "word_bank": ["Class", "starts", "at", "eight", "o'clock", "ends"], "answer": "Class starts at eight o'clock", "vocab": { "en": "Class starts at eight o'clock", "fr": "la classe commence à 8 heures" } }
+          ]
+        },
+        {
+          "title": "Les fournitures scolaires",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « stylo » ?", "choices": ["pen", "pencil", "book", "ruler"], "answer": "pen", "vocab": { "en": "pen", "fr": "stylo" } },
+            { "kind": "translate", "prompt": "J'ai un cahier rouge.", "word_bank": ["I", "have", "a", "red", "notebook", "book"], "answer": "I have a red notebook", "vocab": { "en": "I have a red notebook", "fr": "j'ai un cahier rouge" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « gomme » ?", "choices": ["eraser", "ruler", "sharpener", "pencil"], "answer": "eraser", "vocab": { "en": "eraser", "fr": "gomme" } },
+            { "kind": "fill_blank", "prompt": "Can I borrow your ___?", "answer": "pen", "vocab": { "en": "pen", "fr": "stylo" } },
+            { "kind": "translate", "prompt": "Le livre est dans le sac.", "word_bank": ["The", "book", "is", "in", "the", "bag"], "answer": "The book is in the bag", "vocab": { "en": "The book is in the bag", "fr": "le livre est dans le sac" } }
+          ]
+        },
+        {
+          "title": "Les métiers",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « médecin » ?", "choices": ["doctor", "nurse", "teacher", "driver"], "answer": "doctor", "vocab": { "en": "doctor", "fr": "médecin" } },
+            { "kind": "translate", "prompt": "Mon père est ingénieur.", "word_bank": ["My", "father", "is", "an", "engineer", "doctor"], "answer": "My father is an engineer", "vocab": { "en": "My father is an engineer", "fr": "mon père est ingénieur" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « infirmier » ?", "choices": ["nurse", "doctor", "dentist", "patient"], "answer": "nurse", "vocab": { "en": "nurse", "fr": "infirmier" } },
+            { "kind": "fill_blank", "prompt": "She wants to be a ___.", "answer": "teacher", "vocab": { "en": "teacher", "fr": "professeur" } },
+            { "kind": "translate", "prompt": "Quel est ton métier ?", "word_bank": ["What", "is", "your", "job", "name", "work"], "answer": "What is your job", "vocab": { "en": "What is your job", "fr": "quel est ton métier" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Voyages et déplacements",
+      "color": "#3d6bff",
+      "lessons": [
+        {
+          "title": "Les transports",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « bus » ?", "choices": ["bus", "train", "car", "plane"], "answer": "bus", "vocab": { "en": "bus", "fr": "bus" } },
+            { "kind": "translate", "prompt": "Je prends le train.", "word_bank": ["I", "take", "the", "train", "bus", "car"], "answer": "I take the train", "vocab": { "en": "I take the train", "fr": "je prends le train" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « avion » ?", "choices": ["plane", "train", "boat", "car"], "answer": "plane", "vocab": { "en": "plane", "fr": "avion" } },
+            { "kind": "fill_blank", "prompt": "I go to work by ___.", "answer": "car", "vocab": { "en": "car", "fr": "voiture" } },
+            { "kind": "translate", "prompt": "Le bus arrive à 8 heures.", "word_bank": ["The", "bus", "arrives", "at", "eight", "leaves"], "answer": "The bus arrives at eight", "vocab": { "en": "The bus arrives at eight", "fr": "le bus arrive à 8 heures" } }
+          ]
+        },
+        {
+          "title": "Directions et lieux",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « à gauche » ?", "choices": ["turn left", "turn right", "go straight", "stop"], "answer": "turn left", "vocab": { "en": "turn left", "fr": "tournez à gauche" } },
+            { "kind": "translate", "prompt": "Tournez à droite au feu rouge.", "word_bank": ["Turn", "right", "at", "the", "red", "light"], "answer": "Turn right at the red light", "vocab": { "en": "Turn right at the red light", "fr": "tournez à droite au feu rouge" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « tout droit » ?", "choices": ["go straight", "turn left", "turn right", "stop"], "answer": "go straight", "vocab": { "en": "go straight", "fr": "tout droit" } },
+            { "kind": "fill_blank", "prompt": "The bank is ___ the corner.", "answer": "on", "vocab": { "en": "on the corner", "fr": "au coin de la rue" } },
+            { "kind": "translate", "prompt": "Où est la gare ?", "word_bank": ["Where", "is", "the", "station", "bank", "post office"], "answer": "Where is the station", "vocab": { "en": "Where is the station", "fr": "où est la gare" } }
+          ]
+        },
+        {
+          "title": "À l'hôtel et en voyage",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « réservation » ?", "choices": ["reservation", "booking", "ticket", "passport"], "answer": "reservation", "vocab": { "en": "reservation", "fr": "réservation" } },
+            { "kind": "translate", "prompt": "J'ai une chambre pour deux nuits.", "word_bank": ["I", "have", "a", "room", "for", "two", "nights"], "answer": "I have a room for two nights", "vocab": { "en": "I have a room for two nights", "fr": "j'ai une chambre pour deux nuits" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « passeport » ?", "choices": ["passport", "visa", "ticket", "ID card"], "answer": "passport", "vocab": { "en": "passport", "fr": "passeport" } },
+            { "kind": "fill_blank", "prompt": "Where is my ___?", "answer": "passport", "vocab": { "en": "passport", "fr": "passeport" } },
+            { "kind": "translate", "prompt": "L'avion part à 10 heures.", "word_bank": ["The", "plane", "leaves", "at", "ten", "arrives"], "answer": "The plane leaves at ten", "vocab": { "en": "The plane leaves at ten", "fr": "l'avion part à 10 heures" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Santé et corps",
+      "color": "#ff435e",
+      "lessons": [
+        {
+          "title": "Les parties du corps",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « tête » ?", "choices": ["head", "hand", "foot", "eye"], "answer": "head", "vocab": { "en": "head", "fr": "tête" } },
+            { "kind": "translate", "prompt": "J'ai mal à la tête.", "word_bank": ["I", "have", "a", "headache", "head", "hurt"], "answer": "I have a headache", "vocab": { "en": "I have a headache", "fr": "j'ai mal à la tête" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « main » ?", "choices": ["hand", "foot", "arm", "leg"], "answer": "hand", "vocab": { "en": "hand", "fr": "main" } },
+            { "kind": "fill_blank", "prompt": "I see with my ___.", "answer": "eyes", "vocab": { "en": "eyes", "fr": "yeux" } },
+            { "kind": "translate", "prompt": "Il se lave les mains.", "word_bank": ["He", "washes", "his", "hands", "face", "feet"], "answer": "He washes his hands", "vocab": { "en": "He washes his hands", "fr": "il se lave les mains" } }
+          ]
+        },
+        {
+          "title": "Chez le médecin",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « médecin » ?", "choices": ["doctor", "nurse", "dentist", "patient"], "answer": "doctor", "vocab": { "en": "doctor", "fr": "médecin" } },
+            { "kind": "translate", "prompt": "J'ai de la fièvre.", "word_bank": ["I", "have", "a", "fever", "cold", "headache"], "answer": "I have a fever", "vocab": { "en": "I have a fever", "fr": "j'ai de la fièvre" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « médicament » ?", "choices": ["medicine", "pill", "hospital", "pharmacy"], "answer": "medicine", "vocab": { "en": "medicine", "fr": "médicament" } },
+            { "kind": "fill_blank", "prompt": "Take this ___ three times a day.", "answer": "medicine", "vocab": { "en": "medicine", "fr": "médicament" } },
+            { "kind": "translate", "prompt": "Où est la pharmacie ?", "word_bank": ["Where", "is", "the", "pharmacy", "hospital", "doctor"], "answer": "Where is the pharmacy", "vocab": { "en": "Where is the pharmacy", "fr": "où est la pharmacie" } }
+          ]
+        },
+        {
+          "title": "Les symptômes et sentiments",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « je suis fatigué » ?", "choices": ["I am tired", "I am hungry", "I am thirsty", "I am sick"], "answer": "I am tired", "vocab": { "en": "I am tired", "fr": "je suis fatigué" } },
+            { "kind": "translate", "prompt": "Elle est triste.", "word_bank": ["She", "is", "sad", "happy", "angry", "tired"], "answer": "She is sad", "vocab": { "en": "She is sad", "fr": "elle est triste" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « j'ai faim » ?", "choices": ["I am hungry", "I am thirsty", "I am tired", "I am full"], "answer": "I am hungry", "vocab": { "en": "I am hungry", "fr": "j'ai faim" } },
+            { "kind": "fill_blank", "prompt": "Are you ___? No, I'm fine.", "answer": "okay", "vocab": { "en": "okay", "fr": "ça va/bien" } },
+            { "kind": "translate", "prompt": "Je me sens bien.", "word_bank": ["I", "feel", "well", "good", "bad", "sick"], "answer": "I feel well", "vocab": { "en": "I feel well", "fr": "je me sens bien" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Loisirs et hobbies",
+      "color": "#7a5cff",
+      "lessons": [
+        {
+          "title": "Sports et activités",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « football » ?", "choices": ["football", "soccer", "tennis", "basketball"], "answer": "football", "vocab": { "en": "football/soccer", "fr": "football" } },
+            { "kind": "translate", "prompt": "J'aime jouer au tennis.", "word_bank": ["I", "like", "playing", "tennis", "football", "swimming"], "answer": "I like playing tennis", "vocab": { "en": "I like playing tennis", "fr": "j'aime jouer au tennis" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « nager » ?", "choices": ["swim", "run", "walk", "cycle"], "answer": "swim", "vocab": { "en": "swim", "fr": "nager" } },
+            { "kind": "fill_blank", "prompt": "He plays ___ every Sunday.", "answer": "football", "vocab": { "en": "football", "fr": "football" } },
+            { "kind": "translate", "prompt": "Nous faisons du vélo.", "word_bank": ["We", "ride", "bikes", "bicycles", "drive", "cars"], "answer": "We ride bikes", "vocab": { "en": "We ride bikes", "fr": "nous faisons du vélo" } }
+          ]
+        },
+        {
+          "title": "Musique et arts",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « chanter » ?", "choices": ["sing", "dance", "play", "draw"], "answer": "sing", "vocab": { "en": "sing", "fr": "chanter" } },
+            { "kind": "translate", "prompt": "Elle joue du piano.", "word_bank": ["She", "plays", "the", "piano", "guitar", "violin"], "answer": "She plays the piano", "vocab": { "en": "She plays the piano", "fr": "elle joue du piano" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « danser » ?", "choices": ["dance", "sing", "draw", "paint"], "answer": "dance", "vocab": { "en": "dance", "fr": "danser" } },
+            { "kind": "fill_blank", "prompt": "I like to ___ songs.", "answer": "sing", "vocab": { "en": "sing", "fr": "chanter" } },
+            { "kind": "translate", "prompt": "Il dessine un chat.", "word_bank": ["He", "draws", "a", "cat", "dog", "bird"], "answer": "He draws a cat", "vocab": { "en": "He draws a cat", "fr": "il dessine un chat" } }
+          ]
+        },
+        {
+          "title": "Lire, regarder, écouter",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « lire » ?", "choices": ["read", "watch", "listen", "write"], "answer": "read", "vocab": { "en": "read", "fr": "lire" } },
+            { "kind": "translate", "prompt": "Je regarde un film.", "word_bank": ["I", "watch", "a", "movie", "film", "read"], "answer": "I watch a movie", "vocab": { "en": "I watch a movie", "fr": "je regarde un film" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « écouter » ?", "choices": ["listen", "hear", "read", "watch"], "answer": "listen", "vocab": { "en": "listen", "fr": "écouter" } },
+            { "kind": "fill_blank", "prompt": "She likes to ___ music.", "answer": "listen to", "vocab": { "en": "listen to", "fr": "écouter" } },
+            { "kind": "translate", "prompt": "Nous lisons une histoire.", "word_bank": ["We", "read", "a", "story", "book", "watch"], "answer": "We read a story", "vocab": { "en": "We read a story", "fr": "nous lisons une histoire" } }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Technologie et communication",
+      "color": "#ff6a2b",
+      "lessons": [
+        {
+          "title": "Téléphone et internet",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « téléphone » ?", "choices": ["phone", "computer", "tablet", "camera"], "answer": "phone", "vocab": { "en": "phone", "fr": "téléphone" } },
+            { "kind": "translate", "prompt": "Je t'appelle plus tard.", "word_bank": ["I", "will", "call", "you", "later", "now"], "answer": "I will call you later", "vocab": { "en": "I will call you later", "fr": "je t'appelle plus tard" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « message » ?", "choices": ["message", "call", "email", "letter"], "answer": "message", "vocab": { "en": "message", "fr": "message" } },
+            { "kind": "fill_blank", "prompt": "Send me a ___.", "answer": "message", "vocab": { "en": "message", "fr": "message" } },
+            { "kind": "translate", "prompt": "As-tu internet ?", "word_bank": ["Do", "you", "have", "internet", "wifi", "phone"], "answer": "Do you have internet", "vocab": { "en": "Do you have internet", "fr": "as-tu internet" } }
+          ]
+        },
+        {
+          "title": "Réseaux sociaux et apps",
+          "exercises": [
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « application » ?", "choices": ["app", "application", "website", "game"], "answer": "app", "vocab": { "en": "app", "fr": "application" } },
+            { "kind": "translate", "prompt": "Je télécharge une application.", "word_bank": ["I", "download", "an", "app", "game", "file"], "answer": "I download an app", "vocab": { "en": "I download an app", "fr": "je télécharge une application" } },
+            { "kind": "multiple_choice", "prompt": "Comment dit-on « mot de passe » ?", "choices": ["password", "username", "email", "login"], "answer": "password", "vocab": { "en": "password", "fr": "mot de passe" } },
+            { "kind": "fill_blank", "prompt": "Enter your ___ to log in.", "answer": "password", "vocab": { "en": "password", "fr": "mot de passe" } },
+            { "kind": "translate", "prompt": "J'aime cette photo.", "word_bank": ["I", "like", "this", "photo", "picture", "video"], "answer": "I like this photo", "vocab": { "en": "I like this photo", "fr": "j'aime cette photo" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,324 @@
+/* ============================================================
+   Lakk — design system
+   Identité : « wax & baobab » — chaud, solaire, artisanal.
+   Palette propre à Lakk (ni vert Duolingo, ni hibou).
+   ============================================================ */
+
+:root {
+  --font-display: 'Fredoka', 'DM Sans', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  --ink: #111e1c;
+  --ink-soft: #46564f;
+  --muted: #7c8b86;
+
+  --paper: #eef3ee;
+  --card: #ffffff;
+  --line: #dde7e1;
+
+  --orange: #ff6a2b;
+  --orange-deep: #d64e14;
+  --orange-soft: #ffe7d9;
+
+  --teal: #0e9f7e;
+  --teal-deep: #0a7a60;
+  --teal-soft: #d8f3ea;
+
+  --mango: #ffc531;
+  --mango-deep: #d99e00;
+
+  --blue: #3d6bff;
+  --blue-soft: #e2e9ff;
+
+  --rose: #f0435e;
+  --rose-soft: #ffe1e6;
+
+  --violet: #7a5cff;
+
+  --trunk: #b5794a;
+  --leaf: #2fa36b;
+
+  --radius: 22px;
+  --shadow: 0 18px 40px -18px rgba(17, 30, 28, 0.35);
+}
+
+:root.dark {
+  --ink: #eaf3ef;
+  --ink-soft: #a9bbb4;
+  --muted: #7c8b86;
+
+  --paper: #0d1615;
+  --card: #16211f;
+  --line: #25322e;
+
+  --orange-soft: #3a2318;
+  --teal-soft: #12352c;
+  --blue-soft: #18244a;
+  --rose-soft: #3a1a22;
+
+  --shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(255, 106, 43, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(14, 159, 126, 0.16), transparent 55%),
+    #0c1413;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+/* Cadre téléphone sur desktop, plein écran sur mobile */
+.phone {
+  width: min(432px, 100vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 30px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 0 0 8px rgba(0, 0, 0, 0.25),
+    0 40px 80px -20px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 540px) {
+  .phone {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar {
+  display: none;
+}
+.screen.no-nav {
+  padding-bottom: 0;
+}
+
+/* ------------------ Typographie ------------------ */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+h1 {
+  font-size: 27px;
+  line-height: 1.1;
+}
+h2 {
+  font-size: 20px;
+}
+p {
+  margin: 0;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ------------------ Boutons « juicy » ------------------ */
+.btn {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  border: 0;
+  cursor: pointer;
+  border-radius: 16px;
+  padding: 15px 20px;
+  color: #fff;
+  background: var(--teal);
+  box-shadow: 0 4px 0 var(--teal-deep);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    filter 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--teal-deep);
+}
+.btn.orange {
+  background: var(--orange);
+  box-shadow: 0 4px 0 var(--orange-deep);
+}
+.btn.orange:active {
+  box-shadow: 0 1px 0 var(--orange-deep);
+}
+.btn.rose {
+  background: var(--rose);
+  box-shadow: 0 4px 0 #b62a41;
+}
+.btn.rose:active {
+  box-shadow: 0 1px 0 #b62a41;
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+  border: 2px solid var(--line);
+}
+.btn.ghost:active {
+  transform: translateY(1px);
+}
+.btn[disabled] {
+  background: var(--line);
+  color: var(--muted);
+  box-shadow: none;
+  opacity: 1;
+  pointer-events: none;
+  filter: none;
+}
+.btn.block {
+  display: block;
+  width: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+.chip.mango {
+  color: var(--mango-deep);
+  background: #fff7db;
+  border-color: #ffe9a3;
+}
+.chip.rose {
+  color: var(--rose);
+  background: var(--rose-soft);
+  border-color: transparent;
+}
+.chip.blue {
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-color: transparent;
+}
+:root.dark .chip.mango {
+  background: #3a2f0a;
+  border-color: #5c4a10;
+  color: var(--mango);
+}
+
+/* ------------------ Cartes ------------------ */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  padding: 18px;
+}
+
+/* Motif wax discret (losanges) */
+.wax {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 106, 43, 0.06) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-45deg, rgba(14, 159, 126, 0.06) 0 1px, transparent 1px 14px);
+}
+
+/* ------------------ Utilitaires ------------------ */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.between {
+  justify-content: space-between;
+}
+.grow {
+  flex: 1;
+}
+.center {
+  text-align: center;
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 13px;
+}
+
+/* Accessibilité */
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Animation d'entrée douce, une seule fois par écran */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.35s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Fallback global pour backdrop-filter non supporté (WebKitGTK ancien) */
+@supports not (backdrop-filter: blur(1px)) {
+  .nav,
+  [style*="backdrop-filter"] {
+    background: var(--card) !important;
+  }
+}

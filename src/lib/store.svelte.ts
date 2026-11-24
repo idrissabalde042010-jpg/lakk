@@ -1,0 +1,196 @@
+// État global de l'application (Svelte 5 runes) + persistance locale.
+import { defaultCourse, fallbackPhrases, lessonRefs, type LessonRef } from './content';
+import type { Card, CourseData, Grade, LessonData, Phrase, Profile, Vocab } from './engine';
+import {
+  dailyGoalPercent,
+  dayKey,
+  isDue,
+  newCard,
+  newProfile,
+  registerLesson,
+  reviewCard,
+} from './engine';
+import { isTauri, nativeCourse, nativeReview, nativeStats, type NativeStats } from './native';
+
+export interface Persist {
+  profile: Profile;
+  cards: Record<string, Card>;
+  completed: Record<string, boolean>;
+  history: Record<string, number>; // YYYY-MM-DD -> graines
+}
+
+const KEY = 'lakk.v1';
+const DAY = 86_400_000;
+
+function defaultState(): Persist {
+  return { profile: newProfile('Idrissa'), cards: {}, completed: {}, history: {} };
+}
+
+function loadState(): Persist {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw) as Partial<Persist>;
+    const base = defaultState();
+    return {
+      profile: { ...base.profile, ...(parsed.profile ?? {}) },
+      cards: parsed.cards ?? {},
+      completed: parsed.completed ?? {},
+      history: parsed.history ?? {},
+    };
+  } catch {
+    return defaultState();
+  }
+}
+
+export type Screen = 'home' | 'lesson' | 'review' | 'games' | 'music' | 'profile';
+
+/** Moteur qui fait autorité pour le contenu et la planification. */
+export type Engine = 'rust' | 'typescript';
+
+class AppState {
+  screen = $state<Screen>('home');
+  data = $state<Persist>(loadState());
+  active = $state<{ u: number; l: number } | null>(null);
+  toast = $state<string | null>(null);
+
+  /** Contenu actif : Rust en application native, copie locale sur le web. */
+  course = $state<CourseData>(defaultCourse);
+  engine = $state<Engine>(isTauri ? 'rust' : 'typescript');
+  stats = $state<NativeStats | null>(null);
+
+  save(): void {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(this.data));
+    } catch {
+      // stockage indisponible : on continue en mémoire
+    }
+  }
+
+  get profile(): Profile {
+    return this.data.profile;
+  }
+
+  setScreen(s: Screen): void {
+    this.screen = s;
+  }
+
+  /** Charge le contenu et les statistiques depuis `lakk-core` (Rust). */
+  async init(): Promise<void> {
+    if (!isTauri) return;
+    const [course, stats] = await Promise.all([nativeCourse(), nativeStats()]);
+    if (course && course.units?.length) {
+      this.course = course;
+      this.engine = 'rust';
+    }
+    if (stats) this.stats = stats;
+  }
+
+  // ------------------------------ Parcours ------------------------------
+
+  get lessons(): LessonRef[] {
+    return lessonRefs(this.course);
+  }
+
+  /** Phrase du jour : elle change chaque jour, pas à chaque lancement. */
+  get dailyPhrase(): Phrase {
+    const list = this.course.phrases?.length ? this.course.phrases : fallbackPhrases;
+    const index = Math.floor(Date.now() / DAY) % list.length;
+    return list[index];
+  }
+
+  lessonData(u: number, l: number): LessonData {
+    return this.course.units[u].lessons[l];
+  }
+
+  key(u: number, l: number): string {
+    return `${u}-${l}`;
+  }
+
+  isCompleted(u: number, l: number): boolean {
+    return !!this.data.completed[this.key(u, l)];
+  }
+
+  isUnlocked(u: number, l: number): boolean {
+    if (u === 0 && l === 0) return true;
+    const flat = this.lessons.map((x) => ({ u: x.u, l: x.l }));
+    const i = flat.findIndex((x) => x.u === u && x.l === l);
+    if (i <= 0) return true;
+    const prev = flat[i - 1];
+    return this.isCompleted(prev.u, prev.l);
+  }
+
+  startLesson(u: number, l: number): void {
+    this.active = { u, l };
+    this.screen = 'lesson';
+  }
+
+  completeLesson(u: number, l: number, xp: number, _accuracy: number): void {
+    this.data.completed[this.key(u, l)] = true;
+    registerLesson(this.data.profile, Date.now(), xp);
+    const today = dayKey();
+    this.data.history[today] = (this.data.history[today] ?? 0) + xp;
+    this.save();
+  }
+
+  // ------------------------------ Révision ------------------------------
+
+  /**
+   * Applique une note à un mot. Si le pont Rust est disponible
+   * (`lakk-core`), c'est le planificateur FSRS de Rust qui replanifie ;
+   * sinon on utilise le miroir TypeScript (même algorithme).
+   */
+  async review(vocab: Vocab, grade: Grade): Promise<void> {
+    const k = vocab.en.toLowerCase();
+    let card = this.data.cards[k];
+    if (!card) {
+      card = newCard(vocab);
+      this.data.cards[k] = card;
+    }
+
+    const native = this.engine === 'rust' ? await nativeReview(card, grade) : null;
+    if (native) {
+      this.data.cards[k] = native;
+    } else {
+      reviewCard(card, grade, Date.now());
+    }
+    this.save();
+  }
+
+  dueCards(): Card[] {
+    const now = Date.now();
+    return Object.values(this.data.cards).filter((c) => isDue(c, now));
+  }
+
+  cardCount(): number {
+    return Object.keys(this.data.cards).length;
+  }
+
+  // ------------------------------ Divers ------------------------------
+
+  goalPercent(): number {
+    return dailyGoalPercent(this.data.profile);
+  }
+
+  setGoal(xp: number): void {
+    this.data.profile.dailyGoalXp = xp;
+    this.save();
+  }
+
+  toggleEnergy(): void {
+    this.data.profile.unlimitedEnergy = !this.data.profile.unlimitedEnergy;
+    this.save();
+  }
+
+  reset(): void {
+    this.data = defaultState();
+    this.save();
+  }
+
+  notify(msg: string): void {
+    this.toast = msg;
+    setTimeout(() => (this.toast = null), 2200);
+  }
+}
+
+export const app = new AppState();
