@@ -4599,12 +4599,16 @@
             },
             {
               "kind": "fill_blank",
-              "prompt": "She likes to ___ music.",
+              "prompt": "She likes to ___ music. (verb)",
               "answer": "listen to",
               "vocab": {
                 "en": "listen to",
                 "fr": "écouter"
-              }
+              },
+              "accepted": [
+                "listen to",
+                "listen"
+              ]
             },
             {
               "kind": "multiple_choice",
@@ -4738,7 +4742,7 @@
             },
             {
               "kind": "multiple_choice",
-              "prompt": "Comment dit-on « appeler » ?",
+              "prompt": "Comment dit-on « appeler » (au téléphone) ?",
               "choices": [
                 "call",
                 "phone",

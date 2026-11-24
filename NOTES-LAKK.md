@@ -174,5 +174,20 @@ with open('content/fr-en-a1.json', 'w') as f:
 | Phase 4 (Tests) | ⚠️ Partiel | Tests Rust OK, **tests mélange/validation manquants** |
 | Audit script unique | ❌ | À faire |
 | JSON valide | ✅ | `python3 -c "import json; json.load(open('content/fr-en-a1.json'))"` |
+| **Build Svelte 5** | 🔴 **BLOQUÉ** | Runes (`$state`, `$derived`) non reconnues par vite-plugin-svelte 5.1.1 malgré `runes: true` dans config |
 
-**Prochaine étape recommandée** : Écrire le script d'audit unique (`audit.py`) qui génère `/tmp/sortie.txt` avec toutes les métriques, puis écrire les tests Vitest/Rust manquants.
+**Prochaine étape recommandée** : Résoudre le build Svelte 5 (mettre à jour `@sveltejs/vite-plugin-svelte` ≥ 5.2.0 ou configurer correctement les runes), puis écrire le script d'audit unique (`audit.py`) qui génère `/tmp/sortie.txt` avec toutes les métriques, puis écrire les tests Vitest/Rust manquants.
+
+---
+
+## 9. Blocage actuel — Build Svelte 5
+
+**Erreur** : `Unexpected token` sur `$derived` / `$state` dans `Lesson.svelte:76`
+
+**Cause** : Svelte 5 runes nécessitent `@sveltejs/vite-plugin-svelte` ≥ 5.2.0 avec `compilerOptions: { runes: true }` correctement propagé. Version actuelle 5.1.1 ne supporte pas完全 les runes.
+
+**Tentatives effectuées** :
+- `vite.config.ts` : `svelte({ compilerOptions: { runes: true } })` → ignoré
+- `svelte.config.js` : `compilerOptions: { runes: true }` → non lu par le plugin
+
+**Solution** : `pnpm up @sveltejs/vite-plugin-svelte@latest` (nécessite ≥ 5.2.0) ou downgrade vers Svelte 4 syntaxe (`export let`, `$:`) si migration trop risquée.
