@@ -13,6 +13,7 @@
     type GameRound,
     type GameType,
   } from '../lib/games';
+  import { shuffle } from '../lib/shuffle';
 
   let selectedGame = $state<GameType | null>(null);
   let session = $state<GameSession | null>(null);

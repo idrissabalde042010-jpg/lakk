@@ -4,6 +4,7 @@
 import { app } from './store.svelte';
 import type { Vocab } from './engine';
 import { sfx } from './audio';
+import { shuffle, sample } from './shuffle';
 
 export type GameType =
   | 'memory'          // Memory / paires
@@ -28,21 +29,6 @@ export interface GameSession {
   startTime: number;
   completed: boolean;
   xpEarned: number;
-}
-
-/** Mélange Fisher-Yates. */
-function shuffle<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-/** Sélectionne n éléments uniques. */
-function sample<T>(arr: T[], n: number): T[] {
-  return shuffle(arr).slice(0, Math.min(n, arr.length));
 }
 
 /** Récupère le vocabulaire appris (avec cartes SRS). */

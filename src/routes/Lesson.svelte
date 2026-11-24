@@ -1,8 +1,9 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
   import { answersMatch, loseEnergy } from '../lib/engine';
-  import type { Grade } from '../lib/engine';
+  import type { Grade, Exercise } from '../lib/engine';
   import { sfx, speak, isSpeechAvailable } from '../lib/audio';
+  import { shuffle, shuffledIndices } from '../lib/shuffle';
 
   const ctx = app.active!;
   const lesson = app.lessonData(ctx.u, ctx.l);
@@ -23,18 +24,60 @@
   let shake = $state(false);
   let showHint = $state(false);
 
-  const ex = $derived(lesson.exercises[idx]);
-  const isChoice = $derived(ex.kind === 'multiple_choice' || ex.kind === 'match');
-  const isBuild = $derived(ex.kind === 'translate' || ex.kind === 'order_words');
-  const isInput = $derived(ex.kind === 'fill_blank' || ex.kind === 'listen_type');
+  // État pour le mélange des choix (stable pendant l'exercice, remélangé à chaque tentative)
+  let shuffledChoiceIndices = $state<number[] | null>(null);
+  let shuffledBankIndices = $state<number[] | null>(null);
+
+  const ex: Exercise = $derived(lesson.exercises[idx]);
+
+  // Helpers typés pour l'accès aux choix et banque de mots
+  const getChoice = (idx: number): string => ex.choices?.[idx] ?? '';
+  const getBankWord = (idx: number): string => ex.word_bank?.[idx] ?? '';
+
+  // État pour le type d'exercice (mis à jour dans shuffleChoices)
+  let isChoice = $state(false);
+  let isBuild = $state(false);
+  let isInput = $state(false);
+
+  // Mélanger les indices des choix à chaque nouvel exercice / nouvelle tentative
+  function shuffleChoices(): void {
+    if (ex.choices && ex.choices.length > 1) {
+      shuffledChoiceIndices = shuffledIndices(ex.choices.length);
+      isChoice = true;
+      isBuild = false;
+      isInput = false;
+    } else {
+      shuffledChoiceIndices = null;
+    }
+    if (ex.word_bank && ex.word_bank.length > 1) {
+      shuffledBankIndices = shuffledIndices(ex.word_bank.length);
+      isBuild = ex.kind === 'translate' || ex.kind === 'order_words';
+      isInput = ex.kind === 'fill_blank' || ex.kind === 'listen_type';
+      isChoice = false;
+    } else {
+      shuffledBankIndices = null;
+    }
+    if (ex.kind === 'fill_blank' || ex.kind === 'listen_type') {
+      isInput = true;
+      isChoice = false;
+      isBuild = false;
+    }
+  }
+
+  // Appeler shuffleChoices quand l'exercice change ou qu'on réessaie
+  $effect(() => {
+    ex;
+    phase;
+    shuffleChoices();
+  });
 
   const given = $derived(
     isChoice
       ? selected != null
-        ? (ex.choices?.[selected] ?? '')
+        ? (shuffledChoiceIndices ? getChoice(shuffledChoiceIndices[selected]) : getChoice(selected)) ?? ''
         : ''
       : isBuild
-        ? picked.map((i) => ex.word_bank?.[i] ?? '').join(' ')
+        ? picked.map((i) => getBankWord(shuffledBankIndices?.[i] ?? i) ?? '').join(' ')
         : typed,
   );
 
@@ -47,7 +90,7 @@
 
   function check(): void {
     if (!canCheck) return;
-    ok = answersMatch(ex.answer, given);
+    ok = answersMatch(ex.answer, given, ex.accepted);
     if (ok) {
       correct += 1;
       sfx.correct();
@@ -160,37 +203,43 @@
     <div class="answer-zone">
       {#if isChoice}
         <div class="choices">
-          {#each ex.choices ?? [] as c, i}
-            <button
-              class="choice"
-              class:sel={selected === i}
-              onclick={() => choose(i)}
-              disabled={phase !== 'answer'}
-            >
-              {c}
-            </button>
-          {/each}
+          {#if shuffledChoiceIndices && ex.choices}
+            {#each shuffledChoiceIndices as choiceIdx, displayIdx}
+              <button
+                class="choice"
+                class:sel={selected === choiceIdx}
+                onclick={() => choose(choiceIdx)}
+                disabled={phase !== 'answer'}
+              >
+                {getChoice(choiceIdx)}
+              </button>
+            {/each}
+          {/if}
         </div>
       {:else if isBuild}
         <div class="tray" class:empty={picked.length === 0}>
           {#each picked as pi}
-            <button class="word" onclick={() => unpick(pi)}>{ex.word_bank?.[pi]}</button>
+            <button class="word" onclick={() => unpick(pi)}>
+              {getBankWord(shuffledBankIndices?.[pi] ?? pi)}
+            </button>
           {/each}
           {#if picked.length === 0}
-            <span class="placeholder">Assemble la phrase…</span>
+            <span class="placeholder">{ex.kind === 'order_words' ? 'Appuie sur les mots dans l\'ordre' : 'Traduis la phrase…'}</span>
           {/if}
         </div>
         <div class="bank">
-          {#each ex.word_bank ?? [] as w, i}
-            <button
-              class="word bank-word"
-              class:used={picked.includes(i)}
-              onclick={() => pickWord(i)}
-              disabled={picked.includes(i) || phase !== 'answer'}
-            >
-              {w}
-            </button>
-          {/each}
+          {#if shuffledBankIndices && ex.word_bank}
+            {#each shuffledBankIndices as bankIdx, displayIdx}
+              <button
+                class="word bank-word"
+                class:used={picked.includes(bankIdx)}
+                onclick={() => pickWord(bankIdx)}
+                disabled={picked.includes(bankIdx) || phase !== 'answer'}
+              >
+                {getBankWord(bankIdx)}
+              </button>
+            {/each}
+          {/if}
         </div>
       {:else}
         <input

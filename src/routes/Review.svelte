@@ -3,6 +3,7 @@
   import type { Card, Grade } from '../lib/engine';
   import { mastery } from '../lib/engine';
   import { sfx, speak, isSpeechAvailable } from '../lib/audio';
+  import { shuffle, shuffledIndices } from '../lib/shuffle';
 
   let due = $state<Card[]>(app.dueCards());
   let revealed = $state(false);
@@ -20,6 +21,13 @@
     { g: 4, label: 'Facile', cls: 'blue' },
   ];
 
+  // Indices mélangés pour les boutons de note (remélangés à chaque carte)
+  let shuffledGradeIndices = $state<number[]>([]);
+
+  function shuffleGrades(): void {
+    shuffledGradeIndices = shuffledIndices(grades.length);
+  }
+
   function reveal(): void {
     revealed = true;
     if (current && speechAvailable) speak(current.vocab.en);
@@ -32,7 +40,14 @@
     revealed = false;
     due = app.dueCards();
     sfx.tap();
+    shuffleGrades();
   }
+
+  // Mélanger au premier affichage et après chaque réponse
+  $effect(() => {
+    due;
+    shuffleGrades();
+  });
 </script>
 
 <div class="review rise">
@@ -92,14 +107,14 @@
 
     {#if revealed}
       <div class="grades">
-        {#each grades as gr}
-          <button class="grade {gr.cls}" onclick={() => grade(gr.g)}>
+        {#each shuffledGradeIndices as gradeIdx}
+          <button class="grade {grades[gradeIdx].cls}" onclick={() => grade(grades[gradeIdx].g)}>
             <span class="dot"></span>
-            {gr.label}
+            {grades[gradeIdx].label}
           </button>
         {/each}
       </div>
-      <p class="hint small muted center">Choisis selon la difficulté ressentie : le planning s’adapte.</p>
+      <p class="hint small muted center">Choisis selon la difficulté ressentie : le planning s'adapte.</p>
     {:else}
       <p class="hint small muted center">
         Essaie de te souvenir avant de révéler — c’est ce qui fait progresser.

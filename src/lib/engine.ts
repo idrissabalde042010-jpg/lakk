@@ -22,6 +22,8 @@ export interface Exercise {
   choices?: string[];
   word_bank?: string[];
   answer: string;
+  /** Réponses alternatives acceptées (ex: contractions, synonymes) */
+  accepted?: string[];
   vocab?: Vocab;
   audio_key?: string;
 }
@@ -60,8 +62,83 @@ export function normalize(s: string): string {
     .toLowerCase();
 }
 
-export function answersMatch(expected: string, given: string): boolean {
-  return normalize(expected) === normalize(given);
+/** Génère des variantes avec contractions développées. */
+function expandContractions(s: string): string[] {
+  const contractions: Record<string, string> = {
+    "it's": "it is",
+    "i'm": "i am",
+    "you're": "you are",
+    "we're": "we are",
+    "they're": "they are",
+    "he's": "he is",
+    "she's": "she is",
+    "that's": "that is",
+    "what's": "what is",
+    "where's": "where is",
+    "who's": "who is",
+    "how's": "how is",
+    "don't": "do not",
+    "doesn't": "does not",
+    "didn't": "did not",
+    "won't": "will not",
+    "wouldn't": "would not",
+    "can't": "cannot",
+    "couldn't": "could not",
+    "shouldn't": "should not",
+    "isn't": "is not",
+    "aren't": "are not",
+    "wasn't": "was not",
+    "weren't": "were not",
+    "hasn't": "has not",
+    "haven't": "have not",
+    "hadn't": "had not",
+    "i've": "i have",
+    "you've": "you have",
+    "we've": "we have",
+    "they've": "they have",
+    "i'd": "i would",
+    "you'd": "you would",
+    "he'd": "he would",
+    "she'd": "she would",
+    "we'd": "we would",
+    "they'd": "they would",
+    "i'll": "i will",
+    "you'll": "you will",
+    "he'll": "he will",
+    "she'll": "she will",
+    "we'll": "we will",
+    "they'll": "they will",
+  };
+  
+  let result = s;
+  for (const [contracted, expanded] of Object.entries(contractions)) {
+    result = result.replace(new RegExp(`\\b${contracted.replace("'", "\\'")}\\b`, 'gi'), expanded);
+  }
+  return [s, result];
+}
+
+/** Vérifie si la réponse correspond, en gérant les contractions et réponses alternatives. */
+export function answersMatch(expected: string, given: string, accepted?: string[]): boolean {
+  const normGiven = normalize(given);
+  const normExpected = normalize(expected);
+  
+  if (normGiven === normExpected) return true;
+  
+  // Vérifier les contractions
+  const [, expandedGiven] = expandContractions(normGiven);
+  const [, expandedExpected] = expandContractions(normExpected);
+  if (normalize(expandedGiven) === normalize(expandedExpected)) return true;
+  
+  // Vérifier les réponses alternatives acceptées
+  if (accepted) {
+    for (const alt of accepted) {
+      if (normGiven === normalize(alt)) return true;
+      const [, expandedAlt] = expandContractions(normalize(alt));
+      if (normalize(expandedGiven) === normalize(expandedAlt)) return true;
+    }
+  }
+  
+  return false;
 }
 
 // ----------------------------- SRS (FSRS-lite) -----------------------------
