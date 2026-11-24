@@ -30,6 +30,7 @@
 
   function reveal(): void {
     revealed = true;
+    sfx.tap();
     if (current && speechAvailable) speak(current.vocab.en);
   }
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { app } from './lib/store.svelte';
   import Home from './routes/Home.svelte';
   import Lesson from './routes/Lesson.svelte';
@@ -7,12 +8,18 @@
   import Music from './routes/Music.svelte';
   import Profile from './routes/Profile.svelte';
   import BottomNav from './components/BottomNav.svelte';
+  import { maybeStartTour } from './lib/guidedTour';
 
   // Reset scroll position when screen changes
   $effect(() => {
     app.screen; // subscribe to screen changes
     const screen = document.querySelector('.screen');
     if (screen) screen.scrollTo(0, 0);
+  });
+
+  // Visite guidée au tout premier lancement (une seule fois).
+  onMount(() => {
+    maybeStartTour();
   });
 </script>
 

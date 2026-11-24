@@ -55,8 +55,15 @@
     completeRound(session, roundCorrect);
     showResult = true;
 
+    if (roundCorrect) {
+      sfx.correct();
+    } else {
+      sfx.wrong();
+    }
+
     if (session.completed) {
       // Jeu fini : donner l'XP
+      if (roundCorrect) sfx.win();
       app.completeLesson(99, 99, session.xpEarned, 100);
     }
   }

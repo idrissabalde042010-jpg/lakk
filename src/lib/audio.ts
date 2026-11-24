@@ -51,6 +51,11 @@ function getAudioContext(): AudioContext | null {
 function tone(freq: number, dur: number, type: OscillatorType = 'sine', gain = 0.06): void {
   const ctx = getAudioContext();
   if (!ctx) return;
+  // Dans la WebView, le contexte peut démarrer suspendu : on le réveille
+  // à chaque son (l'appel vient d'un geste utilisateur).
+  if (ctx.state === 'suspended') {
+    void ctx.resume();
+  }
   const osc = ctx.createOscillator();
   const g = ctx.createGain();
   osc.type = type;
@@ -58,25 +63,29 @@ function tone(freq: number, dur: number, type: OscillatorType = 'sine', gain = 0
   g.gain.value = gain;
   osc.connect(g).connect(ctx.destination);
   const t = ctx.currentTime;
-  g.gain.setValueAtTime(gain, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gain, t + 0.012);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   osc.start(t);
-  osc.stop(t + dur);
+  osc.stop(t + dur + 0.02);
 }
 
 export const sfx = {
   correct(): void {
-    tone(660, 0.12, 'sine', 0.05);
-    window.setTimeout(() => tone(880, 0.16, 'sine', 0.05), 90);
+    // Accord ascendant, clair et court.
+    tone(660, 0.14, 'sine', 0.09);
+    window.setTimeout(() => tone(880, 0.18, 'sine', 0.09), 85);
   },
   wrong(): void {
-    tone(200, 0.2, 'sawtooth', 0.04);
+    // Buzz descendant, distinct du succès.
+    tone(220, 0.16, 'sawtooth', 0.06);
+    window.setTimeout(() => tone(165, 0.22, 'sawtooth', 0.05), 110);
   },
   tap(): void {
-    tone(440, 0.05, 'sine', 0.025);
+    tone(520, 0.06, 'sine', 0.05);
   },
   win(): void {
-    [523, 659, 784, 1047].forEach((f, i) => window.setTimeout(() => tone(f, 0.18, 'sine', 0.05), i * 110));
+    [523, 659, 784, 1047].forEach((f, i) => window.setTimeout(() => tone(f, 0.2, 'sine', 0.08), i * 105));
   },
 };
 
@@ -168,11 +177,31 @@ function ensureVoicesLoaded(): Promise<void> {
 /** Choisit la meilleure voix pour une langue. */
 function pickVoice(lang: string): SpeechSynthesisVoice | null {
   if (availableVoices.length === 0) return null;
-  const primary = availableVoices.find((v) => v.lang === lang);
-  if (primary) return primary;
-  const fallback = availableVoices.find((v) => v.lang.startsWith(lang.split('-')[0]));
-  if (fallback) return fallback;
-  return availableVoices.find((v) => v.lang.startsWith('en')) ?? null;
+
+  const base = lang.split('-')[0];
+  const exact = availableVoices.filter((v) => v.lang === lang);
+  const sameLanguage = availableVoices.filter((v) => v.lang.startsWith(base));
+  const pool = exact.length > 0 ? exact : sameLanguage.length > 0 ? sameLanguage : availableVoices;
+
+  // Voix réputées claires et naturelles (navigateurs et OS courants).
+  const preferred = [
+    'Google US English',
+    'Google UK English Female',
+    'Samantha',
+    'Ava',
+    'Aria',
+    'Jenny',
+    'Zira',
+    'Serena',
+    'Karen',
+    'Moira',
+  ];
+  const nice = pool.find((v) => preferred.some((name) => v.name.includes(name)));
+  if (nice) return nice;
+
+  // Sinon : éviter les voix robotiques quand une alternative existe.
+  const notRobotic = pool.find((v) => !/espeak|compact|robot/i.test(v.name));
+  return notRobotic ?? pool[0] ?? null;
 }
 
 /** State pour éviter les coupures intempestives. */
@@ -194,8 +223,8 @@ function processQueue(): void {
 
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
-  u.rate = 0.92;
-  u.pitch = 1.0;
+  u.rate = 0.88;
+  u.pitch = 1.02;
   u.volume = 1.0;
 
   const voice = pickVoice(lang);

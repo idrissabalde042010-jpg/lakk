@@ -239,6 +239,7 @@ export function mastery(card: Card): { label: string; pct: number } {
 
 export interface Profile {
   name: string;
+  avatar: string;
   dailyGoalXp: number;
   xpTotal: number;
   xpToday: number;
@@ -254,6 +255,7 @@ export interface Profile {
 export function newProfile(name: string): Profile {
   return {
     name,
+    avatar: '🦁',
     dailyGoalXp: 20,
     xpTotal: 0,
     xpToday: 0,

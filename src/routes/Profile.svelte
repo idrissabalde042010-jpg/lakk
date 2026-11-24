@@ -3,6 +3,9 @@
   import { dayKey, mastery } from '../lib/engine';
   import Baobab from '../components/Baobab.svelte';
   import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
+  import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
+  import { resetTour } from '../lib/tour';
+  import { startTour } from '../lib/guidedTour';
 
   const p = $derived(app.profile);
   const cards = $derived(Object.values(app.data.cards));
@@ -60,6 +63,31 @@
   let backupPassword = $state('');
   let backupResult = $state<string | null>(null);
   let restoreFile = $state<File | null>(null);
+
+  // --- Nom & avatar ---
+  let editingName = $state(false);
+  let draftName = $state('');
+
+  function startEditName(): void {
+    draftName = p.name;
+    editingName = true;
+  }
+
+  function saveName(): void {
+    app.setName(draftName);
+    editingName = false;
+  }
+
+  function cancelEditName(): void {
+    editingName = false;
+    draftName = '';
+  }
+
+  function replayTour(): void {
+    resetTour();
+    app.setScreen('home');
+    window.setTimeout(() => startTour(), 450);
+  }
 
   async function handleAuth(): Promise<void> {
     authError = null;
@@ -124,25 +152,47 @@
 
 <div class="profile rise">
   <header class="head">
-    <div class="avatar" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 2.6c1 3.1 3.4 5.5 6.5 6.5-3.1 1-5.5 3.4-6.5 6.5-1-3.1-3.4-5.5-6.5-6.5 3.1-1 5.5-3.4 6.5-6.5Z"
-          fill="#fff"
-          opacity="0.95"
-        />
-        <path
-          d="M12 15.4c.55 1.7 1.9 3.05 3.6 3.6-1.7.55-3.05 1.9-3.6 3.6-.55-1.7-1.9-3.05-3.6-3.6 1.7-.55 3.05-1.9 3.6-3.6Z"
-          fill="#fff"
-          opacity="0.6"
-        />
-      </svg>
-    </div>
-    <div>
-      <h1>{p.name}</h1>
+    <div class="avatar" aria-hidden="true">{p.avatar || DEFAULT_AVATAR}</div>
+    <div class="head-main">
+      {#if editingName}
+        <form
+          class="name-form"
+          onsubmit={(e) => {
+            e.preventDefault();
+            saveName();
+          }}
+        >
+          <input bind:value={draftName} maxlength={24} aria-label="Nom" />
+          <button type="submit" aria-label="Enregistrer">✓</button>
+          <button type="button" onclick={cancelEditName} aria-label="Annuler">✕</button>
+        </form>
+      {:else}
+        <h1>
+          {displayName(p.name)}
+          <button class="edit-name" type="button" onclick={startEditName} aria-label="Modifier le nom">✏️</button>
+        </h1>
+      {/if}
       <p class="small muted">Rufisque, Sénégal</p>
     </div>
   </header>
+
+  <section class="card avatar-card">
+    <p class="eyebrow">Ton avatar</p>
+    <div class="avatar-row">
+      {#each AVATARS as a}
+        <button
+          class="avatar-choice"
+          class:on={(p.avatar || DEFAULT_AVATAR) === a}
+          onclick={() => app.setAvatar(a)}
+          aria-label={`Choisir l’avatar ${a}`}
+          aria-pressed={(p.avatar || DEFAULT_AVATAR) === a}
+        >
+          {a}
+        </button>
+      {/each}
+    </div>
+    <p class="small muted">Choisis ton compagnon de route.</p>
+  </section>
 
   <section class="card baobab-card">
     <Baobab streak={p.streakDays} size={108} />
@@ -157,6 +207,10 @@
     <div class="stat">
       <span class="v">{cards.length}</span>
       <span class="k">mots appris</span>
+    </div>
+    <div class="stat">
+      <span class="v">🔥 {p.streakDays}</span>
+      <span class="k">série (jours)</span>
     </div>
     <div class="stat">
       <span class="v">{solid}</span>
@@ -225,6 +279,11 @@
       >
         <span></span>
       </button>
+    </div>
+
+    <div class="set-row">
+      <span>Visite guidée<small class="muted">revoir les 3 étapes</small></span>
+      <button class="mini-btn" onclick={replayTour}>Revoir</button>
     </div>
   </section>
 
@@ -360,6 +419,13 @@
   }
   .head h1 {
     font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .head-main {
+    min-width: 0;
+    flex: 1;
   }
   .avatar {
     width: 54px;
@@ -368,12 +434,91 @@
     background: radial-gradient(120% 120% at 30% 20%, #ff8a53, var(--orange));
     display: grid;
     place-items: center;
+    font-size: 30px;
+    line-height: 1;
     box-shadow: 0 4px 0 var(--orange-deep);
     flex: none;
   }
-  .avatar svg {
+  .edit-name {
+    border: 0;
+    background: none;
+    padding: 2px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .edit-name:hover {
+    opacity: 1;
+  }
+  .name-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .name-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1.5px solid var(--orange);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .name-form button {
     width: 34px;
     height: 34px;
+    flex: none;
+    border-radius: 10px;
+    border: 0;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .avatar-card {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .avatar-row {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .avatar-choice {
+    flex: 1;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    border-radius: 14px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.08s ease;
+  }
+  .avatar-choice:active {
+    transform: scale(0.95);
+  }
+  .avatar-choice.on {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+  }
+  .mini-btn {
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--teal);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
   }
   .baobab-card {
     display: flex;
@@ -390,7 +535,7 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     margin-bottom: 10px;
   }

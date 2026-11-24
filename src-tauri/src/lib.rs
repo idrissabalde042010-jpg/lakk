@@ -108,17 +108,17 @@ fn stop_child() {
     }
 }
 
-/// Code langue court : « en-US » → « en-us » pour espeak, « en » pour spd-say.
+/// Voix eSpeak : langue + variante féminine, plus claire pour apprendre.
 fn espeak_voice(lang: &str) -> String {
     let base = lang.split(['-', '_']).next().unwrap_or("en").to_lowercase();
     match base.as_str() {
-        "en" => "en-us".into(),
-        "fr" => "fr".into(),
-        "es" => "es".into(),
-        "pt" => "pt".into(),
+        "en" => "en-us+f3".into(),
+        "fr" => "fr+f3".into(),
+        "es" => "es+f3".into(),
+        "pt" => "pt+f3".into(),
         other => {
             if other.is_empty() {
-                "en-us".into()
+                "en-us+f3".into()
             } else {
                 other.into()
             }
@@ -156,12 +156,20 @@ fn speak_native(text: String, lang: Option<String>) -> Result<(), String> {
 
     let mut cmd = Command::new(backend);
     if backend == "spd-say" {
-        cmd.arg("-l").arg(short_lang(&lang));
+        cmd.arg("-l").arg(short_lang(&lang)).arg("-r").arg("-10");
     } else {
+        // Voix féminine, débit ralenti et petite pause entre les mots :
+        // plus intelligible pour un apprenant francophone.
         cmd.arg("-v")
             .arg(espeak_voice(&lang))
             .arg("-s")
-            .arg("150");
+            .arg("140")
+            .arg("-p")
+            .arg("48")
+            .arg("-g")
+            .arg("4")
+            .arg("-a")
+            .arg("160");
     }
     cmd.arg(&text)
         .stdin(Stdio::null())

@@ -43,6 +43,7 @@
 
   // --- Défi quotidien ---
   function speakChallenge(): void {
+    sfx.tap();
     if (dailyChallenge?.audioText) speak(dailyChallenge.audioText);
   }
 
@@ -83,6 +84,22 @@
   function primeAudio(): void {
     warmUpSpeech();
   }
+
+  /** Clic sur la carte « Défi du jour » : petit retour sonore. */
+  function onChallengeTap(event: MouseEvent): void {
+    primeAudio();
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, input, label, a, select, textarea')) return;
+    sfx.tap();
+  }
+
+  /** Même retour sonore au clavier (Entrée / Espace). */
+  function onChallengeKey(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    primeAudio();
+    sfx.tap();
+  }
 </script>
 
 <div class="home rise">
@@ -112,10 +129,10 @@
       </div>
       <ProgressRing percent={percent} size={78} label={`${percent}%`} />
     </div>
-    <button class="btn orange block" onclick={continueLesson}>Continuer</button>
+    <button class="btn orange block" data-tour="start" onclick={continueLesson}>Continuer</button>
   </section>
 
-  <section class="card challenge wax" role="button" tabindex="0" onmouseover={primeAudio} onfocus={primeAudio}>
+  <section class="card challenge wax" role="button" tabindex="0" onclick={onChallengeTap} onkeydown={onChallengeKey} onmouseover={primeAudio} onfocus={primeAudio}>
     <div class="challenge-top">
       <span class="tag">{challengeTypeLabel(dailyChallenge?.type)}</span>
       {#if speechAvailable}

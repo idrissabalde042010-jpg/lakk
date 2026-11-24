@@ -17,6 +17,7 @@
     <button
       class="tab"
       class:active={app.screen === t.id}
+      data-tour={t.id}
       onclick={() => app.setScreen(t.id)}
       aria-current={app.screen === t.id ? 'page' : undefined}
     >

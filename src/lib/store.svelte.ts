@@ -11,6 +11,7 @@ import {
   reviewCard,
 } from './engine';
 import { isTauri, nativeCourse, nativeReview, nativeStats, type NativeStats } from './native';
+import { DEFAULT_AVATAR, isValidAvatar, sanitizeName } from './profile';
 
 export interface Persist {
   profile: Profile;
@@ -32,8 +33,10 @@ function loadState(): Persist {
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw) as Partial<Persist>;
     const base = defaultState();
+    const profile = { ...base.profile, ...(parsed.profile ?? {}) };
+    if (!isValidAvatar(profile.avatar)) profile.avatar = DEFAULT_AVATAR;
     return {
-      profile: { ...base.profile, ...(parsed.profile ?? {}) },
+      profile,
       cards: parsed.cards ?? {},
       completed: parsed.completed ?? {},
       history: parsed.history ?? {},
@@ -174,6 +177,20 @@ class AppState {
 
   setGoal(xp: number): void {
     this.data.profile.dailyGoalXp = xp;
+    this.save();
+  }
+
+  /** Change le nom affiché (nettoyé, non vide). */
+  setName(name: string): void {
+    const clean = sanitizeName(name);
+    if (!clean) return;
+    this.data.profile.name = clean;
+    this.save();
+  }
+
+  /** Change l'avatar parmi les 5 emojis autorisés. */
+  setAvatar(avatar: string): void {
+    this.data.profile.avatar = isValidAvatar(avatar) ? avatar : DEFAULT_AVATAR;
     this.save();
   }
 
