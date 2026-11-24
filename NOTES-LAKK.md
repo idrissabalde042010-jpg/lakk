@@ -189,9 +189,25 @@ with open('content/fr-en-a1.json', 'w') as f:
 - À la fin (ou au passage), la visite guidée driver.js démarre automatiquement.
 
 ### Musique (`src/lib/bgm.svelte.ts`)
-- Fichier : `public/audio/bgm.mp3` (ajouté au précache du service worker).
-- Démarrage **uniquement** au premier clic « Suivant » (règle d'autoplay).
+- Fichier : `public/audio/bgm.mp3` (2,3 Mo, précaché par le service worker).
+- Démarrage **uniquement** au premier clic « Suivant » (règle d'autoplay respectée).
 - Fondu d'entrée de 2 s, volume final **0,3**, lecture en boucle.
-- Le lecteur est un module partagé : la musique continue en changeant d'écran.
-- Coupure / reprise : bouton **Son** dans la barre de navigation + réglage dans le profil.
+- Le lecteur est partagé par toute l'app : la musique continue en changeant d'écran.
+- Coupure / reprise : bouton **Son** (🔇/🔊) dans la barre de navigation + réglage dans le profil.
 - Préférence conservée : `localStorage['lakk.bgm.muted']`.
+
+### Voix française sur l'histoire
+- Chaque étape est lue automatiquement en français au chargement (TTS Web Speech ou natif Rust).
+- `speak()` adapte ses paramètres par langue : français `rate=0.9`, anglais `rate=0.88`.
+- Pas de son avant le premier « Suivant » pour la musique, mais la voix lit dès l'affichage.
+- Bouton « Suivant » désactivé pendant la lecture (`…`), réactivé à la fin.
+- Si l'utilisateur clique « Retour » ou « Suivant » pendant la lecture, la phrase courante est arrêtée proprement (`cancelSpeech()`) et la nouvelle étape est lue.
+
+### Suppression des effets sonores (SFX) hors histoire
+- Les retours sonores `tap`, `correct`, `wrong`, `win` ont été **retirés** de tout l'application, sauf :
+  - L'histoire d'introduction (voix seulement, pas de SFX)
+  - La musique d'ambiance (fichier audio + bouton coupure)
+- Raisons :
+  - La voix suffit pour le feedback (bien/mal) : plus naturel pour un apprentissage.
+  - Moins de bruit, moins de code, moins de problèmes de contexte audio suspendu.
+  - L'utilisateur a demandé : « je veut le son que pour lhistoire ».
