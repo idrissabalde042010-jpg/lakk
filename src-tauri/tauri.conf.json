@@ -36,14 +36,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "deepLink": {
-      "schemes": [
-        {
-          "scheme": "lakk",
-          "host": "callback"
-        }
-      ]
-    },
     "createUpdaterArtifacts": true
   },
   "plugins": {
@@ -56,7 +48,7 @@
         "https://github.com/nexus/lakk/releases/latest/download/{{target}}/{{arch}}/{{current_version}}.json"
       ],
       "dialog": true,
-      "pubkey": ""
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU3REY4MTk4MUUyNDY4NDgKUldSSWFDUWVtSUhmNThkSk9UZzVKbHVBaHI5WG1DeHUxL29CbHJVUm5XdjlwQjFJbzU3OEoyUnMK"
     }
   }
 }
