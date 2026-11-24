@@ -3,6 +3,7 @@
   import { INTRO_STEPS, markIntroSeen } from '../lib/intro';
   import { startBgm } from '../lib/bgm.svelte';
   import { speak, cancelSpeech } from '../lib/audio';
+  import { _ } from 'svelte-i18n';
 
   let { onDone }: { onDone: () => void } = $props();
 
@@ -14,13 +15,25 @@
   /** Timeout de sécurité max (10 s) pour éviter le blocage sur Linux/WebKitGTK. */
   const SPEAK_TIMEOUT_MS = 10_000;
 
+  /** Langue TTS selon la langue d'interface (fr-FR ou en-US) */
+  const ttsLang = $derived(
+    (typeof document !== 'undefined' && document.documentElement.lang === 'en') ? 'en-US' : 'fr-FR'
+  );
+
+  /** Titre traduit de l'étape courante. */
+  const currentTitle = $derived($_( current.titleKey ));
+  /** Texte traduit de l'étape courante. */
+  const currentText = $derived($_( current.textKey ));
+  /** CTA traduit de l'étape courante. */
+  const currentCta = $derived($_( current.ctaKey ));
+
   /** Lit l'étape courante avec timeout de sécurité. */
   async function readStep(): Promise<void> {
     if (speaking) return;
     speaking = true;
 
     // Lance la lecture (speak gère déjà le fallback Rust/espeak)
-    const speakPromise = speak(current.text, 'fr-FR');
+    const speakPromise = speak(currentText, ttsLang);
 
     // Timeout de sécurité : si speak ne résout pas dans les 10 s, on débloque
     const timeoutPromise = new Promise<void>((resolve) => {
@@ -35,6 +48,17 @@
 
     await Promise.race([speakPromise, timeoutPromise]);
     speaking = false;
+  }
+
+  /** Bouton "Écouter" manuel : relit l'étape courante. */
+  async function replayStep(): Promise<void> {
+    if (speaking) {
+      cancelSpeech();
+      speaking = false;
+      // Attendre un peu pour que cancelSpeech prenne effet
+      await new Promise(r => setTimeout(r, 50));
+    }
+    await readStep();
   }
 
   /** Passe à l'étape suivante (et lance la musique au premier « Suivant »). */
@@ -87,6 +111,14 @@
       readStep();
     }
   });
+
+  // Re-lire si la langue change
+  $effect(() => {
+    if (mounted && !speaking) {
+      ttsLang; // subscribe
+      readStep();
+    }
+  });
 </script>
 
 <div class="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
@@ -94,7 +126,7 @@
 
   <header class="intro-top">
     <span class="wordmark">Lakk</span>
-    <button class="skip" type="button" onclick={skip}>Passer</button>
+    <button class="skip" type="button" onclick={skip}>{$_( 'intro.skip' )}</button>
   </header>
 
   <div class="mascot" aria-hidden="true">
@@ -111,22 +143,32 @@
 
     {#key step}
       <div class="copy rise">
-        <p class="eyebrow">{current.title}</p>
-        <h1 id="intro-title">{current.text}</h1>
+        <p class="eyebrow">{currentTitle}</p>
+        <div class="text-with-speaker">
+          <h1 id="intro-title">{currentText}</h1>
+          <button
+            class="speaker-btn"
+            type="button"
+            onclick={replayStep}
+            aria-label={$_( 'intro.speak_again' )}
+            disabled={speaking}
+          >
+            {speaking ? '⏳' : '🔊'}
+          </button>
+        </div>
       </div>
     {/key}
   </div>
 
   <div class="actions">
     {#if last}
-      <p class="music-note">🔇 La musique t'accompagne — tu peux la couper à tout moment.</p>
+      <p class="music-note">{$_( 'intro.music_note' )}</p>
     {/if}
     {#if step > 0}
-      <button class="btn ghost block" type="button" onclick={back}>Retour</button>
+      <button class="btn ghost block" type="button" onclick={back}>{$_( 'intro.back' )}</button>
     {/if}
-    <!-- Bouton toujours cliquable : s'il est cliqué pendant la lecture, cancelSpeech() + next -->
     <button class="btn orange block" type="button" onclick={next}>
-      {speaking ? '…' : current.cta}
+      {speaking ? '…' : currentCta}
     </button>
   </div>
 </div>
@@ -230,13 +272,47 @@
     color: var(--teal-deep);
     margin-bottom: 10px;
   }
+  .text-with-speaker {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    max-width: 21em;
+    margin: 0 auto;
+  }
   .copy h1 {
     font-size: 23px;
     line-height: 1.32;
     font-weight: 500;
     letter-spacing: -0.01em;
-    max-width: 21em;
-    margin: 0 auto;
+    flex: 1;
+    text-align: left;
+  }
+  .speaker-btn {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    background: var(--card);
+    font-size: 20px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .speaker-btn:hover:not(:disabled) {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+    transform: scale(1.05);
+  }
+  .speaker-btn:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  .speaker-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
   }
   .actions {
     position: relative;
@@ -281,6 +357,9 @@
     }
     .copy h1 {
       font-size: 20px;
+    }
+    .text-with-speaker {
+      max-width: 18em;
     }
   }
 </style>

@@ -311,16 +311,16 @@
 
     <div class="set-row lang-row">
       <div class="lang-field">
-        <label>{$_( 'profile.ui_language' )}</label>
-        <select bind:value={p.uiLang} onchange={() => { setLocale(p.uiLang); app.save(); }}>
+        <label for="profile-ui-lang">{$_( 'profile.ui_language' )}</label>
+        <select id="profile-ui-lang" bind:value={p.uiLang} onchange={() => { setLocale(p.uiLang); app.save(); }}>
           {#each SUPPORTED_LOCALES as lang}
             <option value={lang}>{lang === 'fr' ? 'Français' : 'English'}</option>
           {/each}
         </select>
       </div>
       <div class="lang-field">
-        <label>{$_( 'profile.learn_language' )}</label>
-        <select bind:value={p.learnLang} onchange={() => app.save()}>
+        <label for="profile-learn-lang">{$_( 'profile.learn_language' )}</label>
+        <select id="profile-learn-lang" bind:value={p.learnLang} onchange={() => app.save()}>
           {#each LEARN_LANGUAGES as lang}
             <option value={lang.code} disabled={!lang.available}>
               {lang.name} {#if !lang.available}({$_( 'profile.lang_coming_soon' )}){/if}
@@ -935,11 +935,6 @@
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
-  }
-  .lang-row > span {
-    flex-direction: row;
-    gap: 8px;
-    font-weight: 500;
   }
   .lang-field {
     display: flex;

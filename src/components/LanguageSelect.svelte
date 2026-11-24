@@ -61,11 +61,17 @@
     <p class="subtitle">{$_( 'language_select.subtitle' )}</p>
 
     <div class="field">
-      <label>{$_( 'language_select.ui_lang_label' )}</label>
-      <div class="radio-group">
-        {#each uiLanguages as lang}
+      <label for="ui-lang-field">{$_( 'language_select.ui_lang_label' )}</label>
+      <div class="radio-group" id="ui-lang-field" role="radiogroup" aria-label={$_( 'language_select.ui_lang_label' )}>
+        {#each uiLanguages as lang, i}
           <label class="radio">
-            <input type="radio" name="uiLang" bind:group={selectedUiLang} value={lang.code} />
+            <input
+              type="radio"
+              name="uiLang"
+              bind:group={selectedUiLang}
+              value={lang.code}
+              id="ui-lang-{lang.code}"
+            />
             <span class="radio-label">
               <span class="radio-native">{lang.native}</span>
               <span class="radio-name">({lang.name})</span>
@@ -76,9 +82,9 @@
     </div>
 
     <div class="field">
-      <label>{$_( 'language_select.learn_lang_label' )}</label>
-      <div class="radio-group">
-        {#each LEARN_LANGUAGES as lang}
+      <label for="learn-lang-field">{$_( 'language_select.learn_lang_label' )}</label>
+      <div class="radio-group" id="learn-lang-field" role="radiogroup" aria-label={$_( 'language_select.learn_lang_label' )}>
+        {#each LEARN_LANGUAGES as lang, i}
           <label class="radio" class:disabled={!lang.available}>
             <input
               type="radio"
@@ -86,6 +92,7 @@
               bind:group={selectedLearnLang}
               value={lang.code}
               disabled={!lang.available}
+              id="learn-lang-{lang.code}"
             />
             <span class="radio-label">
               <span class="radio-native">{lang.name}</span>

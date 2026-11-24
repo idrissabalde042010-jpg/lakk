@@ -1,0 +1,80 @@
+{
+  "course": {
+    "source": "fr",
+    "target": "es",
+    "title": "FR → ES A1"
+  },
+  "phrases": [],
+  "units": [
+    {
+      "id": "u1",
+      "slug": "basics",
+      "title": "Les bases",
+      "color": "#ff6a2b",
+      "lessons": [
+        {
+          "id": "u1-l1",
+          "slug": "hello",
+          "title": "Salutations",
+          "exercises": [
+            {
+              "id": "u1-l1-ex1",
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « Bonjour » ?",
+              "choices": [
+                "Hello",
+                "Goodbye",
+                "Thank you",
+                "Please"
+              ],
+              "answer": "Hello",
+              "accepted": [
+                "Hi",
+                "Hey"
+              ],
+              "vocab": {
+                "en": "hello",
+                "fr": "bonjour"
+              },
+              "audio_key": "hello"
+            },
+            {
+              "id": "u1-l1-ex2",
+              "kind": "translate",
+              "prompt": "Traduis : « Bonjour »",
+              "word_bank": [
+                "Hello",
+                "world",
+                "!"
+              ],
+              "answer": "Hello",
+              "accepted": [
+                "Hi"
+              ],
+              "vocab": {
+                "en": "hello",
+                "fr": "bonjour"
+              },
+              "audio_key": "hello"
+            },
+            {
+              "id": "u1-l1-ex3",
+              "kind": "listen_type",
+              "prompt": "Écoute et écris ce que tu entends",
+              "answer": "Hello",
+              "accepted": [
+                "Hi",
+                "Hey"
+              ],
+              "vocab": {
+                "en": "hello",
+                "fr": "bonjour"
+              },
+              "audio_key": "hello"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

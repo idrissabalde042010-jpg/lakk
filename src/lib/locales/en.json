@@ -201,7 +201,11 @@
     "lang_fr": "French",
     "lang_en": "English",
     "lang_es": "Spanish",
+    "lang_de": "German",
+    "lang_ar": "Arabic",
     "lang_wo": "Wolof",
+    "lang_pt": "Portuguese",
+    "lang_zh": "Chinese",
     "lang_coming_soon": "coming soon"
   },
   "intro": {
@@ -217,7 +221,8 @@
     "skip": "Skip",
     "back": "Back",
     "music_note": "🔇 Music accompanies you — you can mute it anytime.",
-    "speaking": "…"
+    "speaking": "…",
+    "speak_again": "Listen again"
   },
   "language_select": {
     "title": "Welcome to Lakk!",

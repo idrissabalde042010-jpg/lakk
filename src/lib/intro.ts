@@ -1,34 +1,34 @@
-// Histoire d'introduction : état persistant + texte des 3 étapes.
+// Histoire d'introduction : état persistant + clés i18n des 3 étapes.
 // Module pur (aucun import DOM) pour rester testable.
 
 export const INTRO_KEY = 'lakk.intro.v1';
 export const INTRO_DONE = 'done';
 
 export interface IntroStep {
-  /** Petit titre au-dessus du texte. */
-  title: string;
-  /** Texte narratif affiché. */
-  text: string;
-  /** Libellé du bouton principal. */
-  cta: string;
+  /** Clé i18n pour le titre. */
+  titleKey: string;
+  /** Clé i18n pour le texte narratif. */
+  textKey: string;
+  /** Clé i18n pour le libellé du bouton principal. */
+  ctaKey: string;
 }
 
-/** Les trois étapes de l'histoire de Lakk. */
+/** Les trois étapes de l'histoire de Lakk (clés i18n). */
 export const INTRO_STEPS: IntroStep[] = [
   {
-    title: 'Au cœur du Sénégal',
-    text: "Il était une fois, au cœur du Sénégal, un petit arbre nommé Lakk. Il rêvait de devenir un grand baobab, assez haut pour toucher le ciel.",
-    cta: 'Suivant',
+    titleKey: 'intro.step1_title',
+    textKey: 'intro.step1_text',
+    ctaKey: 'intro.step1_cta',
   },
   {
-    title: 'Le livre magique',
-    text: "Un jour, il trouva un livre magique. Pour grandir, il devait apprendre l'anglais… et chaque mot appris faisait pousser une nouvelle feuille.",
-    cta: 'Suivant',
+    titleKey: 'intro.step2_title',
+    textKey: 'intro.step2_text',
+    ctaKey: 'intro.step2_cta',
   },
   {
-    title: "À toi de jouer",
-    text: "Aujourd'hui, Lakk a besoin de toi. Apprends avec lui, un mot à la fois, et fais grandir ton propre baobab. Es-tu prêt ?",
-    cta: "C'est parti !",
+    titleKey: 'intro.step3_title',
+    textKey: 'intro.step3_text',
+    ctaKey: 'intro.step3_cta',
   },
 ];
 

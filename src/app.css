@@ -63,6 +63,42 @@
   box-sizing: border-box;
 }
 
+/* ---- <select> global : lisible en mode clair ET sombre ---- */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: var(--card);
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 36px 10px 12px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+select:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px var(--orange-soft);
+}
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+select option {
+  background: var(--card);
+  color: var(--ink);
+  padding: 8px 12px;
+}
+
+/* Firefox : flèche native conservée */
+@-moz-document url-prefix() {
+  select { padding-right: 12px; }
+}
+
 html,
 body {
   margin: 0;

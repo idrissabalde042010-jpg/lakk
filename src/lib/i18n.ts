@@ -36,8 +36,12 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 /** Langues d'apprentissage disponibles (pour le sélecteur). */
 export const LEARN_LANGUAGES = [
-  { code: 'en', name: 'Anglais', available: true },
-  { code: 'es', name: 'Espagnol', available: false },
-  { code: 'wo', name: 'Wolof', available: false },
+  { code: 'en', name: 'Anglais', native: 'English', available: true },
+  { code: 'es', name: 'Espagnol', native: 'Español', available: false },
+  { code: 'de', name: 'Allemand', native: 'Deutsch', available: false },
+  { code: 'ar', name: 'Arabe', native: 'العربية', available: false },
+  { code: 'wo', name: 'Wolof', native: 'Wolof', available: false },
+  { code: 'pt', name: 'Portugais', native: 'Português', available: false },
+  { code: 'zh', name: 'Chinois', native: '中文', available: false },
 ] as const;
 export type LearnLanguage = (typeof LEARN_LANGUAGES)[number];

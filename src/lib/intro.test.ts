@@ -57,13 +57,14 @@ describe('intro.ts', () => {
 
   it("définit les 3 étapes de l'histoire avec le bon bouton final", () => {
     expect(INTRO_STEPS).toHaveLength(3);
-    expect(INTRO_STEPS[0].text).toContain('Sénégal');
-    expect(INTRO_STEPS[1].text).toContain('livre magique');
-    expect(INTRO_STEPS[2].text).toContain('Es-tu prêt');
-    expect(INTRO_STEPS[2].cta).toBe("C'est parti !");
+    expect(INTRO_STEPS[0].textKey).toBe('intro.step1_text');
+    expect(INTRO_STEPS[1].textKey).toBe('intro.step2_text');
+    expect(INTRO_STEPS[2].textKey).toBe('intro.step3_text');
+    expect(INTRO_STEPS[2].ctaKey).toBe('intro.step3_cta');
     for (const step of INTRO_STEPS) {
-      expect(step.title.length).toBeGreaterThan(0);
-      expect(step.text.length).toBeGreaterThan(0);
+      expect(step.titleKey.length).toBeGreaterThan(0);
+      expect(step.textKey.length).toBeGreaterThan(0);
+      expect(step.ctaKey.length).toBeGreaterThan(0);
     }
   });
 

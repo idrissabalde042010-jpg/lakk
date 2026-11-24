@@ -179,7 +179,39 @@ with open('content/fr-en-a1.json', 'w') as f:
 
 ---
 
-## 10. i18n + Architecture multi-langues (Tâche 2)
+## 11. Corrections UI, Audio, Flux de démarrage & Architecture multi-langues (Étape finale avant OAuth)
+
+### Corrections UI
+- **Mode sombre `<select>`** : style global dans `app.css` pour `<select>` et `<option>` (fond `#16211f`, texte clair, bordure discrète).
+- **Accessibilité** : 5 warnings `a11y_label_has_associated_control` corrigés en ajoutant `for`/`id` sur les labels/inputs dans `LanguageSelect.svelte` et `Profile.svelte`.
+- **Service Worker** : chemin `/sw.js` validé (enregistré au root, précache 15 fichiers).
+
+### Corrections Audio & Adaptation à la langue
+- **IntroStory.svelte** : utilise bien `speak()` de `audio.ts` avec fallback Rust/espeak géré automatiquement.
+- **Langue TTS dynamique** : `ttsLang` dérivé de `$locale()` → `fr-FR` si interface FR, `en-US` si EN.
+- **Bouton "🔊 Écouter"** : ajouté à côté du texte de l'histoire (`speaker-btn`), relit l'étape courante, désactivé pendant la lecture.
+- **Timeout de sécurité 10 s** : si l'événement `onend` ne se déclenche pas (WebKitGTK), le bouton se débloque.
+
+### Nouveau flux de démarrage (style Duolingo)
+1. **LanguageSelect.svelte** : choix langue interface (FR/EN) + langue apprentissage (EN dispo, ES/DE/AR/WO/PT/ZH grisés "bientôt")
+2. **IntroStory.svelte** : histoire dans la langue choisie, voix adaptée (FR/EN), bouton 🔊
+3. **driver.js** : visite guidée 3 étapes
+4. **Accueil** (Home.svelte)
+
+### Architecture "Toutes les langues"
+- **LanguageSelect.svelte** : 7 langues cibles (EN, ES, DE, AR, WO, PT, ZH) — EN dispo, autres grisées
+- **Script Python** : `scripts/create_new_language.py <source> <target>` génère `content/{src}-{tgt}-a1.json` structuré (1 unité, 3 exercices d'exemple)
+- **Chargement dynamique** : `loadCourse(src, tgt)` dans `content.ts` via import dynamique Vite
+
+### Traductions
+- Histoire traduite en anglais dans `locales/en.json` (3 étapes + CTA)
+- Nouvelles clés : `lang_de`, `lang_ar`, `lang_wo`, `lang_pt`, `lang_zh`, `speak_again`
+
+### Vérifications
+- `svelte-check` : 0 erreurs, 0 warnings
+- `vitest` : 25/25
+- `pnpm build` : OK (15 fichiers précachés, chunks i18n `fr-*.js`/`en-*.js`)
+- `cargo test` : 29/29
 
 ### Sélection de langue (`LanguageSelect.svelte`)
 - Affichée au tout premier lancement, avant l'histoire d'introduction.
