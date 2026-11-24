@@ -207,8 +207,8 @@
             {#each shuffledChoiceIndices as choiceIdx, displayIdx}
               <button
                 class="choice"
-                class:sel={selected === choiceIdx}
-                onclick={() => choose(choiceIdx)}
+                class:sel={selected === displayIdx}
+                onclick={() => choose(displayIdx)}
                 disabled={phase !== 'answer'}
               >
                 {getChoice(choiceIdx)}

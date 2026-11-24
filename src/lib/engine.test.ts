@@ -99,4 +99,55 @@ describe('shuffle.ts / engine.ts', () => {
     // The function compares text, not indices
     expect(answersMatch('correct', 'correct')).toBe(true);
   });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Regression test: selected answer validated when strictly equal
+  // Simulates the shuffle + selection flow from Lesson.svelte
+  // ──────────────────────────────────────────────────────────────────────
+  it('selected answer validated when strictly equal to expected (with shuffle)', () => {
+    const choices = ['twenty', 'surprising', 'knows', 'called'];
+    const answer = 'twenty';
+    
+    // Test multiple shuffles to ensure robustness
+    for (let run = 0; run < 100; run++) {
+      const indices = shuffledIndices(choices.length);
+      const shuffledChoices = indices.map(i => choices[i]);
+      
+      // Find where answer appears in shuffled display
+      const answerPos = shuffledChoices.indexOf(answer);
+      expect(answerPos).toBeGreaterThanOrEqual(0);
+      
+      // User selects the display position where answer appears
+      const selectedDisplayIdx = answerPos;
+      
+      // This is what Lesson.svelte does: getChoice(shuffledChoiceIndices[selected])
+      const actualChoice = choices[indices[selectedDisplayIdx]];
+      
+      // answersMatch should return true
+      const result = answersMatch(answer, actualChoice);
+      expect(result).toBe(true);
+    }
+  });
+
+  it('selected answer validated with trailing spaces and case differences', () => {
+    const choices = ['twenty', 'surprising', 'knows', 'called'];
+    const answer = 'twenty';
+    
+    // Test with trailing space in choice (simulating potential JSON issue)
+    const indices = [3, 1, 2, 0]; // twenty at display position 3
+    const selectedDisplayIdx = 3;
+    const actualChoice = choices[indices[selectedDisplayIdx]] + ' '; // trailing space
+    
+    // answersMatch normalizes and should still match
+    const result = answersMatch(answer, actualChoice);
+    expect(result).toBe(true);
+  });
+
+  it('selected answer validated with case differences', () => {
+    const answer = 'twenty';
+    const given = 'TWENTY'; // all caps
+    
+    const result = answersMatch(answer, given);
+    expect(result).toBe(true);
+  });
 });
