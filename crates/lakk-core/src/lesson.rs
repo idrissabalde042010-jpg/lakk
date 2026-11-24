@@ -121,6 +121,8 @@ mod tests {
 
     fn lesson() -> Lesson {
         Lesson {
+            id: "u1-l1".into(),
+            slug: "u1-l1-test".into(),
             title: "Test".into(),
             exercises: vec![
                 Exercise {

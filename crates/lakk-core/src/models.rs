@@ -69,6 +69,10 @@ pub struct CourseMeta {
 /// Une leçon.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Lesson {
+    /// Identifiant stable (ex: "u1-l1").
+    pub id: String,
+    /// Slug lisible (ex: "u1-l1-se-presenter").
+    pub slug: String,
     pub title: String,
     pub exercises: Vec<Exercise>,
 }
@@ -76,6 +80,10 @@ pub struct Lesson {
 /// Une unité du parcours.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Unit {
+    /// Identifiant stable (ex: "u1").
+    pub id: String,
+    /// Slug lisible (ex: "u1-les-bases").
+    pub slug: String,
     pub title: String,
     #[serde(default)]
     pub color: Option<String>,
