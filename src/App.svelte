@@ -8,13 +8,14 @@
   import Games from './routes/Games.svelte';
   import Music from './routes/Music.svelte';
   import Profile from './routes/Profile.svelte';
+  import Multiplayer from './routes/Multiplayer.svelte';
   import BottomNav from './components/BottomNav.svelte';
   import IntroStory from './components/IntroStory.svelte';
   import LanguageSelect from './components/LanguageSelect.svelte';
   import { maybeStartTour } from './lib/guidedTour';
   import { introSeen } from './lib/intro';
   import { check } from '@tauri-apps/plugin-updater';
-import type { Update } from '@tauri-apps/plugin-updater';
+  import type { Update } from '@tauri-apps/plugin-updater';
 
   // État des écrans d'onboarding
   let showLanguageSelect = $state(!introSeen() && !app.profile.uiLang);
@@ -152,6 +153,8 @@ import type { Update } from '@tauri-apps/plugin-updater';
         <Games />
       {:else if app.screen === 'music'}
         <Music />
+      {:else if app.screen === 'multiplayer'}
+        <Multiplayer />
       {:else}
         <Profile />
       {/if}

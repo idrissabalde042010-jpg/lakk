@@ -246,6 +246,23 @@
     "available": "available",
     "soon": "soon"
   },
+  "multiplayer": {
+    "title": "Multiplayer",
+    "subtitle": "Challenge other players or a bot",
+    "find_match": "Find a match",
+    "find_match_desc": "Find an opponent in 5s or play vs bot",
+    "vs_bot": "Play vs Bot",
+    "vs_bot_desc": "Instant match against AI",
+    "searching": "Searching for opponent...",
+    "searching_desc": "We're looking for an opponent for you...",
+    "bot_fallback": "If no one is found in 5s, a bot will be offered.",
+    "match_found": "Match found!",
+    "preparing": "Preparing match...",
+    "searching": "Searching for opponent...",
+    "cancel": "Cancel",
+    "match_over": "Match Over",
+    "play_again": "Play Again"
+  },
   "common": {
     "loading": "Loading…",
     "error": "Error",

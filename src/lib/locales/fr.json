@@ -246,6 +246,23 @@
     "available": "disponible",
     "soon": "bientôt"
   },
+  "multiplayer": {
+    "title": "Multijoueur",
+    "subtitle": "Affronte d'autres joueurs ou un bot",
+    "find_match": "Chercher un match",
+    "find_match_desc": "Trouve un adversaire en 5s ou affronte un bot",
+    "vs_bot": "Jouer contre un bot",
+    "vs_bot_desc": "Match immédiat contre l'IA",
+    "searching": "Recherche d'adversaire...",
+    "searching_desc": "Nous cherchons un adversaire pour toi...",
+    "bot_fallback": "Si personne n'est trouvé dans 5s, un bot te sera proposé.",
+    "match_found": "Match trouvé !",
+    "preparing": "Préparation du match...",
+    "searching": "Recherche d'adversaire...",
+    "cancel": "Annuler",
+    "match_over": "Match terminé",
+    "play_again": "Rejouer"
+  },
   "common": {
     "loading": "Chargement…",
     "error": "Erreur",
