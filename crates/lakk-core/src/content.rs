@@ -80,21 +80,25 @@ mod tests {
     use super::*;
 
     const SAMPLE: &str = r#"{
-      "course": {"source":"fr","target":"en","title":"Test"},
-      "units": [{
-        "title":"U1",
-        "lessons": [{
-          "title":"L1",
-          "exercises": [{
-            "kind":"multiple_choice",
-            "prompt":"Bonjour ?",
-            "choices":["hello","bye"],
-            "answer":"hello",
-            "vocab":{"en":"hello","fr":"bonjour"}
-          }]
-        }]
+  "course": {"source":"fr","target":"en","title":"Test"},
+  "units": [{
+    "id": "u1",
+    "slug": "u1-test",
+    "title":"U1",
+    "lessons": [{
+      "id": "u1-l1",
+      "slug": "u1-l1-test",
+      "title":"L1",
+      "exercises": [{
+        "kind":"multiple_choice",
+        "prompt":"Bonjour ?",
+        "choices":["hello","bye"],
+        "answer":"hello",
+        "vocab":{"en":"hello","fr":"bonjour"}
       }]
-    }"#;
+    }]
+  }]
+}"#;
 
     #[test]
     fn loads_and_counts() {

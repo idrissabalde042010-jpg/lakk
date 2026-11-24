@@ -146,6 +146,38 @@
                 "en": "My name is",
                 "fr": "je m'appelle"
               }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je m'appelle Marie.",
+              "word_bank": [
+                "My",
+                "name",
+                "is",
+                "Marie",
+                "I",
+                "am"
+              ],
+              "answer": "My name is Marie",
+              "vocab": {
+                "en": "My name is Marie",
+                "fr": "Je m'appelle Marie"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « enchanté » ?",
+              "choices": [
+                "nice to meet you",
+                "hello",
+                "goodbye",
+                "welcome"
+              ],
+              "answer": "nice to meet you",
+              "vocab": {
+                "en": "nice to meet you",
+                "fr": "enchanté"
+              }
             }
           ],
           "id": "u1-l1",
@@ -225,6 +257,36 @@
               "vocab": {
                 "en": "nice to meet you",
                 "fr": "enchanté"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Bonne nuit !",
+              "word_bank": [
+                "Good",
+                "night",
+                "morning",
+                "evening"
+              ],
+              "answer": "Good night",
+              "vocab": {
+                "en": "Good night",
+                "fr": "Bonne nuit"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « à bientôt » ?",
+              "choices": [
+                "See you later",
+                "Goodbye",
+                "Hello",
+                "Good night"
+              ],
+              "answer": "See you later",
+              "vocab": {
+                "en": "See you later",
+                "fr": "à bientôt"
               }
             }
           ],
@@ -306,6 +368,38 @@
                 "en": "There are five books",
                 "fr": "il y a cinq livres"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « sept » ?",
+              "choices": [
+                "seven",
+                "six",
+                "eight",
+                "five"
+              ],
+              "answer": "seven",
+              "vocab": {
+                "en": "seven",
+                "fr": "sept"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il y a douze élèves.",
+              "word_bank": [
+                "There",
+                "are",
+                "twelve",
+                "students",
+                "is",
+                "ten"
+              ],
+              "answer": "There are twelve students",
+              "vocab": {
+                "en": "There are twelve students",
+                "fr": "Il y a douze élèves"
+              }
             }
           ],
           "id": "u1-l3",
@@ -386,6 +480,38 @@
                 "en": "one hundred",
                 "fr": "cent"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « soixante » ?",
+              "choices": [
+                "sixty",
+                "sixteen",
+                "seventy",
+                "fifty"
+              ],
+              "answer": "sixty",
+              "vocab": {
+                "en": "sixty",
+                "fr": "soixante"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il y a quatre-vingts pages.",
+              "word_bank": [
+                "There",
+                "are",
+                "eighty",
+                "pages",
+                "is",
+                "books"
+              ],
+              "answer": "There are eighty pages",
+              "vocab": {
+                "en": "There are eighty pages",
+                "fr": "Il y a quatre-vingts pages"
+              }
             }
           ],
           "id": "u1-l4",
@@ -465,6 +591,30 @@
               "vocab": {
                 "en": "The English alphabet has twenty-six letters",
                 "fr": "l'alphabet anglais a 26 lettres"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Quelle lettre fait le son /e/ ?",
+              "choices": [
+                "A",
+                "E",
+                "I",
+                "O"
+              ],
+              "answer": "E",
+              "vocab": {
+                "en": "E",
+                "fr": "la lettre E"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "The word \"apple\" starts with the letter ___.",
+              "answer": "A",
+              "vocab": {
+                "en": "the letter A",
+                "fr": "la lettre A"
               }
             }
           ],
@@ -554,14 +704,7 @@
                 "en": "We are a big family",
                 "fr": "nous sommes une grande famille"
               }
-            }
-          ],
-          "id": "u2-l1",
-          "slug": "u2-l1-la-famille"
-        },
-        {
-          "title": "Les membres de la famille élargie",
-          "exercises": [
+            },
             {
               "kind": "multiple_choice",
               "prompt": "Comment dit-on « grand-père » ?",
@@ -575,6 +718,45 @@
               "vocab": {
                 "en": "grandfather",
                 "fr": "grand-père"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Ma sœur est étudiante.",
+              "word_bank": [
+                "My",
+                "sister",
+                "is",
+                "a",
+                "student",
+                "brother"
+              ],
+              "answer": "My sister is a student",
+              "vocab": {
+                "en": "My sister is a student",
+                "fr": "Ma sœur est étudiante"
+              }
+            }
+          ],
+          "id": "u2-l1",
+          "slug": "u2-l1-la-famille"
+        },
+        {
+          "title": "Les membres de la famille élargie",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « neveu » ?",
+              "choices": [
+                "nephew",
+                "niece",
+                "cousin",
+                "cousin"
+              ],
+              "answer": "nephew",
+              "vocab": {
+                "en": "nephew",
+                "fr": "neveu"
               }
             },
             {
@@ -595,13 +777,19 @@
               }
             },
             {
-              "kind": "spelling_bee",
-              "prompt": "Épelle « cousin ».",
+              "kind": "fill_blank",
+              "prompt": "My ___ is my father's nephew.",
               "answer": "cousin",
               "vocab": {
                 "en": "cousin",
-                "fr": "cousin"
-              }
+                "fr": "cousin (m)"
+              },
+              "word_bank": [
+                "cousin",
+                "uncle",
+                "brother",
+                "nephew"
+              ]
             },
             {
               "kind": "fill_blank",
@@ -627,6 +815,23 @@
               "vocab": {
                 "en": "We visit our grandparents",
                 "fr": "nous rendons visite à nos grands-parents"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Mon oncle est médecin.",
+              "word_bank": [
+                "My",
+                "uncle",
+                "is",
+                "a",
+                "doctor",
+                "nurse"
+              ],
+              "answer": "My uncle is a doctor",
+              "vocab": {
+                "en": "My uncle is a doctor",
+                "fr": "Mon oncle est médecin"
               }
             }
           ],
@@ -708,6 +913,38 @@
                 "en": "Where is the bathroom",
                 "fr": "où est la salle de bain"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « jardin » ?",
+              "choices": [
+                "garden",
+                "garage",
+                "kitchen",
+                "bathroom"
+              ],
+              "answer": "garden",
+              "vocab": {
+                "en": "garden",
+                "fr": "jardin"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Le salon est grand.",
+              "word_bank": [
+                "The",
+                "living room",
+                "is",
+                "big",
+                "small",
+                "house"
+              ],
+              "answer": "The living room is big",
+              "vocab": {
+                "en": "The living room is big",
+                "fr": "Le salon est grand"
+              }
             }
           ],
           "id": "u2-l3",
@@ -717,13 +954,19 @@
           "title": "Les meubles et objets",
           "exercises": [
             {
-              "kind": "spelling_bee",
-              "prompt": "Épelle « table ».",
+              "kind": "fill_blank",
+              "prompt": "The book is on the ___.",
               "answer": "table",
               "vocab": {
                 "en": "table",
-                "fr": "table"
-              }
+                "fr": "table (meuble)"
+              },
+              "word_bank": [
+                "table",
+                "chair",
+                "bed",
+                "desk"
+              ]
             },
             {
               "kind": "translate",
@@ -781,6 +1024,23 @@
               "vocab": {
                 "en": "The bed is in the bedroom",
                 "fr": "le lit est dans la chambre"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La lampe est sur la table.",
+              "word_bank": [
+                "The",
+                "lamp",
+                "is",
+                "on",
+                "the",
+                "table"
+              ],
+              "answer": "The lamp is on the table",
+              "vocab": {
+                "en": "The lamp is on the table",
+                "fr": "La lampe est sur la table"
               }
             }
           ],
@@ -862,6 +1122,38 @@
                 "en": "I like yellow",
                 "fr": "j'aime le jaune"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « orange » ?",
+              "choices": [
+                "orange",
+                "purple",
+                "pink",
+                "brown"
+              ],
+              "answer": "orange",
+              "vocab": {
+                "en": "orange",
+                "fr": "orange (fruit)"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La rose est rose.",
+              "word_bank": [
+                "The",
+                "rose",
+                "is",
+                "pink",
+                "red",
+                "white"
+              ],
+              "answer": "The rose is pink",
+              "vocab": {
+                "en": "The rose is pink",
+                "fr": "La rose est rose"
+              }
             }
           ],
           "id": "u2-l5",
@@ -942,6 +1234,38 @@
               "vocab": {
                 "en": "It is cold, put on your coat",
                 "fr": "il fait froid, mets ton manteau"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « chapeau » ?",
+              "choices": [
+                "hat",
+                "cap",
+                "coat",
+                "scarf"
+              ],
+              "answer": "hat",
+              "vocab": {
+                "en": "hat",
+                "fr": "chapeau"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il porte des lunettes.",
+              "word_bank": [
+                "He",
+                "wears",
+                "glasses",
+                "wears",
+                "a",
+                "hat"
+              ],
+              "answer": "He wears glasses",
+              "vocab": {
+                "en": "He wears glasses",
+                "fr": "Il porte des lunettes"
               }
             }
           ],
@@ -1031,6 +1355,38 @@
                 "en": "The salad is green",
                 "fr": "la salade est verte"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « fraise » ?",
+              "choices": [
+                "strawberry",
+                "raspberry",
+                "blueberry",
+                "blackberry"
+              ],
+              "answer": "strawberry",
+              "vocab": {
+                "en": "strawberry",
+                "fr": "fraise"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La tomate est rouge.",
+              "word_bank": [
+                "The",
+                "tomato",
+                "is",
+                "red",
+                "green",
+                "yellow"
+              ],
+              "answer": "The tomato is red",
+              "vocab": {
+                "en": "The tomato is red",
+                "fr": "La tomate est rouge"
+              }
             }
           ],
           "id": "u3-l1",
@@ -1110,6 +1466,38 @@
               "vocab": {
                 "en": "The beef is delicious",
                 "fr": "le bœuf est délicieux"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « saumon » ?",
+              "choices": [
+                "salmon",
+                "tuna",
+                "trout",
+                "cod"
+              ],
+              "answer": "salmon",
+              "vocab": {
+                "en": "salmon",
+                "fr": "saumon"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je mange des œufs.",
+              "word_bank": [
+                "I",
+                "eat",
+                "eggs",
+                "for",
+                "breakfast",
+                "lunch"
+              ],
+              "answer": "I eat eggs for breakfast",
+              "vocab": {
+                "en": "I eat eggs for breakfast",
+                "fr": "Je mange des œufs au petit-déjeuner"
               }
             }
           ],
@@ -1191,6 +1579,38 @@
                 "en": "The coffee is hot",
                 "fr": "le café est chaud"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « thé » ?",
+              "choices": [
+                "tea",
+                "coffee",
+                "water",
+                "milk"
+              ],
+              "answer": "tea",
+              "vocab": {
+                "en": "tea",
+                "fr": "thé"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Le jus d'orange est frais.",
+              "word_bank": [
+                "The",
+                "orange juice",
+                "is",
+                "fresh",
+                "cold",
+                "hot"
+              ],
+              "answer": "The orange juice is fresh",
+              "vocab": {
+                "en": "The orange juice is fresh",
+                "fr": "Le jus d'orange est frais"
+              }
             }
           ],
           "id": "u3-l3",
@@ -1271,6 +1691,38 @@
                 "en": "Breakfast is ready",
                 "fr": "le petit-déjeuner est prêt"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « goûter » ?",
+              "choices": [
+                "snack",
+                "breakfast",
+                "lunch",
+                "dinner"
+              ],
+              "answer": "snack",
+              "vocab": {
+                "en": "snack",
+                "fr": "goûter"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Nous dînons à huit heures.",
+              "word_bank": [
+                "We",
+                "have",
+                "dinner",
+                "at",
+                "eight",
+                "o'clock"
+              ],
+              "answer": "We have dinner at eight o'clock",
+              "vocab": {
+                "en": "We have dinner at eight o'clock",
+                "fr": "Nous dînons à huit heures"
+              }
             }
           ],
           "id": "u3-l4",
@@ -1350,6 +1802,38 @@
               "vocab": {
                 "en": "It is delicious, thank you",
                 "fr": "c'est délicieux, merci"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « serveur » ?",
+              "choices": [
+                "waiter",
+                "waitress",
+                "chef",
+                "customer"
+              ],
+              "answer": "waiter",
+              "vocab": {
+                "en": "waiter",
+                "fr": "serveur"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "L'addition, s'il vous plaît.",
+              "word_bank": [
+                "The",
+                "bill",
+                "please",
+                "check",
+                "menu",
+                "tip"
+              ],
+              "answer": "The bill please",
+              "vocab": {
+                "en": "The bill, please",
+                "fr": "L'addition, s'il vous plaît"
               }
             }
           ],
@@ -1439,6 +1923,38 @@
                 "en": "You have a dog",
                 "fr": "tu as un chien"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Choisis : She ___ a dog.",
+              "choices": [
+                "has",
+                "have",
+                "is",
+                "are"
+              ],
+              "answer": "has",
+              "vocab": {
+                "en": "has",
+                "fr": "a (elle a)"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Ils sont contents.",
+              "word_bank": [
+                "They",
+                "are",
+                "happy",
+                "sad",
+                "is",
+                "am"
+              ],
+              "answer": "They are happy",
+              "vocab": {
+                "en": "They are happy",
+                "fr": "Ils sont contents"
+              }
             }
           ],
           "id": "u4-l1",
@@ -1518,6 +2034,38 @@
               "vocab": {
                 "en": "We read a book",
                 "fr": "nous lisons un livre"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « écrire » ?",
+              "choices": [
+                "write",
+                "read",
+                "speak",
+                "listen"
+              ],
+              "answer": "write",
+              "vocab": {
+                "en": "write",
+                "fr": "écrire"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle chante une chanson.",
+              "word_bank": [
+                "She",
+                "sings",
+                "a",
+                "song",
+                "dances",
+                "music"
+              ],
+              "answer": "She sings a song",
+              "vocab": {
+                "en": "She sings a song",
+                "fr": "Elle chante une chanson"
               }
             }
           ],
@@ -1599,6 +2147,38 @@
                 "en": "We walk to school",
                 "fr": "nous marchons à l'école"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « sauter » ?",
+              "choices": [
+                "jump",
+                "run",
+                "walk",
+                "fly"
+              ],
+              "answer": "jump",
+              "vocab": {
+                "en": "jump",
+                "fr": "sauter"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Ils nagent dans la piscine.",
+              "word_bank": [
+                "They",
+                "swim",
+                "in",
+                "the",
+                "pool",
+                "run"
+              ],
+              "answer": "They swim in the pool",
+              "vocab": {
+                "en": "They swim in the pool",
+                "fr": "Ils nagent dans la piscine"
+              }
             }
           ],
           "id": "u4-l3",
@@ -1679,6 +2259,38 @@
                 "en": "What are you doing",
                 "fr": "qu'est-ce que tu fais"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Choisis : He usually ___ tennis.",
+              "choices": [
+                "plays",
+                "is playing",
+                "play",
+                "played"
+              ],
+              "answer": "plays",
+              "vocab": {
+                "en": "plays",
+                "fr": "joue (habituellement)"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "En ce moment, il pleut.",
+              "word_bank": [
+                "It",
+                "is",
+                "raining",
+                "now",
+                "rains",
+                "today"
+              ],
+              "answer": "It is raining now",
+              "vocab": {
+                "en": "It is raining now",
+                "fr": "En ce moment, il pleut"
+              }
             }
           ],
           "id": "u4-l4",
@@ -1758,6 +2370,38 @@
               "vocab": {
                 "en": "He took the bus",
                 "fr": "il a pris le bus"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Passé de « see » ?",
+              "choices": [
+                "saw",
+                "seed",
+                "seen",
+                "seeing"
+              ],
+              "answer": "saw",
+              "vocab": {
+                "en": "saw",
+                "fr": "vu (saw)"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle a fait un gâteau.",
+              "word_bank": [
+                "She",
+                "made",
+                "a",
+                "cake",
+                "make",
+                "baked"
+              ],
+              "answer": "She made a cake",
+              "vocab": {
+                "en": "She made a cake",
+                "fr": "Elle a fait un gâteau"
               }
             }
           ],
@@ -1847,6 +2491,38 @@
                 "en": "Where do you live",
                 "fr": "où habites-tu"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Choisis : ___ you like pizza?",
+              "choices": [
+                "Do",
+                "Does",
+                "Are",
+                "Is"
+              ],
+              "answer": "Do",
+              "vocab": {
+                "en": "Do you",
+                "fr": "est-ce que tu"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Est-ce qu'il parle anglais ?",
+              "word_bank": [
+                "Does",
+                "he",
+                "speak",
+                "English",
+                "Do",
+                "is"
+              ],
+              "answer": "Does he speak English",
+              "vocab": {
+                "en": "Does he speak English",
+                "fr": "Est-ce qu'il parle anglais"
+              }
             }
           ],
           "id": "u5-l1",
@@ -1926,6 +2602,38 @@
               "vocab": {
                 "en": "Does he come? No, he doesn't",
                 "fr": "est-ce qu'il vient ? Non, il ne vient pas"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Réponse courte : Are you tired? →",
+              "choices": [
+                "Yes, I am",
+                "Yes, I do",
+                "Yes, I tired",
+                "Yes, I can"
+              ],
+              "answer": "Yes, I am",
+              "vocab": {
+                "en": "Yes, I am",
+                "fr": "oui, je suis fatigué"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Non, elle n'est pas là.",
+              "word_bank": [
+                "No",
+                "she",
+                "isn't",
+                "is",
+                "not",
+                "here"
+              ],
+              "answer": "No, she isn't here",
+              "vocab": {
+                "en": "No, she isn't here",
+                "fr": "Non, elle n'est pas là"
               }
             }
           ],
@@ -2007,6 +2715,38 @@
                 "en": "Why do you learn English",
                 "fr": "pourquoi apprends-tu l'anglais"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment demande-t-on le nom ?",
+              "choices": [
+                "What is your name?",
+                "How are you?",
+                "Where are you from?",
+                "How old are you?"
+              ],
+              "answer": "What is your name?",
+              "vocab": {
+                "en": "What is your name",
+                "fr": "quel est ton nom"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Qui est ton professeur ?",
+              "word_bank": [
+                "Who",
+                "is",
+                "your",
+                "teacher",
+                "name",
+                "friend"
+              ],
+              "answer": "Who is your teacher",
+              "vocab": {
+                "en": "Who is your teacher",
+                "fr": "qui est ton professeur"
+              }
             }
           ],
           "id": "u5-l3",
@@ -2086,6 +2826,38 @@
               "vocab": {
                 "en": "Which city do you live in",
                 "fr": "dans quelle ville habites-tu"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment demande-t-on depuis combien de temps ?",
+              "choices": [
+                "How long...?",
+                "How much...?",
+                "How many...?",
+                "How often...?"
+              ],
+              "answer": "How long...?",
+              "vocab": {
+                "en": "How long",
+                "fr": "depuis combien de temps"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Depuis quand habites-tu ici ?",
+              "word_bank": [
+                "How",
+                "long",
+                "have",
+                "you",
+                "lived",
+                "here"
+              ],
+              "answer": "How long have you lived here",
+              "vocab": {
+                "en": "How long have you lived here",
+                "fr": "Depuis quand habites-tu ici"
               }
             }
           ],
@@ -2175,6 +2947,38 @@
                 "en": "On Sunday I rest",
                 "fr": "le dimanche je me repose"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « mercredi » ?",
+              "choices": [
+                "Wednesday",
+                "Tuesday",
+                "Thursday",
+                "Friday"
+              ],
+              "answer": "Wednesday",
+              "vocab": {
+                "en": "Wednesday",
+                "fr": "mercredi"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je travaille le samedi.",
+              "word_bank": [
+                "I",
+                "work",
+                "on",
+                "Saturday",
+                "Sunday",
+                "Monday"
+              ],
+              "answer": "I work on Saturday",
+              "vocab": {
+                "en": "I work on Saturday",
+                "fr": "Je travaille le samedi"
+              }
             }
           ],
           "id": "u6-l1",
@@ -2254,6 +3058,23 @@
               "vocab": {
                 "en": "My birthday is in March",
                 "fr": "mon anniversaire est en mars"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La rentrée est en septembre.",
+              "word_bank": [
+                "School",
+                "starts",
+                "in",
+                "September",
+                "October",
+                "January"
+              ],
+              "answer": "School starts in September",
+              "vocab": {
+                "en": "School starts in September",
+                "fr": "La rentrée est en septembre"
               }
             }
           ],
@@ -2335,6 +3156,39 @@
                 "en": "It is quarter to ten",
                 "fr": "il est 10 heures moins le quart"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « il est minuit » ?",
+              "choices": [
+                "It is midnight",
+                "It is noon",
+                "It is midday",
+                "It is morning"
+              ],
+              "answer": "It is midnight",
+              "vocab": {
+                "en": "It is midnight",
+                "fr": "il est minuit"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il est 7 heures et demie.",
+              "word_bank": [
+                "It",
+                "is",
+                "half",
+                "past",
+                "seven",
+                "quarter",
+                "to"
+              ],
+              "answer": "It is half past seven",
+              "vocab": {
+                "en": "It is half past seven",
+                "fr": "Il est 7 heures et demie"
+              }
             }
           ],
           "id": "u6-l3",
@@ -2414,6 +3268,39 @@
               "vocab": {
                 "en": "What is the weather like today",
                 "fr": "quel temps fait-il aujourd'hui"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « automne » ?",
+              "choices": [
+                "autumn",
+                "spring",
+                "summer",
+                "winter"
+              ],
+              "answer": "autumn",
+              "vocab": {
+                "en": "autumn",
+                "fr": "automne"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "En hiver, il neige.",
+              "word_bank": [
+                "In",
+                "winter",
+                "it",
+                "snows",
+                "rains",
+                "is",
+                "sunny"
+              ],
+              "answer": "In winter it snows",
+              "vocab": {
+                "en": "In winter it snows",
+                "fr": "En hiver, il neige"
               }
             }
           ],
@@ -2503,6 +3390,38 @@
                 "en": "Class starts at eight o'clock",
                 "fr": "la classe commence à 8 heures"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « histoire » ?",
+              "choices": [
+                "history",
+                "geography",
+                "biology",
+                "physics"
+              ],
+              "answer": "history",
+              "vocab": {
+                "en": "history",
+                "fr": "histoire"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La géographie est intéressante.",
+              "word_bank": [
+                "Geography",
+                "is",
+                "interesting",
+                "boring",
+                "easy",
+                "hard"
+              ],
+              "answer": "Geography is interesting",
+              "vocab": {
+                "en": "Geography is interesting",
+                "fr": "La géographie est intéressante"
+              }
             }
           ],
           "id": "u7-l1",
@@ -2583,6 +3502,23 @@
                 "en": "The book is in the bag",
                 "fr": "le livre est dans le sac"
               }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Mon stylo est bleu.",
+              "word_bank": [
+                "My",
+                "pen",
+                "is",
+                "blue",
+                "red",
+                "black"
+              ],
+              "answer": "My pen is blue",
+              "vocab": {
+                "en": "My pen is blue",
+                "fr": "Mon stylo est bleu"
+              }
             }
           ],
           "id": "u7-l2",
@@ -2662,6 +3598,39 @@
               "vocab": {
                 "en": "What is your job",
                 "fr": "quel est ton métier"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « avocat » ?",
+              "choices": [
+                "lawyer",
+                "doctor",
+                "judge",
+                "police officer"
+              ],
+              "answer": "lawyer",
+              "vocab": {
+                "en": "lawyer",
+                "fr": "avocat"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle veut être infirmière.",
+              "word_bank": [
+                "She",
+                "wants",
+                "to",
+                "be",
+                "a",
+                "nurse",
+                "doctor"
+              ],
+              "answer": "She wants to be a nurse",
+              "vocab": {
+                "en": "She wants to be a nurse",
+                "fr": "Elle veut être infirmière"
               }
             }
           ],
@@ -2751,6 +3720,38 @@
                 "en": "The bus arrives at eight",
                 "fr": "le bus arrive à 8 heures"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « métro » ?",
+              "choices": [
+                "subway",
+                "metro",
+                "bus",
+                "train"
+              ],
+              "answer": "subway",
+              "vocab": {
+                "en": "subway/metro",
+                "fr": "métro"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Le train part à 9 heures.",
+              "word_bank": [
+                "The",
+                "train",
+                "leaves",
+                "at",
+                "nine",
+                "arrives"
+              ],
+              "answer": "The train leaves at nine",
+              "vocab": {
+                "en": "The train leaves at nine",
+                "fr": "Le train part à 9 heures"
+              }
             }
           ],
           "id": "u8-l1",
@@ -2830,6 +3831,38 @@
               "vocab": {
                 "en": "Where is the station",
                 "fr": "où est la gare"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « tournez à gauche » ?",
+              "choices": [
+                "Turn left",
+                "Turn right",
+                "Go straight",
+                "Stop"
+              ],
+              "answer": "Turn left",
+              "vocab": {
+                "en": "Turn left",
+                "fr": "Tournez à gauche"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Continuez tout droit.",
+              "word_bank": [
+                "Go",
+                "straight",
+                "on",
+                "turn",
+                "left",
+                "right"
+              ],
+              "answer": "Go straight on",
+              "vocab": {
+                "en": "Go straight on",
+                "fr": "Continuez tout droit"
               }
             }
           ],
@@ -2911,6 +3944,39 @@
               "vocab": {
                 "en": "The plane leaves at ten",
                 "fr": "l'avion part à 10 heures"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « clé » ?",
+              "choices": [
+                "key",
+                "card",
+                "door",
+                "room"
+              ],
+              "answer": "key",
+              "vocab": {
+                "en": "key",
+                "fr": "clé"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La chambre est au premier étage.",
+              "word_bank": [
+                "The",
+                "room",
+                "is",
+                "on",
+                "the",
+                "first",
+                "floor"
+              ],
+              "answer": "The room is on the first floor",
+              "vocab": {
+                "en": "The room is on the first floor",
+                "fr": "La chambre est au premier étage"
               }
             }
           ],
@@ -3000,6 +4066,38 @@
                 "en": "He washes his hands",
                 "fr": "il se lave les mains"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « bras » ?",
+              "choices": [
+                "arm",
+                "leg",
+                "hand",
+                "foot"
+              ],
+              "answer": "arm",
+              "vocab": {
+                "en": "arm",
+                "fr": "bras"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle se brosse les dents.",
+              "word_bank": [
+                "She",
+                "brushes",
+                "her",
+                "teeth",
+                "hair",
+                "washes"
+              ],
+              "answer": "She brushes her teeth",
+              "vocab": {
+                "en": "She brushes her teeth",
+                "fr": "Elle se brosse les dents"
+              }
             }
           ],
           "id": "u9-l1",
@@ -3010,17 +4108,17 @@
           "exercises": [
             {
               "kind": "multiple_choice",
-              "prompt": "Comment dit-on « médecin » ?",
+              "prompt": "Comment dit-on « pharmacien » ?",
               "choices": [
+                "pharmacist",
                 "doctor",
                 "nurse",
-                "dentist",
                 "patient"
               ],
-              "answer": "doctor",
+              "answer": "pharmacist",
               "vocab": {
-                "en": "doctor",
-                "fr": "médecin"
+                "en": "pharmacist",
+                "fr": "pharmacien"
               }
             },
             {
@@ -3079,6 +4177,24 @@
               "vocab": {
                 "en": "Where is the pharmacy",
                 "fr": "où est la pharmacie"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Prenez ce médicament trois fois par jour.",
+              "word_bank": [
+                "Take",
+                "this",
+                "medicine",
+                "three",
+                "times",
+                "a",
+                "day"
+              ],
+              "answer": "Take this medicine three times a day",
+              "vocab": {
+                "en": "Take this medicine three times a day",
+                "fr": "Prenez ce médicament trois fois par jour"
               }
             }
           ],
@@ -3160,6 +4276,38 @@
                 "en": "I feel well",
                 "fr": "je me sens bien"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « j'ai mal au ventre » ?",
+              "choices": [
+                "I have a stomachache",
+                "I have a headache",
+                "I have a toothache",
+                "I am sick"
+              ],
+              "answer": "I have a stomachache",
+              "vocab": {
+                "en": "I have a stomachache",
+                "fr": "J'ai mal au ventre"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il a de la fièvre.",
+              "word_bank": [
+                "He",
+                "has",
+                "a",
+                "fever",
+                "cold",
+                "headache"
+              ],
+              "answer": "He has a fever",
+              "vocab": {
+                "en": "He has a fever",
+                "fr": "Il a de la fièvre"
+              }
             }
           ],
           "id": "u9-l3",
@@ -3177,19 +4325,21 @@
           "title": "Sports et activités",
           "exercises": [
             {
-              "kind": "multiple_choice",
-              "prompt": "Comment dit-on « football » ?",
-              "choices": [
-                "football",
-                "soccer",
-                "tennis",
-                "basketball"
-              ],
-              "answer": "football",
+              "kind": "translate",
+              "prompt": "Il joue au football le dimanche.",
               "vocab": {
-                "en": "football/soccer",
-                "fr": "football"
-              }
+                "en": "football",
+                "fr": "football (sport)"
+              },
+              "word_bank": [
+                "He",
+                "plays",
+                "football",
+                "on",
+                "Sunday",
+                "plays"
+              ],
+              "answer": "He plays football on Sunday"
             },
             {
               "kind": "translate",
@@ -3229,7 +4379,7 @@
               "answer": "football",
               "vocab": {
                 "en": "football",
-                "fr": "football"
+                "fr": "football (sport)"
               }
             },
             {
@@ -3247,6 +4397,38 @@
               "vocab": {
                 "en": "We ride bikes",
                 "fr": "nous faisons du vélo"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « basket-ball » ?",
+              "choices": [
+                "basketball",
+                "football",
+                "tennis",
+                "volleyball"
+              ],
+              "answer": "basketball",
+              "vocab": {
+                "en": "basketball",
+                "fr": "basket-ball"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il joue au tennis le mercredi.",
+              "word_bank": [
+                "He",
+                "plays",
+                "tennis",
+                "on",
+                "Wednesday",
+                "Monday"
+              ],
+              "answer": "He plays tennis on Wednesday",
+              "vocab": {
+                "en": "He plays tennis on Wednesday",
+                "fr": "Il joue au tennis le mercredi"
               }
             }
           ],
@@ -3328,6 +4510,38 @@
                 "en": "He draws a cat",
                 "fr": "il dessine un chat"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « peindre » ?",
+              "choices": [
+                "paint",
+                "draw",
+                "draw",
+                "color"
+              ],
+              "answer": "paint",
+              "vocab": {
+                "en": "paint",
+                "fr": "peindre"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle dessine un paysage.",
+              "word_bank": [
+                "She",
+                "draws",
+                "a",
+                "landscape",
+                "portrait",
+                "cat"
+              ],
+              "answer": "She draws a landscape",
+              "vocab": {
+                "en": "She draws a landscape",
+                "fr": "Elle dessine un paysage"
+              }
             }
           ],
           "id": "u10-l2",
@@ -3393,20 +4607,36 @@
               }
             },
             {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « parler » ?",
+              "choices": [
+                "speak",
+                "talk",
+                "say",
+                "tell"
+              ],
+              "answer": "speak",
+              "vocab": {
+                "en": "speak",
+                "fr": "parler"
+              }
+            },
+            {
               "kind": "translate",
-              "prompt": "Nous lisons une histoire.",
+              "prompt": "Nous écoutons de la musique.",
               "word_bank": [
                 "We",
-                "read",
+                "listen",
+                "to",
+                "music",
+                "watch",
                 "a",
-                "story",
-                "book",
-                "watch"
+                "movie"
               ],
-              "answer": "We read a story",
+              "answer": "We listen to music",
               "vocab": {
-                "en": "We read a story",
-                "fr": "nous lisons une histoire"
+                "en": "We listen to music",
+                "fr": "Nous écoutons de la musique"
               }
             }
           ],
@@ -3457,22 +4687,37 @@
               }
             },
             {
-              "kind": "spelling_bee",
-              "prompt": "Épelle « message ».",
-              "answer": "message",
-              "vocab": {
-                "en": "message",
-                "fr": "message"
-              }
-            },
-            {
               "kind": "fill_blank",
               "prompt": "Send me a ___.",
               "answer": "message",
               "vocab": {
                 "en": "message",
-                "fr": "message"
-              }
+                "fr": "message (text)"
+              },
+              "word_bank": [
+                "message",
+                "text",
+                "email",
+                "letter"
+              ]
+            },
+            {
+              "kind": "translate",
+              "prompt": "Peux-tu m'envoyer le document ?",
+              "vocab": {
+                "en": "Can you send me the document",
+                "fr": "Peux-tu m'envoyer le document"
+              },
+              "word_bank": [
+                "Can",
+                "you",
+                "send",
+                "me",
+                "the",
+                "document",
+                "please"
+              ],
+              "answer": "Can you send me the document"
             },
             {
               "kind": "translate",
@@ -3489,6 +4734,38 @@
               "vocab": {
                 "en": "Do you have internet",
                 "fr": "as-tu internet"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « appeler » ?",
+              "choices": [
+                "call",
+                "phone",
+                "text",
+                "message"
+              ],
+              "answer": "call",
+              "vocab": {
+                "en": "call",
+                "fr": "appeler"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Envoie-moi un SMS.",
+              "word_bank": [
+                "Send",
+                "me",
+                "a",
+                "text",
+                "call",
+                "message"
+              ],
+              "answer": "Send me a text",
+              "vocab": {
+                "en": "Send me a text",
+                "fr": "Envoie-moi un SMS"
               }
             }
           ],
@@ -3570,6 +4847,38 @@
                 "en": "I like this photo",
                 "fr": "j'aime cette photo"
               }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « partager » ?",
+              "choices": [
+                "share",
+                "post",
+                "like",
+                "comment"
+              ],
+              "answer": "share",
+              "vocab": {
+                "en": "share",
+                "fr": "partager"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "J'aime ta publication.",
+              "word_bank": [
+                "I",
+                "like",
+                "this",
+                "photo",
+                "picture",
+                "video"
+              ],
+              "answer": "I like your post",
+              "vocab": {
+                "en": "I like your post",
+                "fr": "J'aime ta publication"
+              }
             }
           ],
           "id": "u11-l2",
@@ -3578,6 +4887,799 @@
       ],
       "id": "u11",
       "slug": "u11-technologie-et-communication"
+    },
+    {
+      "title": "La vie quotidienne",
+      "color": "#8b5cf6",
+      "id": "u12",
+      "slug": "u12-la-vie-quotidienne",
+      "lessons": [
+        {
+          "title": "Faire des achats",
+          "id": "u12-l1",
+          "slug": "u12-l1-faire-des-achats",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « magasin » ?",
+              "choices": [
+                "shop",
+                "store",
+                "market",
+                "mall"
+              ],
+              "answer": "shop",
+              "vocab": {
+                "en": "shop",
+                "fr": "magasin"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je cherche une chemise.",
+              "word_bank": [
+                "I",
+                "am",
+                "looking",
+                "for",
+                "a",
+                "shirt"
+              ],
+              "answer": "I am looking for a shirt",
+              "vocab": {
+                "en": "I am looking for a shirt",
+                "fr": "Je cherche une chemise"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « prix » ?",
+              "choices": [
+                "price",
+                "cost",
+                "money",
+                "value"
+              ],
+              "answer": "price",
+              "vocab": {
+                "en": "price",
+                "fr": "prix"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "How much ___ it cost?",
+              "answer": "does",
+              "vocab": {
+                "en": "does",
+                "fr": "coûte"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "C'est trop cher.",
+              "word_bank": [
+                "It",
+                "is",
+                "too",
+                "expensive",
+                "cheap",
+                "free"
+              ],
+              "answer": "It is too expensive",
+              "vocab": {
+                "en": "It is too expensive",
+                "fr": "C'est trop cher"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « reçu » ?",
+              "choices": [
+                "receipt",
+                "bill",
+                "ticket",
+                "change"
+              ],
+              "answer": "receipt",
+              "vocab": {
+                "en": "receipt",
+                "fr": "reçu"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je paie par carte.",
+              "word_bank": [
+                "I",
+                "pay",
+                "by",
+                "card",
+                "cash",
+                "check"
+              ],
+              "answer": "I pay by card",
+              "vocab": {
+                "en": "I pay by card",
+                "fr": "Je paie par carte"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Parler de ses habitudes",
+          "id": "u12-l2",
+          "slug": "u12-l2-parler-de-ses-habitudes",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « généralement » ?",
+              "choices": [
+                "usually",
+                "always",
+                "often",
+                "sometimes"
+              ],
+              "answer": "usually",
+              "vocab": {
+                "en": "usually",
+                "fr": "généralement"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je me lève tôt.",
+              "word_bank": [
+                "I",
+                "get",
+                "up",
+                "early",
+                "late",
+                "sleep"
+              ],
+              "answer": "I get up early",
+              "vocab": {
+                "en": "I get up early",
+                "fr": "Je me lève tôt"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « prendre le petit-déjeuner » ?",
+              "choices": [
+                "have breakfast",
+                "eat breakfast",
+                "make breakfast",
+                "cook breakfast"
+              ],
+              "answer": "have breakfast",
+              "vocab": {
+                "en": "have breakfast",
+                "fr": "prendre le petit-déjeuner"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "I ___ TV every evening.",
+              "answer": "watch",
+              "vocab": {
+                "en": "watch",
+                "fr": "regarder"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il ne fume pas.",
+              "word_bank": [
+                "He",
+                "does",
+                "not",
+                "smoke",
+                "smokes",
+                "drinks"
+              ],
+              "answer": "He does not smoke",
+              "vocab": {
+                "en": "He does not smoke",
+                "fr": "Il ne fume pas"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « se coucher » ?",
+              "choices": [
+                "go to bed",
+                "go to sleep",
+                "wake up",
+                "get up"
+              ],
+              "answer": "go to bed",
+              "vocab": {
+                "en": "go to bed",
+                "fr": "se coucher"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je lis avant de dormir.",
+              "word_bank": [
+                "I",
+                "read",
+                "before",
+                "sleeping",
+                "sleep",
+                "dream"
+              ],
+              "answer": "I read before sleeping",
+              "vocab": {
+                "en": "I read before sleeping",
+                "fr": "Je lis avant de dormir"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Décrire une personne",
+          "id": "u12-l3",
+          "slug": "u12-l3-decrire-une-personne",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « grand » ?",
+              "choices": [
+                "tall",
+                "short",
+                "big",
+                "small"
+              ],
+              "answer": "tall",
+              "vocab": {
+                "en": "tall",
+                "fr": "grand"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle a les yeux bleus.",
+              "word_bank": [
+                "She",
+                "has",
+                "blue",
+                "eyes",
+                "green",
+                "brown"
+              ],
+              "answer": "She has blue eyes",
+              "vocab": {
+                "en": "She has blue eyes",
+                "fr": "Elle a les yeux bleus"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « mince » ?",
+              "choices": [
+                "thin",
+                "fat",
+                "tall",
+                "short"
+              ],
+              "answer": "thin",
+              "vocab": {
+                "en": "thin",
+                "fr": "mince"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "He is ___ and strong.",
+              "answer": "tall",
+              "vocab": {
+                "en": "tall",
+                "fr": "grand"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Il a les cheveux bruns.",
+              "word_bank": [
+                "He",
+                "has",
+                "brown",
+                "hair",
+                "blond",
+                "black"
+              ],
+              "answer": "He has brown hair",
+              "vocab": {
+                "en": "He has brown hair",
+                "fr": "Il a les cheveux bruns"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « gentil » ?",
+              "choices": [
+                "kind",
+                "mean",
+                "nice",
+                "rude"
+              ],
+              "answer": "kind",
+              "vocab": {
+                "en": "kind",
+                "fr": "gentil"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Elle est très drôle.",
+              "word_bank": [
+                "She",
+                "is",
+                "very",
+                "funny",
+                "sad",
+                "happy"
+              ],
+              "answer": "She is very funny",
+              "vocab": {
+                "en": "She is very funny",
+                "fr": "Elle est très drôle"
+              }
+            }
+          ]
+        },
+        {
+          "title": "La ville et les lieux",
+          "id": "u12-l4",
+          "slug": "u12-l4-la-ville-et-les-lieux",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « rue » ?",
+              "choices": [
+                "street",
+                "road",
+                "avenue",
+                "square"
+              ],
+              "answer": "street",
+              "vocab": {
+                "en": "street",
+                "fr": "rue"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "La banque est près de la poste.",
+              "word_bank": [
+                "The",
+                "bank",
+                "is",
+                "near",
+                "the",
+                "post office"
+              ],
+              "answer": "The bank is near the post office",
+              "vocab": {
+                "en": "The bank is near the post office",
+                "fr": "La banque est près de la poste"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « musée » ?",
+              "choices": [
+                "museum",
+                "gallery",
+                "theater",
+                "cinema"
+              ],
+              "answer": "museum",
+              "vocab": {
+                "en": "museum",
+                "fr": "musée"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "The park is ___ the river.",
+              "answer": "near",
+              "vocab": {
+                "en": "near",
+                "fr": "près de"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Où est la mairie ?",
+              "word_bank": [
+                "Where",
+                "is",
+                "the",
+                "city hall",
+                "town hall",
+                "station"
+              ],
+              "answer": "Where is the city hall",
+              "vocab": {
+                "en": "Where is the city hall",
+                "fr": "Où est la mairie"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « feu rouge » ?",
+              "choices": [
+                "red light",
+                "traffic light",
+                "stop sign",
+                "crosswalk"
+              ],
+              "answer": "traffic light",
+              "vocab": {
+                "en": "traffic light",
+                "fr": "feu rouge"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Tournez à droite au carrefour.",
+              "word_bank": [
+                "Turn",
+                "right",
+                "at",
+                "the",
+                "crossroads",
+                "left"
+              ],
+              "answer": "Turn right at the crossroads",
+              "vocab": {
+                "en": "Turn right at the crossroads",
+                "fr": "Tournez à droite au carrefour"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Proposer et accepter",
+          "id": "u12-l5",
+          "slug": "u12-l5-proposer-et-accepter",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « veux-tu » ?",
+              "choices": [
+                "Do you want",
+                "Would you like",
+                "Can you",
+                "Will you"
+              ],
+              "answer": "Would you like",
+              "vocab": {
+                "en": "Would you like",
+                "fr": "veux-tu / voudras-tu"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Veux-tu venir avec moi ?",
+              "word_bank": [
+                "Would",
+                "you",
+                "like",
+                "to",
+                "come",
+                "with",
+                "me"
+              ],
+              "answer": "Would you like to come with me",
+              "vocab": {
+                "en": "Would you like to come with me",
+                "fr": "Veux-tu venir avec moi"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « j'accepte » ?",
+              "choices": [
+                "I accept",
+                "I agree",
+                "I refuse",
+                "I disagree"
+              ],
+              "answer": "I accept",
+              "vocab": {
+                "en": "I accept",
+                "fr": "j'accepte"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "___ you like to dance?",
+              "answer": "Would",
+              "vocab": {
+                "en": "Would",
+                "fr": "Voudrais-tu"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Non, merci, je ne peux pas.",
+              "word_bank": [
+                "No",
+                "thank",
+                "you",
+                "I",
+                "can't",
+                "can"
+              ],
+              "answer": "No, thank you, I can't",
+              "vocab": {
+                "en": "No, thank you, I can't",
+                "fr": "Non, merci, je ne peux pas"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « on se retrouve » ?",
+              "choices": [
+                "Let's meet",
+                "Let's go",
+                "Let's eat",
+                "Let's play"
+              ],
+              "answer": "Let's meet",
+              "vocab": {
+                "en": "Let's meet",
+                "fr": "on se retrouve"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "On se retrouve à 14 heures.",
+              "word_bank": [
+                "Let's",
+                "meet",
+                "at",
+                "two",
+                "o'clock",
+                "pm"
+              ],
+              "answer": "Let's meet at two o'clock",
+              "vocab": {
+                "en": "Let's meet at two o'clock",
+                "fr": "On se retrouve à 14 heures"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Au téléphone",
+          "id": "u12-l6",
+          "slug": "u12-l6-au-telephone",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « numéro » ?",
+              "choices": [
+                "number",
+                "phone",
+                "call",
+                "contact"
+              ],
+              "answer": "number",
+              "vocab": {
+                "en": "number",
+                "fr": "numéro"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Quel est ton numéro ?",
+              "word_bank": [
+                "What",
+                "is",
+                "your",
+                "number",
+                "name",
+                "phone"
+              ],
+              "answer": "What is your number",
+              "vocab": {
+                "en": "What is your number",
+                "fr": "Quel est ton numéro"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « rappeler » ?",
+              "choices": [
+                "call back",
+                "call again",
+                "recall",
+                "remember"
+              ],
+              "answer": "call back",
+              "vocab": {
+                "en": "call back",
+                "fr": "rappeler"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "Can I ___ to the manager?",
+              "answer": "speak",
+              "vocab": {
+                "en": "speak",
+                "fr": "parler"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je te rappelle plus tard.",
+              "word_bank": [
+                "I",
+                "will",
+                "call",
+                "you",
+                "back",
+                "later"
+              ],
+              "answer": "I will call you back later",
+              "vocab": {
+                "en": "I will call you back later",
+                "fr": "Je te rappelle plus tard"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « message vocal » ?",
+              "choices": [
+                "voicemail",
+                "voice message",
+                "answering machine",
+                "call"
+              ],
+              "answer": "voicemail",
+              "vocab": {
+                "en": "voicemail",
+                "fr": "message vocal"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Laissez un message après le bip.",
+              "word_bank": [
+                "Leave",
+                "a",
+                "message",
+                "after",
+                "the",
+                "beep"
+              ],
+              "answer": "Leave a message after the beep",
+              "vocab": {
+                "en": "Leave a message after the beep",
+                "fr": "Laissez un message après le bip"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Parler de ses projets",
+          "id": "u12-l7",
+          "slug": "u12-l7-parler-de-ses-projets",
+          "exercises": [
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « projet » ?",
+              "choices": [
+                "plan",
+                "project",
+                "dream",
+                "goal"
+              ],
+              "answer": "plan",
+              "vocab": {
+                "en": "plan",
+                "fr": "projet"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Je vais voyager l'an prochain.",
+              "word_bank": [
+                "I",
+                "will",
+                "travel",
+                "next",
+                "year",
+                "month"
+              ],
+              "answer": "I will travel next year",
+              "vocab": {
+                "en": "I will travel next year",
+                "fr": "Je vais voyager l'an prochain"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « rêve » ?",
+              "choices": [
+                "dream",
+                "plan",
+                "hope",
+                "wish"
+              ],
+              "answer": "dream",
+              "vocab": {
+                "en": "dream",
+                "fr": "rêve"
+              }
+            },
+            {
+              "kind": "fill_blank",
+              "prompt": "My ___ is to become a doctor.",
+              "answer": "dream",
+              "vocab": {
+                "en": "dream",
+                "fr": "rêve"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Nous prévoyons de déménager.",
+              "word_bank": [
+                "We",
+                "plan",
+                "to",
+                "move",
+                "stay",
+                "go"
+              ],
+              "answer": "We plan to move",
+              "vocab": {
+                "en": "We plan to move",
+                "fr": "Nous prévoyons de déménager"
+              }
+            },
+            {
+              "kind": "multiple_choice",
+              "prompt": "Comment dit-on « objectif » ?",
+              "choices": [
+                "goal",
+                "target",
+                "aim",
+                "plan"
+              ],
+              "answer": "goal",
+              "vocab": {
+                "en": "goal",
+                "fr": "objectif"
+              }
+            },
+            {
+              "kind": "translate",
+              "prompt": "Mon but est d'apprendre l'anglais.",
+              "word_bank": [
+                "My",
+                "goal",
+                "is",
+                "to",
+                "learn",
+                "English"
+              ],
+              "answer": "My goal is to learn English",
+              "vocab": {
+                "en": "My goal is to learn English",
+                "fr": "Mon but est d'apprendre l'anglais"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
