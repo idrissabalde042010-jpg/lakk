@@ -66,11 +66,9 @@ impl Course {
             let mut seen_lesson_ids = std::collections::HashSet::new();
             let mut seen_lesson_slugs = std::collections::HashSet::new();
             for (li, lesson) in unit.lessons.iter().enumerate() {
-                let lesson_key = format!("{}:{}", unit.id, lesson.id);
                 if !seen_lesson_ids.insert(&lesson.id) {
                     problems.push(format!("unité {ui}, leçon {li}: ID dupliqué '{}'", lesson.id));
                 }
-                let slug_key = format!("{}:{}", unit.slug, lesson.slug);
                 if !seen_lesson_slugs.insert(&lesson.slug) {
                     problems.push(format!("unité {ui}, leçon {li}: slug dupliqué '{}'", lesson.slug));
                 }
