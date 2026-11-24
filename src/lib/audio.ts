@@ -1,10 +1,25 @@
-// Effets sonores générés (WebAudio) + synthèse vocale robuste (Web Speech API).
-// Gestion du chargement des voix, interaction utilisateur requise, fallback.
+// Effets sonores générés (WebAudio) + synthèse vocale robuste.
+//
+// Deux moteurs sont utilisés, dans cet ordre :
+//   1. Web Speech API (navigateurs modernes, Android, iOS, Windows, macOS).
+//   2. Commande Rust native (`speak_native`) appelée via Tauri : espeak-ng,
+//      espeak ou spd-say. Indispensable sous Linux / WebKitGTK, qui
+//      n'implémente pas — ou très mal — `window.speechSynthesis`.
+//
 // Toutes les API navigateur optionnelles sont vérifiées avant usage.
 
 let audioCtx: AudioContext | null = null;
 let voicesLoaded = false;
 let availableVoices: SpeechSynthesisVoice[] = [];
+
+/** Vrai si l'application tourne dans la WebView Tauri. */
+function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
+// Moteur TTS natif (Rust). `undefined` = pas encore testé, `null` = absent.
+let nativeBackend: string | null | undefined = undefined;
+let nativeChecked = false;
 
 /** Vérifie si l'API Web Speech est disponible. */
 function hasSpeechSynthesis(): boolean {
@@ -65,38 +80,94 @@ export const sfx = {
   },
 };
 
-/** Charge les voix disponibles (asynchrone sur certains navigateurs). */
+// ------------------------- Moteur natif (Rust) -------------------------
+
+/** Demande à Rust quel moteur TTS système est installé. */
+async function detectNativeTts(): Promise<string | null> {
+  if (!isTauri()) return null;
+  if (nativeChecked) return nativeBackend ?? null;
+  nativeChecked = true;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const backend = await invoke<string | null>('tts_backend');
+    nativeBackend = backend;
+    console.log('[audio] moteur TTS natif détecté :', backend ?? 'aucun (installe espeak-ng ou spd-say)');
+  } catch (err) {
+    console.warn('[audio] impossible d’interroger le TTS natif :', err);
+    nativeBackend = null;
+  }
+  return nativeBackend ?? null;
+}
+
+/** Lance la prononciation via la commande Rust. Retourne true si lancée. */
+async function speakNative(text: string, lang: string): Promise<boolean> {
+  if (!isTauri()) return false;
+  const backend = await detectNativeTts();
+  if (!backend) return false;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('speak_native', { text, lang });
+    console.log('[audio] lecture native via', backend, ':', text);
+    return true;
+  } catch (err) {
+    console.warn('[audio] échec du TTS natif :', err);
+    return false;
+  }
+}
+
+// --------------------- Moteur Web Speech API ---------------------------
+
+/**
+ * Charge les voix disponibles.
+ * WebKitGTK renvoie souvent une liste vide au démarrage : on écoute
+ * `voiceschanged`, on sonde `getVoices()` et on borne l'attente.
+ */
 function ensureVoicesLoaded(): Promise<void> {
   if (!hasSpeechSynthesis()) return Promise.resolve();
+  const synth = window.speechSynthesis!;
+
+  const current = synth.getVoices();
+  if (current.length > 0) {
+    availableVoices = current;
+    voicesLoaded = true;
+    return Promise.resolve();
+  }
   if (voicesLoaded) return Promise.resolve();
-  
+
   return new Promise((resolve) => {
-    const synth = window.speechSynthesis!;
-    const voices = synth.getVoices();
-    if (voices.length > 0) {
-      availableVoices = voices;
+    let settled = false;
+    const finish = (source: string): void => {
+      if (settled) return;
+      settled = true;
+      availableVoices = synth.getVoices();
       voicesLoaded = true;
+      if (typeof synth.removeEventListener === 'function') {
+        synth.removeEventListener('voiceschanged', onVoicesChanged);
+      }
+      synth.onvoiceschanged = null;
+      const langs = availableVoices.map((v) => v.lang).join(', ');
+      console.log(`[audio] voix Web Speech (${source}) : ${availableVoices.length}${langs ? ` [${langs}]` : ''}`);
       resolve();
-    } else {
-      synth.onvoiceschanged = () => {
-        availableVoices = synth.getVoices();
-        voicesLoaded = true;
-        synth.onvoiceschanged = null;
-        resolve();
-      };
-      // Fallback timeout
-      window.setTimeout(() => {
-        availableVoices = synth.getVoices();
-        voicesLoaded = true;
-        resolve();
-      }, 500);
+    };
+    const onVoicesChanged = (): void => finish('voiceschanged');
+
+    if (typeof synth.addEventListener === 'function') {
+      synth.addEventListener('voiceschanged', onVoicesChanged);
     }
+    synth.onvoiceschanged = onVoicesChanged;
+
+    // Certains moteurs remplissent la liste juste après le premier tick.
+    window.setTimeout(() => {
+      if (synth.getVoices().length > 0) finish('poll');
+    }, 250);
+    // WebKitGTK peut ne jamais émettre l'événement : on rend la main.
+    window.setTimeout(() => finish('timeout'), 1200);
   });
 }
 
 /** Choisit la meilleure voix pour une langue. */
 function pickVoice(lang: string): SpeechSynthesisVoice | null {
-  if (!hasSpeechSynthesis()) return null;
+  if (availableVoices.length === 0) return null;
   const primary = availableVoices.find((v) => v.lang === lang);
   if (primary) return primary;
   const fallback = availableVoices.find((v) => v.lang.startsWith(lang.split('-')[0]));
@@ -109,8 +180,9 @@ let speakQueue: Array<{ text: string; lang: string; resolve: () => void }> = [];
 let isSpeaking = false;
 
 function processQueue(): void {
-  if (!hasSpeechSynthesis()) {
-    // Résout la queue immédiatement si pas de synthèse
+  if (!hasSpeechSynthesis() || availableVoices.length === 0) {
+    // Pas de moteur Web Speech utilisable : on vide la file (le fallback
+    // natif est déclenché en amont, dans speak()).
     while (speakQueue.length > 0) {
       speakQueue.shift()!.resolve();
     }
@@ -127,7 +199,17 @@ function processQueue(): void {
   u.volume = 1.0;
 
   const voice = pickVoice(lang);
-  if (voice) u.voice = voice;
+  if (voice) {
+    u.voice = voice;
+    console.log('[audio] voix utilisée :', voice.name, voice.lang);
+  }
+
+  let fellBack = false;
+  const fallback = (): void => {
+    if (fellBack) return;
+    fellBack = true;
+    void speakNative(text, lang);
+  };
 
   u.onend = () => {
     isSpeaking = false;
@@ -135,39 +217,59 @@ function processQueue(): void {
     processQueue();
   };
   u.onerror = (e) => {
-    // Ignore 'interrupted' errors (common when cancel() is called)
-    if (e.error !== 'interrupted') console.warn('TTS error:', e.error);
+    // 'interrupted' arrive quand on appelle cancel() : ce n'est pas une panne.
+    if (e.error !== 'interrupted') {
+      console.warn('[audio] erreur Web Speech :', e.error, '→ repli natif');
+      fallback();
+    }
     isSpeaking = false;
     resolve();
     processQueue();
   };
 
-  window.speechSynthesis!.speak(u);
+  try {
+    window.speechSynthesis!.speak(u);
+  } catch (err) {
+    console.warn('[audio] speak() a levé une exception :', err, '→ repli natif');
+    fallback();
+    isSpeaking = false;
+    resolve();
+    processQueue();
+  }
 }
 
 /**
- * Prononce un texte en anglais (ou autre langue).
- * Gère la file d'attente pour ne pas couper la synthèse en cours.
- * Nécessite une interaction utilisateur préalable (politique navigateur).
- * Si l'API n'est pas disponible, résout immédiatement sans erreur.
+ * Prononce un texte (anglais par défaut).
+ *
+ * Ordre : Web Speech si des voix existent, sinon commande Rust native
+ * (espeak-ng / espeak / spd-say). Résout toujours sans lever d'erreur.
  */
 export async function speak(text: string, lang = 'en-US'): Promise<void> {
-  if (!hasSpeechSynthesis()) return;
   if (!text.trim()) return;
 
-  // S'assurer que les voix sont chargées
-  await ensureVoicesLoaded();
-
-  // Reprendre le contexte audio si suspendu (politique navigateur)
+  // Reprendre le contexte audio si suspendu (politique navigateur).
   const ctx = getAudioContext();
   if (ctx?.state === 'suspended') {
     try { await ctx.resume(); } catch { /* ignore */ }
   }
 
-  return new Promise((resolve) => {
-    speakQueue.push({ text, lang, resolve });
-    processQueue();
-  });
+  if (hasSpeechSynthesis()) {
+    await ensureVoicesLoaded();
+    if (availableVoices.length > 0) {
+      return new Promise((resolve) => {
+        speakQueue.push({ text, lang, resolve });
+        processQueue();
+      });
+    }
+    console.warn('[audio] Web Speech présent mais aucune voix (WebKitGTK ?) → repli natif');
+  } else {
+    console.log('[audio] Web Speech indisponible → repli natif');
+  }
+
+  const ok = await speakNative(text, lang);
+  if (!ok) {
+    console.warn('[audio] aucun moteur TTS disponible pour :', text);
+  }
 }
 
 /** Arrête toute synthèse en cours. */
@@ -177,19 +279,31 @@ export function cancelSpeech(): void {
     speakQueue = [];
     isSpeaking = false;
   }
+  if (isTauri()) {
+    void (async () => {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('stop_native_speech');
+      } catch { /* moteur natif absent : rien à arrêter */ }
+    })();
+  }
 }
 
 /** Précharge les voix au démarrage (appeler après interaction utilisateur). */
 export async function warmUpSpeech(): Promise<void> {
-  if (!hasSpeechSynthesis()) return;
-  await ensureVoicesLoaded();
+  if (hasSpeechSynthesis()) await ensureVoicesLoaded();
+  if (isTauri()) void detectNativeTts();
   const ctx = getAudioContext();
   if (ctx?.state === 'suspended') {
     try { await ctx.resume(); } catch { /* ignore */ }
   }
 }
 
-/** Indique si la synthèse vocale est disponible. */
+/**
+ * Indique si un moteur de synthèse est disponible.
+ * Sous Tauri, on répond oui par optimisme : le moteur natif sera sondé au
+ * premier clic (sinon les boutons 🔊 seraient masqués sous WebKitGTK).
+ */
 export function isSpeechAvailable(): boolean {
-  return hasSpeechSynthesis();
+  return hasSpeechSynthesis() || isTauri();
 }
