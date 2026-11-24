@@ -48,11 +48,19 @@ try {
 // Initialisation : compte + contenu Rust
 Promise.all([loadAccount(), app.init()]).catch((e) => reportError('init failed', e instanceof Error ? e : new Error(String(e))));
 
+// Détecte si on est dans Tauri (pas de SW dans l'app native)
+function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
 // Hors ligne : le service worker s'enregistre (le build inclut sw.js).
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => console.log('[SW] Registered:', reg.scope))
-    .catch(err => reportError('[SW] Registration failed', err instanceof Error ? err : new Error(String(err))));
+// Ne pas enregistrer dans Tauri (protocole tauri:// ne supporte pas les SW).
+if (!isTauri() && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('[SW] Registered:', reg.scope))
+      .catch(err => reportError('[SW] Registration failed', err instanceof Error ? err : new Error(String(err))));
+  });
 }
 
 export default ui;

@@ -35,6 +35,19 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "deepLink": {
+      "schemes": [
+        {
+          "scheme": "lakk",
+          "host": "callback"
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "auth-session": {
+      "callbackUrlScheme": "lakk"
+    }
   }
 }

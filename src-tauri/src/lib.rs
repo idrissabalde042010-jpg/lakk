@@ -10,6 +10,9 @@ use lakk_core::bridge::{self, CardWire, CourseStats};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 
+// Plugin d'authentification OAuth (Google, Apple, etc.)
+use tauri_plugin_auth_session::AuthSessionExt;
+
 #[cfg(target_os = "linux")]
 fn disable_dmabuf_renderer() {
     // Évite les zones sombres / blocs gris sur WebKitGTK 4.1 (Ubuntu 24.04, Zorin, etc.)
@@ -197,6 +200,7 @@ pub fn run() {
     disable_dmabuf_renderer();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_auth_session::init())
         .invoke_handler(tauri::generate_handler![
             app_info,
             course_json,

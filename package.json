@@ -14,7 +14,8 @@
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
     "driver.js": "^1.14.0",
-    "svelte-i18n": "^4.0.1"
+    "svelte-i18n": "^4.0.1",
+    "tauri-plugin-auth-session-api": "^0.2.2"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
