@@ -1,6 +1,5 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
-  import { isBgmMuted, toggleBgmMuted } from '../lib/bgm.svelte';
 
   const tabs = [
     { id: 'home', label: 'Parcours' },
@@ -68,34 +67,6 @@
       {/if}
     </button>
   {/each}
-
-  <!-- Musique d'ambiance : couper / réactiver sans quitter l'écran -->
-  <button
-    class="tab sound"
-    class:on={!isBgmMuted()}
-    type="button"
-    onclick={toggleBgmMuted}
-    aria-pressed={!isBgmMuted()}
-    aria-label={isBgmMuted() ? 'Réactiver la musique' : 'Couper la musique'}
-    title={isBgmMuted() ? 'Réactiver la musique' : 'Couper la musique'}
-  >
-    <span class="ico" aria-hidden="true">
-      {#if isBgmMuted()}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 5 6 9H3v6h3l5 4z" />
-          <path d="m16 9 5 6" />
-          <path d="m21 9-5 6" />
-        </svg>
-      {:else}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 5 6 9H3v6h3l5 4z" />
-          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-          <path d="M18.5 5.5a9 9 0 0 1 0 13" />
-        </svg>
-      {/if}
-    </span>
-    <span class="lbl">Son</span>
-  </button>
 </nav>
 
 <style>
@@ -142,14 +113,6 @@
   .tab.active {
     color: var(--teal);
     background: var(--teal-soft);
-  }
-  .tab.sound {
-    flex: 0 0 54px;
-    color: var(--muted);
-    font-size: 10.5px;
-  }
-  .tab.sound.on {
-    color: var(--teal);
   }
   .badge {
     position: absolute;
