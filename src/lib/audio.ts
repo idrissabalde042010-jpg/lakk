@@ -127,12 +127,12 @@ async function speakNative(text: string, lang: string): Promise<boolean> {
 // ------------------- Moteur Edge TTS (voix neuronale) -------------------
 //
 // Microsoft Edge « Read Aloud » : voix neuronale très naturelle, gratuite,
-// sans clé API. On l'appelle via la commande Rust `synthesize_edge_tts`
-// (Tauri uniquement), on joue le MP3 reçu en Blob, et on retombe sur la voix
-// locale du système si le réseau est absent ou le service indisponible.
+// sans clé API. Le backend Rust écrit le MP3 dans un fichier temporaire et
+// renvoie son chemin ; on le lit via le protocole asset de Tauri
+// (`convertFileSrc`). C'est bien plus fiable sous WebKitGTK que de lire un
+// Blob MP3 en mémoire (son saccadé/coupé).
 
 let edgeAudioEl: HTMLAudioElement | null = null;
-let edgeObjectUrl: string | null = null;
 
 function stopEdgeAudio(): void {
   if (edgeAudioEl) {
@@ -145,13 +145,6 @@ function stopEdgeAudio(): void {
   }
 }
 
-function revokeEdgeUrl(): void {
-  if (edgeObjectUrl) {
-    URL.revokeObjectURL(edgeObjectUrl);
-    edgeObjectUrl = null;
-  }
-}
-
 /**
  * Synthétise et joue un texte avec la voix neuronale Microsoft Edge.
  * Résout `true` si la lecture a abouti, `false` s'il faut basculer sur la
@@ -160,31 +153,34 @@ function revokeEdgeUrl(): void {
 async function speakEdge(text: string, lang: string): Promise<boolean> {
   if (!isTauri()) return false;
   try {
-    const { invoke } = await import('@tauri-apps/api/core');
+    console.log('TTS: Début appel Edge');
+    const { invoke, convertFileSrc } = await import('@tauri-apps/api/core');
 
     // Borne l'attente réseau : sans internet, on ne bloque pas l'app.
-    const bytes = await Promise.race([
-      invoke<number[] | Uint8Array>('synthesize_edge_tts', { text, lang }),
+    const filePath = await Promise.race([
+      invoke<string>('synthesize_edge_tts', { text, lang }),
       new Promise<never>((_, reject) =>
-        window.setTimeout(() => reject(new Error('délai Edge TTS dépassé')), 8000)
+        window.setTimeout(() => reject(new Error('délai Edge TTS dépassé')), 12000)
       ),
     ]);
 
-    const data = bytes instanceof Uint8Array ? bytes : Uint8Array.from(bytes);
-    if (data.length === 0) return false;
+    if (!filePath) {
+      console.error('TTS: Échec, chemin de fichier vide');
+      return false;
+    }
+    console.log('TTS: Octets reçus → fichier', filePath);
 
-    // Copie dans un ArrayBuffer standard (compatible BlobPart).
-    const buffer = new Uint8Array(data).buffer;
-    const blob = new Blob([buffer], { type: 'audio/mpeg' });
-    revokeEdgeUrl();
-    edgeObjectUrl = URL.createObjectURL(blob);
+    // Fichier réel via le protocole asset (au lieu d'un Blob mémoire).
+    const audioUrl = convertFileSrc(filePath);
+    console.log('TTS: Lecture audio...', audioUrl);
 
     if (!edgeAudioEl) {
       edgeAudioEl = new Audio();
       edgeAudioEl.preload = 'auto';
     }
     stopEdgeAudio();
-    edgeAudioEl.src = edgeObjectUrl;
+    edgeAudioEl.src = audioUrl;
+    edgeAudioEl.load();
 
     await new Promise<void>((resolve, reject) => {
       const el = edgeAudioEl!;
@@ -198,7 +194,7 @@ async function speakEdge(text: string, lang: string): Promise<boolean> {
       };
       el.onerror = () => {
         cleanup();
-        reject(new Error('lecture Edge TTS échouée'));
+        reject(new Error('lecture Edge TTS échouée via asset protocol'));
       };
       el.play().catch((err) => {
         cleanup();
@@ -206,10 +202,10 @@ async function speakEdge(text: string, lang: string): Promise<boolean> {
       });
     });
 
-    console.log('[audio] lecture Edge TTS :', text);
+    console.log('TTS: Lecture terminée');
     return true;
   } catch (err) {
-    console.warn('[audio] Edge TTS indisponible → voix locale :', err);
+    console.error('TTS: Échec, fallback vers voix système', err);
     return false;
   }
 }

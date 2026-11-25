@@ -198,10 +198,15 @@ fn stop_native_speech() {
 // frontend ; si le réseau est absent (ou le service indisponible), le
 // frontend bascule automatiquement sur la voix locale du système.
 
-/// Synthétise `text` avec une voix neuronale Microsoft Edge et renvoie les
-/// octets MP3. `lang` permet de choisir la voix (français par défaut).
+/// Synthétise `text` avec une voix neuronale Microsoft Edge, écrit le MP3
+/// dans un fichier temporaire et renvoie son chemin absolu. `lang` permet de
+/// choisir la voix (français par défaut).
+///
+/// On ne renvoie pas les octets bruts : sous WebKitGTK, lire un MP3 depuis un
+/// Blob mémoire est peu fiable (son saccadé ou coupé). Un vrai fichier lu via
+/// `convertFileSrc` (protocole asset de Tauri) est beaucoup plus stable.
 #[tauri::command]
-async fn synthesize_edge_tts(text: String, lang: Option<String>) -> Result<Vec<u8>, String> {
+async fn synthesize_edge_tts(text: String, lang: Option<String>) -> Result<String, String> {
     let text = text.trim().to_string();
     if text.is_empty() {
         return Err("texte vide".to_string());
@@ -233,7 +238,29 @@ async fn synthesize_edge_tts(text: String, lang: Option<String>) -> Result<Vec<u
             .synthesize(&text, &config)
             .map_err(|e| format!("synthèse Edge TTS échouée : {e}"))?;
 
-        Ok::<Vec<u8>, String>(audio.audio_bytes)
+        if audio.audio_bytes.is_empty() {
+            return Err("Edge TTS : audio vide".to_string());
+        }
+
+        // Fichier temporaire unique : évite toute collision entre deux
+        // lectures rapprochées (le frontend lit via le protocole asset).
+        let mut path = std::env::temp_dir();
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or(0);
+        path.push(format!("lakk_tts_{stamp}.mp3"));
+
+        std::fs::write(&path, &audio.audio_bytes)
+            .map_err(|e| format!("écriture du fichier TTS échouée : {e}"))?;
+
+        eprintln!(
+            "[TTS] {} octets écrits dans {}",
+            audio.audio_bytes.len(),
+            path.display()
+        );
+
+        Ok::<String, String>(path.to_string_lossy().into_owned())
     })
     .await
     .map_err(|e| format!("tâche Edge TTS interrompue : {e}"))?
