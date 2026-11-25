@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { shuffledIndices } from './shuffle';
 import { answersMatch } from './engine';
 import type { Exercise } from './engine';
@@ -149,5 +149,153 @@ describe('shuffle.ts / engine.ts', () => {
     
     const result = answersMatch(answer, given);
     expect(result).toBe(true);
+  });
+});
+
+describe('engine.ts — Streak Freezes (weekly grant)', () => {
+  // Helper: create a date at noon UTC
+  // Use a Wednesday base to avoid week boundaries (2026-10-28 is Wednesday, ISO week 44)
+  function day(offset: number): number {
+    const base = new Date('2026-10-28T12:00:00Z').getTime();
+    return base + offset * 86400000;
+  }
+
+  // Import functions once at module level
+  let grantWeeklyFreezes: typeof import('./engine').grantWeeklyFreezes;
+  let registerLesson: typeof import('./engine').registerLesson;
+  let newProfileFn: typeof import('./engine').newProfile;
+
+  beforeAll(async () => {
+    const engine = await import('./engine');
+    grantWeeklyFreezes = engine.grantWeeklyFreezes;
+    registerLesson = engine.registerLesson;
+    newProfileFn = engine.newProfile;
+  });
+
+  function newProfile(name = 'Test') {
+    return newProfileFn(name);
+  }
+
+  it('grantWeeklyFreezes grants 2 freezes on first call', () => {
+    const p = newProfile('Test');
+    p.freezeCount = 0;
+    p.lastFreezeGrantWeek = null;
+
+    const result = grantWeeklyFreezes(p, day(0)); // Wednesday week 44
+    expect(result).toBe(true);
+    expect(p.freezeCount).toBe(2);
+    expect(p.lastFreezeGrantWeek).toBe(44);
+  });
+
+  it('grantWeeklyFreezes does not grant again in same ISO week', () => {
+    const p = newProfile('Test');
+    p.freezeCount = 0;
+    p.lastFreezeGrantWeek = null;
+
+    grantWeeklyFreezes(p, day(0)); // Wednesday week 44
+    const result = grantWeeklyFreezes(p, day(1)); // Thursday week 44
+    expect(result).toBe(false);
+    expect(p.freezeCount).toBe(2);
+  });
+
+  it('grantWeeklyFreezes resets to 2 on new ISO week (Monday)', () => {
+    const p = newProfile('Test');
+    p.freezeCount = 0;
+    p.lastFreezeGrantWeek = null;
+
+    grantWeeklyFreezes(p, day(0)); // Wednesday week 44
+    p.freezeCount = 0; // user used both freezes
+    const result = grantWeeklyFreezes(p, day(5)); // Next Monday week 45
+    expect(result).toBe(true);
+    expect(p.freezeCount).toBe(2);
+    expect(p.lastFreezeGrantWeek).toBe(45);
+  });
+
+  it('grantWeeklyFreezes is not cumulative (resets to 2, does not add)', () => {
+    const p = newProfile('Test');
+    p.freezeCount = 1; // user has 1 left
+    p.lastFreezeGrantWeek = null;
+
+    grantWeeklyFreezes(p, day(0)); // week 44
+    expect(p.freezeCount).toBe(2); // reset to 2, not 3
+
+    // During the week, count doesn't reset
+    p.freezeCount = 1;
+    grantWeeklyFreezes(p, day(1)); // Thursday
+    expect(p.freezeCount).toBe(1); // no reset during week
+
+    // Next Monday: reset to 2 (not 3!)
+    grantWeeklyFreezes(p, day(5)); // Monday week 45
+    expect(p.freezeCount).toBe(2);
+  });
+
+  it('registerLesson grants freezes on new week', () => {
+    const p = newProfile('Test');
+
+    // First lesson Wednesday
+    registerLesson(p, day(0), 20);
+    expect(p.freezeCount).toBe(2);
+
+    // Lesson Thursday same week
+    registerLesson(p, day(1), 20);
+    expect(p.freezeCount).toBe(2);
+
+    // Lesson Friday same week
+    registerLesson(p, day(2), 20);
+    expect(p.freezeCount).toBe(2);
+
+    // Lesson next Monday -> reset to 2 (but gap consumes 1)
+    registerLesson(p, day(5), 20);
+    expect(p.freezeCount).toBe(1); // grant gives 2, gap consumes 1
+  });
+
+  it('freeze preserves streak across a gap', () => {
+    const p = newProfile('Test');
+
+    registerLesson(p, day(0), 20); // Wednesday, gets 2 freezes
+    expect(p.streakDays).toBe(1);
+    expect(p.freezeCount).toBe(2);
+
+    // Gap of 2 days (miss Thursday, Friday), should consume 1 freeze
+    registerLesson(p, day(3), 20); // Saturday
+    expect(p.streakDays).toBe(2);
+    expect(p.freezeCount).toBe(1);
+  });
+
+  it('streak resets without freeze after gap', () => {
+    const p = newProfile('Test');
+
+    registerLesson(p, day(0), 20); // Wednesday week 44
+    registerLesson(p, day(3), 20); // Saturday week 44, gap of 3 days -> uses 1 freeze
+    expect(p.freezeCount).toBe(1);
+    expect(p.streakDays).toBe(2);
+
+    // Use last freeze on Sunday (no gap)
+    registerLesson(p, day(4), 20); // Sunday week 44
+    expect(p.freezeCount).toBe(1);
+    expect(p.streakDays).toBe(3);
+
+    // Monday week 45: grant gives 2 freezes (reset to 2), consecutive day -> no freeze consumed
+    registerLesson(p, day(5), 20); // Monday week 45
+    expect(p.freezeCount).toBe(2);
+    expect(p.streakDays).toBe(4);
+
+    // Use freezes during week 45: Tuesday, Wednesday, Thursday
+    registerLesson(p, day(6), 20); // Tuesday
+    registerLesson(p, day(7), 20); // Wednesday
+    registerLesson(p, day(8), 20); // Thursday
+    expect(p.freezeCount).toBe(2);
+    expect(p.streakDays).toBe(7);
+
+    // Friday week 45: consecutive, no freeze consumed
+    registerLesson(p, day(9), 20); // Friday
+    expect(p.freezeCount).toBe(2);
+    expect(p.streakDays).toBe(8);
+
+    // Now test a gap WITHIN the same week (no weekly grant) with no freezes
+    p.freezeCount = 0;
+    p.lastFreezeGrantWeek = 46; // prevent weekly grant for week 46 (day(12) is week 46)
+    registerLesson(p, day(12), 20); // Monday week 46, gap of 3 days (Sat, Sun, Mon), no freeze -> streak resets
+    expect(p.streakDays).toBe(1);
   });
 });

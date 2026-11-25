@@ -107,6 +107,7 @@
       <span class="chip mango">🔥 {p.streakDays} j</span>
       <span class="chip rose">⚡ {p.unlimitedEnergy ? '∞' : p.energy}</span>
       <span class="chip blue">◆ {p.gems}</span>
+      <span class="chip cyan">❄️ {p.freezeCount}/2</span>
     </div>
   </header>
 

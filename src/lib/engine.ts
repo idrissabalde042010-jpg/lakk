@@ -254,6 +254,8 @@ export interface Profile {
   gems: number;
   unlimitedEnergy: boolean;
   freezeCount: number;
+  /** Dernière semaine ISO où les gels ont été accordés (ex: 2026-W45 -> 45) */
+  lastFreezeGrantWeek: number | null;
 }
 
 export function newProfile(name: string): Profile {
@@ -272,6 +274,7 @@ export function newProfile(name: string): Profile {
     gems: 0,
     unlimitedEnergy: true,
     freezeCount: 0,
+    lastFreezeGrantWeek: null,
   };
 }
 
@@ -286,6 +289,29 @@ function yesterdayKey(ts = Date.now()): string {
   return dayKey(ts - DAY);
 }
 
+/** Retourne le numéro de semaine ISO (1-53) pour un timestamp. */
+function isoWeek(ts: number): number {
+  const d = new Date(ts);
+  // Jeudi de la semaine courante (ISO 8601)
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return weekNo;
+}
+
+/** Accorde les gels de série hebdomadaires (2 par semaine, reset le lundi).
+ * Retourne true si les gels ont été mis à jour. */
+export function grantWeeklyFreezes(p: Profile, now: number): boolean {
+  const week = isoWeek(now);
+  if (p.lastFreezeGrantWeek === week) {
+    return false;
+  }
+  // Babbel style: 2 freezes par semaine, non cumulables, reset lundi.
+  p.freezeCount = 2;
+  p.lastFreezeGrantWeek = week;
+  return true;
+}
+
 export function loseEnergy(p: Profile): boolean {
   if (p.unlimitedEnergy) return true;
   p.energy = Math.max(0, p.energy - 1);
@@ -294,6 +320,9 @@ export function loseEnergy(p: Profile): boolean {
 
 /** Enregistre la fin d'une leçon : graines, gemmes, rythme (série). */
 export function registerLesson(p: Profile, now: number, xp: number): void {
+  // Accorde les gels hebdomadaires au début de la semaine (lundi).
+  grantWeeklyFreezes(p, now);
+
   const today = dayKey(now);
   const yesterday = yesterdayKey(now);
 

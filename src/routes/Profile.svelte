@@ -210,6 +210,11 @@
       <p class="eyebrow">Ton baobab</p>
       <p class="big"><strong>{p.streakDays}</strong> jour{p.streakDays > 1 ? 's' : ''}</p>
       <p class="small muted">{p.xpTotal} graines au total</p>
+      <div class="freeze-display">
+        <span class="freeze-icon" aria-label="Gels de série">❄️</span>
+        <span class="freeze-count">{p.freezeCount}</span>
+        <span class="freeze-label">/ 2 cette semaine</span>
+      </div>
     </div>
   </section>
 
@@ -1040,5 +1045,30 @@
   .oauth.apple:hover:not(:disabled) {
     border-color: #000;
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+  }
+
+  .freeze-display {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: var(--blue-soft);
+    border-radius: 999px;
+    border: 1px solid var(--blue);
+    width: fit-content;
+  }
+  .freeze-icon {
+    font-size: 14px;
+  }
+  .freeze-count {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--blue);
+  }
+  .freeze-label {
+    font-size: 11px;
+    color: var(--muted);
   }
 </style>

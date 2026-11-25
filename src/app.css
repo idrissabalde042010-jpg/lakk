@@ -275,6 +275,16 @@ p {
   background: var(--blue-soft);
   border-color: transparent;
 }
+.chip.cyan {
+  color: var(--teal-deep);
+  background: var(--teal-soft);
+  border-color: transparent;
+}
+:root.dark .chip.cyan {
+  background: #0a3a33;
+  border-color: transparent;
+  color: var(--teal);
+}
 :root.dark .chip.mango {
   background: #3a2f0a;
   border-color: #5c4a10;
