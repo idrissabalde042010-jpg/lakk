@@ -10,13 +10,6 @@
   const current = $derived(INTRO_STEPS[step]);
   const last = $derived(step === INTRO_STEPS.length - 1);
 
-  /** Titre traduit de l'étape courante. */
-  const currentTitle = $derived($_( current.titleKey ));
-  /** Texte traduit de l'étape courante. */
-  const currentText = $derived($_( current.textKey ));
-  /** CTA traduit de l'étape courante. */
-  const currentCta = $derived($_( current.ctaKey ));
-
   /** Passe à l'étape suivante (et lance la musique au premier « Suivant »). */
   function next(): void {
     if (step === 0) startBgm();
@@ -55,15 +48,15 @@
 
   <div class="body">
     <div class="dots" aria-hidden="true">
-      {#each INTRO_STEPS as _, i}
+      {#each INTRO_STEPS as item, i}
         <span class="dot" class:on={i <= step}></span>
       {/each}
     </div>
 
     {#key step}
       <div class="copy rise">
-        <p class="eyebrow">{currentTitle}</p>
-        <h1 id="intro-title">{currentText}</h1>
+        <p class="eyebrow">{$_( current.titleKey )}</p>
+        <h1 id="intro-title">{$_( current.textKey )}</h1>
       </div>
     {/key}
   </div>
@@ -76,7 +69,7 @@
       <button class="btn ghost block" type="button" onclick={back}>{$_( 'intro.back' )}</button>
     {/if}
     <button class="btn orange block" type="button" onclick={next}>
-      {currentCta}
+      {$_( current.ctaKey )}
     </button>
   </div>
 </div>
