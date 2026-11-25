@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { app } from '../lib/store.svelte';
-  import { getSupabase, joinMatchmaking, leaveMatchmaking, findMatch, createBotMatch, subscribeToMatch, subscribeToRounds, submitRoundAnswer, nextTurn, finishMatch, type MatchmakingQueueEntry, type MultiplayerMatch } from '../lib/supabase';
-  import { BotMatch, createBot, BOT_DIFFICULTIES, type BotConfig, type BotMatchState, type RoundResult } from '../lib/bot';
+  import { getSupabase, joinMatchmaking, leaveMatchmaking, findMatch, subscribeToMatch, subscribeToRounds, submitRoundAnswer, finishMatch, type MatchmakingQueueEntry, type MultiplayerMatch } from '../lib/supabase';
+  import { BotMatch, BOT_DIFFICULTIES, type BotMatchState, type RoundResult } from '../lib/bot';
   import { sfx, speak } from '../lib/audio';
   import { locale, _ } from 'svelte-i18n';
 
@@ -27,6 +27,7 @@
   let playerCorrect: boolean | null = $state(null);
   let botCorrect: boolean | null = $state(null);
   let roundNumber = $state(1);
+  let roundsPlayed = $state(0);
   let isBotMatch = $state(false);
   
   // Timer pour chercher un match
@@ -76,25 +77,26 @@
     };
   }
 
+  const playerName = () => (p && p.name ? p.name : 'Toi');
+  const playerAvatar = () => (p && p.avatar ? p.avatar : '🦁');
+
   // Démarrer la recherche de match
   async function startSearch(): Promise<void> {
-    if (!p || !p.name) return;
-    
     const client = getSupabase();
     if (!client) {
       // Mode hors ligne : proposer directement un match contre un bot
       await startBotMatch();
       return;
     }
-    
+
     state = 'searching';
     searchStartTime = Date.now();
     
     try {
       const queueId = await joinMatchmaking(
-        p.name, // Utiliser le nom comme ID pour l'instant
-        p.name,
-        p.avatar || '🦁'
+        playerName(), // Utiliser le nom comme ID pour l'instant
+        playerName(),
+        playerAvatar()
       );
       
       if (!queueId) {
@@ -105,9 +107,9 @@
       
       queueEntry = { 
         id: queueId, 
-        user_id: p.name, 
-        user_name: p.name, 
-        user_avatar: p.avatar || '🦁',
+        user_id: playerName(), 
+        user_name: playerName(), 
+        user_avatar: playerAvatar(),
         status: 'waiting',
         matched_with: null,
         created_at: new Date().toISOString(),
@@ -116,7 +118,7 @@
       
       // Vérifier toutes les 2 secondes si un match est trouvé
       matchCheckInterval = setInterval(async () => {
-        const result = await findMatch(queueId, p.name);
+        const result = await findMatch(queueId, playerName());
         if (result) {
           clearInterval(matchCheckInterval!);
           matchCheckInterval = null;
@@ -163,20 +165,36 @@
     return data as MultiplayerMatch;
   }
 
-  // Démarrer un match contre un bot
+  // Construit un match local (sans backend) pour pouvoir jouer hors ligne.
+  function createLocalMatch(isBot: boolean): MultiplayerMatch {
+    const now = new Date().toISOString();
+    return {
+      id: `local_${Date.now()}`,
+      player1_id: playerName(),
+      player2_id: isBot ? 'bot' : 'local_opponent',
+      player1_score: 0,
+      player2_score: 0,
+      round_number: 0,
+      current_turn: 'player1',
+      status: 'active',
+      winner_id: null,
+      created_at: now,
+      updated_at: now,
+      player1_name: playerName(),
+      player1_avatar: playerAvatar(),
+      player2_name: isBot ? 'Bot Lakk' : 'Adversaire',
+      player2_avatar: isBot ? '🤖' : '👤',
+    };
+  }
+
+  // Démarrer un match contre un bot.
+  // Fonctionne hors ligne : tout est simulé localement (aucun appel Supabase).
   async function startBotMatch(): Promise<void> {
     try {
-      const matchId = await createBotMatch(p.name, p.name, p.avatar || '🦁');
-      if (!matchId) {
-        state = 'idle';
-        return;
-      }
-      const matchData = await getMatchDetails(matchId);
-      if (matchData) {
-        match = matchData;
-        isBotMatch = true;
-        startMatch(matchData, true);
-      }
+      const localMatch = createLocalMatch(true);
+      match = localMatch;
+      isBotMatch = true;
+      startMatch(localMatch, true);
     } catch (e) {
       console.error('[Multiplayer] Erreur bot match:', e);
       state = 'idle';
@@ -205,7 +223,10 @@
 
   // Passer au round suivant
   function nextRound(): void {
-    roundNumber = (match?.round_number || 0) + 1;
+    // Progression locale : le round doit avancer à chaque manche.
+    if (state === 'round_result') roundsPlayed += 1;
+    else roundsPlayed = 1;
+    roundNumber = roundsPlayed;
     playerAnswer = null;
     botAnswer = null;
     playerCorrect = null;
@@ -216,11 +237,6 @@
     currentQuestion = q.question;
     currentOptions = q.options;
     correctAnswer = q.correctAnswer;
-    
-    // Si c'est un bot, il attend le joueur
-    if (isBotMatch) {
-      // Le bot répondra après que le joueur ait répondu
-    }
   }
 
   // Le joueur répond
@@ -351,6 +367,7 @@
     match = null;
     isBotMatch = false;
     roundNumber = 1;
+    roundsPlayed = 0;
   }
 
   // Nettoyage au démontage
