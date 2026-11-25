@@ -10,9 +10,6 @@ use lakk_core::bridge::{self, CardWire, CourseStats};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 
-// Plugin de mise à jour automatique
-use tauri_plugin_updater::UpdaterExt;
-
 #[cfg(target_os = "linux")]
 fn disable_dmabuf_renderer() {
     // Évite les zones sombres / blocs gris sur WebKitGTK 4.1 (Ubuntu 24.04, Zorin, etc.)

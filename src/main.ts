@@ -3,6 +3,18 @@ import { mount } from 'svelte';
 import App from './App.svelte';
 import { app } from './lib/store.svelte';
 import { loadAccount } from './lib/account.svelte.ts';
+import { init, register, waitLocale } from 'svelte-i18n';
+
+// Enregistre les locales (chargement paresseux)
+register('fr', () => import('./lib/locales/fr.json'));
+register('en', () => import('./lib/locales/en.json'));
+
+// Initialise i18n AVANT de monter l'app
+init({
+  fallbackLocale: 'fr',
+  initialLocale: 'fr',
+  loadingDelay: 200,
+});
 
 // --- Error reporting: log to console + Tauri, only render in DOM if mount fails ---
 function reportError(msg: string, err?: Error): void {
@@ -16,10 +28,10 @@ function reportError(msg: string, err?: Error): void {
   } catch {}
 }
 
-window.addEventListener('error', (e) => {
+window.addEventListener('error', (e: ErrorEvent) => {
   reportError('window.onerror: ' + e.message, e.error);
 });
-window.addEventListener('unhandledrejection', (e) => {
+window.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
   reportError('unhandledrejection: ' + e.reason, e.reason instanceof Error ? e.reason : new Error(String(e.reason)));
 });
 
@@ -27,7 +39,7 @@ window.addEventListener('unhandledrejection', (e) => {
 try {
   const theme = localStorage.getItem('lakk.theme');
   if (theme === 'dark') document.documentElement.classList.add('dark');
-} catch (e) {
+} catch (e: unknown) {
   reportError('localStorage theme error', e instanceof Error ? e : new Error(String(e)));
 }
 
@@ -35,7 +47,7 @@ try {
 let ui: ReturnType<typeof mount> | null = null;
 try {
   ui = mount(App, { target: document.getElementById('app')! });
-} catch (e) {
+} catch (e: unknown) {
   reportError('mount(App) failed', e instanceof Error ? e : new Error(String(e)));
   // Only now render in DOM since the app cannot start
   const pre = document.createElement('pre');
@@ -46,7 +58,7 @@ try {
 }
 
 // Initialisation : compte + contenu Rust
-Promise.all([loadAccount(), app.init()]).catch((e) => reportError('init failed', e instanceof Error ? e : new Error(String(e))));
+Promise.all([loadAccount(), app.init()]).catch((e: unknown) => reportError('init failed', e instanceof Error ? e : new Error(String(e))));
 
 // Détecte si on est dans Tauri (pas de SW dans l'app native)
 function isTauri(): boolean {
@@ -59,8 +71,11 @@ if (!isTauri() && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('[SW] Registered:', reg.scope))
-      .catch(err => reportError('[SW] Registration failed', err instanceof Error ? err : new Error(String(err))));
+      .catch((err: unknown) => reportError('[SW] Registration failed', err instanceof Error ? err : new Error(String(err))));
   });
 }
+
+// Attend que la locale initiale soit chargée (async, non-bloquant pour le build)
+waitLocale('fr').catch((e) => console.warn('[i18n] waitLocale failed:', e));
 
 export default ui;

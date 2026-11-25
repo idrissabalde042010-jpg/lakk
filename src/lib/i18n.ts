@@ -1,19 +1,11 @@
 // Configuration i18n avec svelte-i18n
-// Initialisation côté client uniquement (pas de SSR)
+// Les locales sont enregistrées ici, l'initialisation se fait dans main.ts
 
-import { locale, waitLocale, init, register } from 'svelte-i18n';
+import { locale, waitLocale, register } from 'svelte-i18n';
 
 // Enregistre les locales (chargement paresseux)
 register('fr', () => import('./locales/fr.json'));
 register('en', () => import('./locales/en.json'));
-
-// Initialisation : locale par défaut = français, fallback = français
-init({
-  fallbackLocale: 'fr',
-  initialLocale: 'fr',
-  loadingDelay: 200, // ms avant d'afficher le fallback
-  // formats: using default Intl formats
-});
 
 /**
  * Change la locale active et attend le chargement.
@@ -28,7 +20,7 @@ export async function setLocale(newLocale: 'fr' | 'en'): Promise<void> {
  * Locale courante (réactive).
  * Utilisation : $locale dans les composants Svelte.
  */
-export { locale };
+export { locale, waitLocale };
 
 /** Liste des locales supportées. */
 export const SUPPORTED_LOCALES = ['fr', 'en'] as const;
