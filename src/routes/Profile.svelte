@@ -1,6 +1,6 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
-  import { dayKey, mastery } from '../lib/engine';
+  import { dayKey, mastery, yesterdayKey, repairStreak as engineRepairStreak } from '../lib/engine';
   import Baobab from '../components/Baobab.svelte';
   import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
@@ -97,6 +97,30 @@
     resetIntro();
     app.setScreen('home');
     app.openIntro();
+  }
+
+  function repairStreak(): void {
+    const now = Date.now();
+    const success = engineRepairStreak(app.profile, now);
+    if (success) {
+      app.notify($_( 'profile.streak_repair_success' ));
+    } else {
+      // Détermine la raison de l'échec
+      const today = dayKey(now);
+      const yesterday = yesterdayKey(now);
+      if (app.profile.gems < 50) {
+        app.notify($_( 'profile.streak_repair_fail_gems' ));
+      } else if (app.profile.streakDays > 0) {
+        app.notify($_( 'profile.streak_repair_fail_not_lost' ));
+      } else if (app.profile.lastActive === today || app.profile.lastActive === yesterday) {
+        app.notify($_( 'profile.streak_repair_fail_not_lost' ));
+      } else if (!app.profile.lastActive) {
+        app.notify($_( 'profile.streak_repair_fail_not_lost' ));
+      } else {
+        app.notify('Impossible de réparer pour le moment');
+      }
+    }
+    app.save();
   }
 
   async function handleAuth(): Promise<void> {
@@ -329,6 +353,18 @@
         aria-label="Énergie illimitée"
       >
         <span></span>
+      </button>
+    </div>
+
+    <div class="set-row">
+      <span>{$_( 'profile.streak_repair' )}<small class="muted">{$_( 'profile.streak_repair_hint' )}</small></span>
+      <button
+        class="mini-btn"
+        onclick={repairStreak}
+        disabled={p.gems < 50 || p.streakDays > 0 || (!!p.lastActive && (dayKey(Date.now()) === p.lastActive || yesterdayKey(Date.now()) === p.lastActive))}
+        aria-label={$_( 'profile.streak_repair' )}
+      >
+        {p.gems < 50 ? '💎' : '🔧'}
       </button>
     </div>
 

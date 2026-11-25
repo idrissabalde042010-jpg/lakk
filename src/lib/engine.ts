@@ -296,7 +296,7 @@ export function dayKey(ts = Date.now()): string {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
-function yesterdayKey(ts = Date.now()): string {
+export function yesterdayKey(ts = Date.now()): string {
   return dayKey(ts - DAY);
 }
 
@@ -348,6 +348,28 @@ export function hasBadge(p: Profile, days: number): boolean {
 export function earnedBadges(p: Profile): StreakBadge[] {
   return Object.values(p.badges)
     .sort((a, b) => a.days - b.days);
+}
+
+/** Répare la série perdue : restaure streakDays à 1 et lastActive à aujourd'hui.
+ * Coûte 50 gemmes. Retourne true si la réparation a réussi. */
+export function repairStreak(p: Profile, now: number): boolean {
+  if (p.gems < 50) {
+    return false;
+  }
+  // Ne répare que si la série est perdue (streak=0 et lastActive plus vieux qu'hier)
+  const today = dayKey(now);
+  const yesterday = yesterdayKey(now);
+  const canRepair = p.streakDays === 0
+    && p.lastActive != null
+    && p.lastActive < yesterday;
+  if (!canRepair) {
+    return false;
+  }
+  p.gems -= 50;
+  p.streakDays = 1;
+  p.lastActive = today;
+  p.xpToday = 0; // Reset XP du jour pour la nouvelle série
+  return true;
 }
 
 export function loseEnergy(p: Profile): boolean {

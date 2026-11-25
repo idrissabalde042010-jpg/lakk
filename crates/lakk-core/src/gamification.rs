@@ -94,6 +94,27 @@ impl LearnerProfile {
         badges
     }
 
+    /// Répare la série perdue : restaure streak_days à 1 et last_active à aujourd'hui.
+    /// Coûte 50 gemmes. Retourne `true` si la réparation a réussi.
+    pub fn repair_streak(&mut self, now: DateTime<Utc>) -> bool {
+        if self.gems < 50 {
+            return false;
+        }
+        // Ne répare que si la série est perdue (streak=0 et last_active plus vieux qu'hier)
+        let today = now.date_naive();
+        let yesterday = today - Duration::days(1);
+        let can_repair = self.streak_days == 0
+            && self.last_active.is_some_and(|last| last < yesterday);
+        if !can_repair {
+            return false;
+        }
+        self.gems -= 50;
+        self.streak_days = 1;
+        self.last_active = Some(today);
+        self.xp_today = 0; // Reset XP du jour pour la nouvelle série
+        true
+    }
+
     /// Accorde les gels de série hebdomadaires (2 par semaine, reset le lundi).
     /// Retourne `true` si les gels ont été mis à jour.
     pub fn grant_weekly_freezes(&mut self, now: DateTime<Utc>) -> bool {

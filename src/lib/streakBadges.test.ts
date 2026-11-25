@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { newProfile, registerLesson, checkStreakBadges, hasBadge, earnedBadges, STREAK_MILESTONES } from './engine';
+import { newProfile, registerLesson, checkStreakBadges, hasBadge, earnedBadges, STREAK_MILESTONES, repairStreak } from './engine';
 
 // Helper pour créer un timestamp à midi UTC
 function day(offset: number): number {
@@ -181,5 +181,101 @@ describe('engine.ts — Streak Badges (milestones)', () => {
       // Le 7e jour est day(6) (0-indexed)
       expect(p.badges['7'].earnedAt).toBe(day(6));
     });
+  });
+});
+
+describe('engine.ts — Streak Repair', () => {
+  function day(offset: number): number {
+    const base = new Date('2026-10-28T12:00:00Z').getTime();
+    return base + offset * 86400000;
+  }
+
+  function dayKeyStr(offset: number): string {
+    // Helper to get YYYY-MM-DD string from day offset
+    const ts = day(offset);
+    const d = new Date(ts);
+    const m = `${d.getMonth() + 1}`.padStart(2, '0');
+    const dayStr = `${d.getDate()}`.padStart(2, '0');
+    return `${d.getFullYear()}-${m}-${dayStr}`;
+  }
+
+  let p: ReturnType<typeof newProfile>;
+  let now: number;
+
+  beforeEach(() => {
+    p = newProfile('Test');
+    p.gems = 100; // Assez de gemmes pour la réparation
+    now = day(10); // Un jour après une pause
+  });
+
+  it('repairs lost streak when conditions met', () => {
+    // Simule une série perdue : streak=0, lastActive vieux de 3 jours
+    p.streakDays = 0;
+    p.lastActive = dayKeyStr(7); // 3 jours avant now (day 10)
+    p.xpToday = 0;
+
+    const result = repairStreak(p, now);
+    expect(result).toBe(true);
+    expect(p.streakDays).toBe(1);
+    expect(p.lastActive).toBe(dayKeyStr(10));
+    expect(p.xpToday).toBe(0);
+    expect(p.gems).toBe(50); // 100 - 50
+  });
+
+  it('fails if not enough gems', () => {
+    p.gems = 30; // Pas assez de gemmes
+    p.streakDays = 0;
+    p.lastActive = dayKeyStr(7);
+
+    const result = repairStreak(p, now);
+    expect(result).toBe(false);
+    expect(p.gems).toBe(30); // Inchangé
+    expect(p.streakDays).toBe(0);
+  });
+
+  it('fails if streak not actually lost (streak > 0)', () => {
+    p.streakDays = 5;
+    p.lastActive = dayKeyStr(9); // Hier
+
+    const result = repairStreak(p, now);
+    expect(result).toBe(false);
+    expect(p.streakDays).toBe(5);
+    expect(p.gems).toBe(100);
+  });
+
+  it('fails if lastActive was yesterday (not a gap)', () => {
+    p.streakDays = 0;
+    p.lastActive = dayKeyStr(9); // Hier
+
+    const result = repairStreak(p, now);
+    expect(result).toBe(false);
+    expect(p.streakDays).toBe(0);
+  });
+
+  it('fails if lastActive is today (already active)', () => {
+    p.streakDays = 0;
+    p.lastActive = dayKeyStr(10); // Aujourd'hui
+
+    const result = repairStreak(p, now);
+    expect(result).toBe(false);
+    expect(p.streakDays).toBe(0);
+  });
+
+  it('fails if lastActive is null (never played)', () => {
+    p.streakDays = 0;
+    p.lastActive = null;
+
+    const result = repairStreak(p, now);
+    expect(result).toBe(false);
+    expect(p.streakDays).toBe(0);
+  });
+
+  it('deducts exactly 50 gems on success', () => {
+    p.gems = 75;
+    p.streakDays = 0;
+    p.lastActive = dayKeyStr(7);
+
+    repairStreak(p, now);
+    expect(p.gems).toBe(25);
   });
 });
