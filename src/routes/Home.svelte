@@ -4,19 +4,35 @@
   import ProgressRing from '../components/ProgressRing.svelte';
   import PathNode from '../components/PathNode.svelte';
   import { speak, warmUpSpeech, isSpeechAvailable } from '../lib/audio';
-  import { generateDailyChallenge, checkDailyChallenge, type DailyChallenge } from '../lib/dailyChallenge';
+  import {
+    generateDailyQuests,
+    checkDailyQuest,
+    completeDailyQuest,
+    claimBonusChest,
+    getChestReward,
+    type DailyQuest,
+    type DailyQuests,
+    type QuestTier,
+    type ChestReward,
+  } from '../lib/dailyChallenge';
 
   const p = $derived(app.profile);
   const percent = $derived(app.goalPercent());
   const course = $derived(app.course);
   const lessons = $derived(app.lessons);
   const speechAvailable = $derived(isSpeechAvailable());
-  let showTip = $state(false);
-  let dailyChallenge = $state<DailyChallenge | null>(generateDailyChallenge());
+
+  // État des quêtes quotidiennes
+  let dailyQuests = $state<DailyQuests>(generateDailyQuests());
+  let activeQuest = $state<QuestTier>('bronze');
   let challengeAnswer = $state('');
   let challengePhase = $state<'answer' | 'feedback'>('answer');
   let challengeOk = $state(false);
-  let challengeDone = $state(false);
+  let showTip = $state(false);
+  let showChest = $state<ChestReward | null>(null);
+
+  // Tiers typés pour l'itération
+  const QUEST_TIERS: QuestTier[] = ['bronze', 'silver', 'gold'];
 
   function lessonNumber(ui: number, li: number): number {
     let n = 0;
@@ -36,31 +52,63 @@
     }
   }
 
-  // Narrowed reference for template type safety
-  const dc = $derived(dailyChallenge);
+  // Quête active dérivée
+  const currentQuest = $derived(
+    dailyQuests.quests.find((q) => q.id === activeQuest) ?? dailyQuests.quests[0]
+  );
 
-  // --- Défi quotidien ---
-  function speakChallenge(): void {
-    if (dailyChallenge?.audioText) speak(dailyChallenge.audioText);
+  // Vérifie si toutes les quêtes sont terminées
+  const allQuestsDone = $derived(dailyQuests.quests.every((q) => q.completed));
+  const chestAvailable = $derived(allQuestsDone && !dailyQuests.chestClaimed);
+
+  // --- Quêtes quotidiennes ---
+  function speakQuest(): void {
+    if (currentQuest?.audioText) speak(currentQuest.audioText);
   }
 
-  function submitChallenge(): void {
-    if (!dailyChallenge || !challengeAnswer.trim() || challengePhase !== 'answer') return;
-    challengeOk = checkDailyChallenge(dailyChallenge, challengeAnswer);
-    challengePhase = 'feedback';
-    if (challengeOk) {
-      app.completeLesson(99, 99, dailyChallenge.xp, 100); // XP bonus sans leçon réelle
-      challengeDone = true;
-    }
-  }
-
-  function nextChallenge(): void {
-    dailyChallenge = generateDailyChallenge();
+  function selectQuest(tier: QuestTier): void {
+    if (dailyQuests.quests.find((q) => q.id === tier)?.completed) return;
+    activeQuest = tier;
     challengeAnswer = '';
     challengePhase = 'answer';
     challengeOk = false;
-    challengeDone = false;
     showTip = false;
+  }
+
+  function submitQuest(): void {
+    if (!currentQuest || !challengeAnswer.trim() || challengePhase !== 'answer') return;
+    challengeOk = checkDailyQuest(currentQuest, challengeAnswer);
+    challengePhase = 'feedback';
+    if (challengeOk) {
+      const result = completeDailyQuest(currentQuest.id);
+      if (result?.chestReward) {
+        showChest = result.chestReward;
+      }
+      // Recharge les quêtes pour avoir l'état à jour
+      dailyQuests = generateDailyQuests();
+      // Passe à la prochaine quête non terminée
+      const next = dailyQuests.quests.find((q) => !q.completed);
+      if (next) activeQuest = next.id;
+    }
+  }
+
+  function retryQuest(): void {
+    challengeAnswer = '';
+    challengePhase = 'answer';
+    challengeOk = false;
+    showTip = false;
+  }
+
+  function claimChest(): void {
+    if (chestAvailable) {
+      const reward = claimBonusChest();
+      if (reward) showChest = reward;
+      dailyQuests = generateDailyQuests();
+    }
+  }
+
+  function closeChest(): void {
+    showChest = null;
   }
 
   function challengeTypeLabel(type?: string): string {
@@ -70,7 +118,23 @@
       case 'fill_blank': return '✏️ Complétion';
       case 'order_words': return '🔀 Ordre des mots';
       case 'multiple_choice': return '☑️ Choix multiple';
-      default: return 'Défi du jour';
+      default: return 'Quête';
+    }
+  }
+
+  function tierLabel(tier: QuestTier): string {
+    switch (tier) {
+      case 'bronze': return '🥉 Bronze';
+      case 'silver': return '🥈 Argent';
+      case 'gold': return '🥇 Or';
+    }
+  }
+
+  function tierIcon(tier: QuestTier): string {
+    switch (tier) {
+      case 'bronze': return '🥉';
+      case 'silver': return '🥈';
+      case 'gold': return '🥇';
     }
   }
 
@@ -79,15 +143,15 @@
     warmUpSpeech();
   }
 
-  /** Clic sur la carte « Défi du jour » : préchauffe l'audio. */
-  function onChallengeTap(event: MouseEvent): void {
+  /** Clic sur la carte quête : préchauffe l'audio. */
+  function onQuestTap(event: MouseEvent): void {
     primeAudio();
     const target = event.target as HTMLElement | null;
     if (target?.closest('button, input, label, a, select, textarea')) return;
   }
 
   /** Même au clavier (Entrée / Espace). */
-  function onChallengeKey(event: KeyboardEvent): void {
+  function onQuestKey(event: KeyboardEvent): void {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
     primeAudio();
@@ -125,11 +189,45 @@
     <button class="btn orange block" data-tour="start" onclick={continueLesson}>Continuer</button>
   </section>
 
-  <section class="card challenge wax" role="button" tabindex="0" onclick={onChallengeTap} onkeydown={onChallengeKey} onmouseover={primeAudio} onfocus={primeAudio}>
-    <div class="challenge-top">
-      <span class="tag">{challengeTypeLabel(dailyChallenge?.type)}</span>
+  <!-- Barre de sélection des quêtes -->
+  <section class="card quest-tabs">
+    <div class="quest-tabs-row">
+      {#each QUEST_TIERS as tier}
+        {@const quest = dailyQuests.quests.find((q) => q.id === tier)}
+        <button
+          class="quest-tab"
+          class:active={activeQuest === tier}
+          class:done={quest?.completed}
+          onclick={() => selectQuest(tier)}
+          disabled={quest?.completed}
+          aria-label={tierLabel(tier)}
+          aria-disabled={quest?.completed}
+        >
+          <span class="tier-icon">{tierIcon(tier)}</span>
+          <span class="tier-name">{tierLabel(tier)}</span>
+          {#if quest?.completed}
+            <span class="check">✓</span>
+          {:else}
+            <span class="reward">+{quest?.xp ?? 0} XP · {quest?.gemReward ?? 0} ◆</span>
+          {/if}
+        </button>
+      {/each}
+    </div>
+    {#if chestAvailable}
+      <button class="btn bonus-chest" onclick={claimChest} aria-label="Ouvrir le coffre bonus">
+        <span class="chest-icon">🎁</span>
+        <span>Coffre bonus</span>
+        <span class="chest-reward">+20 ◆ + 10 min 3× XP</span>
+      </button>
+    {/if}
+  </section>
+
+  <!-- Carte de quête active -->
+  <section class="card challenge wax quest-card" role="button" tabindex="0" onclick={onQuestTap} onkeydown={onQuestKey} onmouseover={primeAudio} onfocus={primeAudio}>
+    <div class="quest-header">
+      <span class="tag">{tierLabel(activeQuest)} — {challengeTypeLabel(currentQuest?.type)}</span>
       {#if speechAvailable}
-        <button class="icon-btn" onclick={speakChallenge} aria-label="Écouter">
+        <button class="icon-btn" onclick={speakQuest} aria-label="Écouter">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M11 5 6 9H3v6h3l5 4z" />
             <path d="M15.5 8.5a5 5 0 0 1 0 7" />
@@ -146,14 +244,14 @@
       {/if}
     </div>
 
-    <p class="challenge-prompt">{dailyChallenge?.prompt}</p>
-    <p class="challenge-question">{dailyChallenge?.question}</p>
+    <p class="challenge-prompt">{currentQuest?.prompt}</p>
+    <p class="challenge-question">{currentQuest?.question}</p>
 
     {#if challengePhase === 'answer'}
       <div class="challenge-input-area">
-        {#if dailyChallenge?.type === 'multiple_choice'}
+        {#if currentQuest?.type === 'multiple_choice'}
           <div class="choices">
-            {#each dailyChallenge.choices ?? [] as choice, i}
+            {#each currentQuest.choices ?? [] as choice, i}
               <button
                 class="choice"
                 class:sel={challengeAnswer === choice}
@@ -163,26 +261,26 @@
               </button>
             {/each}
           </div>
-        {:else if dc?.type === 'translate' || dc?.type === 'order_words'}
-          {#if dc}
+        {:else if currentQuest?.type === 'translate' || currentQuest?.type === 'order_words'}
+          {#if currentQuest}
             <div class="tray" class:empty={!challengeAnswer}>
-              {#if dc.type === 'translate'}
+              {#if currentQuest.type === 'translate'}
                 <button
                   type="button"
                   class="word"
-                  onclick={() => { challengeAnswer = dc.answer; }}
-                >{dc.answer}</button>
+                  onclick={() => { challengeAnswer = currentQuest.answer; }}
+                >{currentQuest.answer}</button>
               {:else}
                 {#each challengeAnswer.split(' ') as w}
                   <span class="word">{w}</span>
                 {/each}
               {/if}
               {#if !challengeAnswer}
-                <span class="placeholder">{dc.type === 'order_words' ? 'Appuie sur les mots dans l\'ordre' : 'Traduis la phrase'}</span>
+                <span class="placeholder">{currentQuest.type === 'order_words' ? 'Appuie sur les mots dans l\'ordre' : 'Traduis la phrase'}</span>
               {/if}
             </div>
             <div class="bank">
-              {#each dc.word_bank ?? [] as w}
+              {#each currentQuest.word_bank ?? [] as w}
                 <button
                   class="word bank-word"
                   class:used={challengeAnswer.includes(w)}
@@ -203,21 +301,21 @@
             class="input"
             bind:value={challengeAnswer}
             placeholder="Ta réponse…"
-            onkeydown={(e) => e.key === 'Enter' && submitChallenge()}
+            onkeydown={(e) => e.key === 'Enter' && submitQuest()}
           />
         {/if}
       </div>
 
-      {#if dailyChallenge?.tip}
+      {#if currentQuest?.tip}
         <button class="link" onclick={() => (showTip = !showTip)}>
           {showTip ? 'Cacher l\'indice' : 'Besoin d\'un indice ?'}
         </button>
         {#if showTip}
-          <p class="hint">{dailyChallenge.tip}</p>
+          <p class="hint">{currentQuest.tip}</p>
         {/if}
       {/if}
 
-      <button class="btn orange block" onclick={submitChallenge} disabled={!challengeAnswer.trim()}>
+      <button class="btn orange block" onclick={submitQuest} disabled={!challengeAnswer.trim()}>
         Vérifier
       </button>
 
@@ -225,16 +323,34 @@
       <div class="fb" class:good={challengeOk} class:bad={!challengeOk}>
         <div class="fb-text">
           <strong>{challengeOk ? '✓ Bien joué !' : '✕ Presque !'}</strong>
-          {#if !challengeOk && dailyChallenge}
-            <span>Réponse : {dailyChallenge.answer}</span>
+          {#if !challengeOk && currentQuest}
+            <span>Réponse : {currentQuest.answer}</span>
           {/if}
         </div>
-        <button class="btn block" class:orange={!challengeOk} onclick={nextChallenge}>
-          {challengeOk && dailyChallenge ? `Défi réussi +${dailyChallenge.xp} XP` : 'Réessayer'}
+        {#if challengeOk}
+          <div class="quest-reward">
+            <span>+{currentQuest.xp} XP</span>
+            <span>+{currentQuest.gemReward} ◆</span>
+          </div>
+        {/if}
+        <button class="btn block" class:orange={!challengeOk} onclick={challengeOk ? (allQuestsDone && !dailyQuests.chestClaimed ? claimChest : retryQuest) : retryQuest}>
+          {challengeOk ? (allQuestsDone && !dailyQuests.chestClaimed ? 'Ouvrir le coffre 🎁' : 'Quête suivante') : 'Réessayer'}
         </button>
       </div>
     {/if}
   </section>
+
+  <!-- Modal coffre -->
+  {#if showChest}
+    <div class="chest-modal" onclick={closeChest}>
+      <div class="chest-content" onclick={(e) => e.stopPropagation()}>
+        <div class="chest-animation">🎁</div>
+        <h3>{showChest.type === 'bonus' ? 'Coffre Bonus !' : `Coffre ${showChest.type.charAt(0).toUpperCase() + showChest.type.slice(1)}`}</h3>
+        <p class="chest-message">{showChest.message}</p>
+        <button class="btn orange block" onclick={closeChest}>Super !</button>
+      </div>
+    </div>
+  {/if}
 
   <div class="section-title">
     <h2>Ton parcours</h2>
@@ -328,13 +444,102 @@
     font-weight: 500;
     margin-left: 6px;
   }
-  .challenge {
+
+  /* Onglets quêtes */
+  .quest-tabs {
     margin-top: 12px;
-    background:
-      radial-gradient(130% 140% at 0% 0%, rgba(255, 106, 43, 0.13), transparent 62%),
-      var(--card);
   }
-  .challenge-top {
+  .quest-tabs-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .quest-tab {
+    flex: 1;
+    min-width: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 6px;
+    border-radius: 12px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--ink-soft);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.08s;
+  }
+  .quest-tab:active {
+    transform: scale(0.97);
+  }
+  .quest-tab:hover:not(:disabled) {
+    border-color: var(--orange);
+  }
+  .quest-tab.active {
+    border-color: var(--orange);
+    background: var(--orange-soft);
+    color: var(--orange-deep);
+  }
+  .quest-tab.done {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    cursor: default;
+  }
+  .quest-tab:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .tier-icon {
+    font-size: 18px;
+  }
+  .tier-name {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .check {
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .reward {
+    font-size: 9px;
+    color: var(--muted);
+  }
+  .bonus-chest {
+    width: 100%;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px dashed var(--mango);
+    background: var(--mango-soft);
+    color: var(--mango-deep);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 106, 43, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 106, 43, 0); }
+  }
+  .chest-icon { font-size: 16px; }
+  .chest-reward { font-size: 11px; opacity: 0.8; }
+
+  /* Carte quête */
+  .quest-card {
+    margin-top: 12px;
+  }
+  .quest-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -359,19 +564,95 @@
     cursor: pointer;
     flex: none;
   }
-  .icon-btn svg {
-    width: 20px;
-    height: 20px;
+  .icon-btn svg { width: 20px; height: 20px; }
+  .icon-btn.muted { color: var(--muted); border-color: var(--line); }
+  .challenge-prompt { font-size: 13px; color: var(--ink-soft); margin: 8px 0 4px; }
+  .challenge-question { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+  .challenge-input-area { display: flex; flex-direction: column; gap: 8px; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choice {
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    cursor: pointer;
+    transition: border-color 0.1s, background 0.1s;
   }
+  .choice.sel { border-color: var(--orange); background: var(--orange-soft); }
+  .tray {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    min-height: 48px;
+  }
+  .tray.empty { border-style: dashed; opacity: 0.5; }
+  .word { padding: 6px 10px; border-radius: 8px; background: var(--orange-soft); color: var(--orange-deep); font-weight: 600; }
+  .bank { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bank-word { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-weight: 500; cursor: pointer; }
+  .bank-word.used { opacity: 0.4; cursor: not-allowed; }
+  .bank-word:disabled { opacity: 0.4; }
+  .placeholder { font-size: 12px; color: var(--muted); align-self: center; }
+  .input { padding: 12px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font-family: var(--font-body); font-size: 16px; }
+  .input:focus { outline: none; border-color: var(--orange); }
+  .link { background: none; border: 0; color: var(--orange); font-size: 13px; cursor: pointer; padding: 4px 0; }
+  .link:hover { text-decoration: underline; }
+  .hint { font-size: 12px; color: var(--muted); background: var(--orange-soft); padding: 8px 10px; border-radius: 8px; margin-top: 4px; }
+  .btn { padding: 12px 16px; border-radius: 10px; border: 0; font-family: var(--font-display); font-weight: 600; font-size: 15px; cursor: pointer; }
+  .btn.orange { background: linear-gradient(135deg, var(--mango), var(--orange)); color: #fff; }
+  .btn.orange:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.block { width: 100%; }
+  .btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .fb { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+  .fb-text { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .fb-text strong { font-family: var(--font-display); }
+  .fb.good .fb-text strong { color: var(--teal); }
+  .fb.bad .fb-text strong { color: var(--rose); }
+  .fb-text span { font-size: 13px; color: var(--muted); }
+  .quest-reward { display: flex; gap: 16px; font-size: 13px; font-weight: 600; color: var(--mango-deep); padding: 4px 0; }
+  .quest-reward span { display: flex; align-items: center; gap: 4px; }
+
+  /* Modal coffre */
+  .chest-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .chest-content {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    max-width: 320px;
+    box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.3);
+    animation: popIn 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  .chest-animation { font-size: 64px; line-height: 1; margin-bottom: 8px; animation: bounce 1s ease infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .chest-content h3 { margin: 0 0 8px; font-size: 22px; color: var(--ink); }
+  .chest-message { margin: 0 0 16px; font-size: 14px; color: var(--ink-soft); line-height: 1.4; }
+
   .section-title {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     margin: 26px 2px 8px;
   }
-  .section-title h2 {
-    font-size: 18px;
-  }
+  .section-title h2 { font-size: 18px; }
   .unit-band {
     background: var(--band);
     color: #fff;
@@ -387,10 +668,7 @@
     text-transform: uppercase;
     opacity: 0.9;
   }
-  .unit-band h3 {
-    font-size: 18px;
-    margin-top: 2px;
-  }
+  .unit-band h3 { font-size: 18px; margin-top: 2px; }
   .nodes {
     position: relative;
     display: flex;
@@ -409,14 +687,6 @@
     transform: translateX(-1px);
     z-index: 0;
   }
-  .nodes :global(.wrap) {
-    position: relative;
-    z-index: 1;
-  }
-  .footer-note {
-    text-align: center;
-    font-size: 11.5px;
-    color: var(--muted);
-    margin-top: 26px;
-  }
+  .nodes :global(.wrap) { position: relative; z-index: 1; }
+  .footer-note { text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 26px; }
 </style>
