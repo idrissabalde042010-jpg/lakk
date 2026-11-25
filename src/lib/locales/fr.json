@@ -15,6 +15,13 @@
   "home": {
     "greeting": "Salut, {name}",
     "ready": "Prêt pour ta dose<br />d'anglais ?",
+    "ready_en": "Prêt pour ta dose<br />d'anglais ?",
+    "ready_es": "Prêt pour ta dose<br />d'espagnol ?",
+    "ready_de": "Prêt pour ta dose<br />d'allemand ?",
+    "ready_ar": "Prêt pour ta dose<br />d'arabe ?",
+    "ready_zh": "Prêt pour ta dose<br />de chinois ?",
+    "ready_pt": "Prêt pour ta dose<br />de portugais ?",
+    "ready_wo": "Prêt pour ta dose<br />de wolof ?",
     "streak": "{count} j",
     "energy_unlimited": "∞",
     "energy": "{count}",

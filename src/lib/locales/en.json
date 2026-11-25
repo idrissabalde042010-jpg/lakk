@@ -15,6 +15,13 @@
   "home": {
     "greeting": "Hi, {name}",
     "ready": "Ready for your<br />English dose?",
+    "ready_en": "Ready for your<br />English dose?",
+    "ready_es": "Ready for your<br />Spanish dose?",
+    "ready_de": "Ready for your<br />German dose?",
+    "ready_ar": "Ready for your<br />Arabic dose?",
+    "ready_zh": "Ready for your<br />Chinese dose?",
+    "ready_pt": "Ready for your<br />Portuguese dose?",
+    "ready_wo": "Ready for your<br />Wolof dose?",
     "streak": "{count} d",
     "energy_unlimited": "∞",
     "energy": "{count}",

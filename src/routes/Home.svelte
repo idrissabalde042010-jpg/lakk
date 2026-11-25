@@ -4,6 +4,7 @@
   import ProgressRing from '../components/ProgressRing.svelte';
   import PathNode from '../components/PathNode.svelte';
   import { speak, warmUpSpeech, isSpeechAvailable } from '../lib/audio';
+  import { _ } from 'svelte-i18n';
   import {
     generateDailyQuests,
     checkDailyQuest,
@@ -21,6 +22,9 @@
   const course = $derived(app.course);
   const lessons = $derived(app.lessons);
   const speechAvailable = $derived(isSpeechAvailable());
+
+  // Texte dynamique selon la langue d'apprentissage
+  const readyText = $derived($_( `home.ready_${p.learnLang}` ) || $_('home.ready'));
 
   // État des quêtes quotidiennes
   let dailyQuests = $state<DailyQuests>(generateDailyQuests());
@@ -163,7 +167,7 @@
     <div class="head-top">
       <div>
         <p class="eyebrow">Salut, {p.name}</p>
-        <h1>Prêt pour ta dose<br />d’anglais ?</h1>
+        <h1>{@html readyText}</h1>
       </div>
       <Baobab streak={p.streakDays} size={72} />
     </div>
