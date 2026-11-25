@@ -261,7 +261,9 @@
     "searching": "Searching for opponent...",
     "cancel": "Cancel",
     "match_over": "Match Over",
-    "play_again": "Play Again"
+    "play_again": "Play Again",
+    "online_unavailable": "Online mode unavailable",
+    "online_unavailable_desc": "Online features require Supabase configuration. You can play against a bot in the meantime."
   },
   "profile": {
     "language": "Languages",

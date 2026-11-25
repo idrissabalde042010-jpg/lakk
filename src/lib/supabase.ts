@@ -1,21 +1,72 @@
 // Client Supabase pour Lakk
 // Configuration via variables d'environnement (PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)
+// Initialisation paresseuse : le client n'est créé que si les variables sont présentes
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+type SupabaseGetter = () => SupabaseClient | null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('[Supabase] Variables d\'environnement manquantes (PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY)');
+let supabaseInstance: SupabaseClient | null = null;
+let initError: Error | null = null;
+
+/**
+ * Vérifie si les variables d'environnement Supabase sont valides
+ */
+function isSupabaseConfigured(): boolean {
+  const url = import.meta.env.PUBLIC_SUPABASE_URL;
+  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  return !!(url && key && url.startsWith('http'));
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+/**
+ * Obtient l'instance singleton du client Supabase.
+ * Retourne null si les variables d'environnement ne sont pas configurées.
+ * Ne lève jamais d'exception.
+ */
+export function getSupabase(): SupabaseClient | null {
+  if (supabaseInstance !== null) {
+    return supabaseInstance;
+  }
+  if (initError !== null) {
+    return null;
+  }
+  if (!isSupabaseConfigured()) {
+    console.warn('[Supabase] Variables d\'environnement manquantes ou invalides (PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY). Mode hors ligne activé.');
+    return null;
+  }
+  try {
+    supabaseInstance = createClient(
+      import.meta.env.PUBLIC_SUPABASE_URL,
+      import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+        },
+      }
+    );
+    return supabaseInstance;
+  } catch (e) {
+    initError = e instanceof Error ? e : new Error(String(e));
+    console.warn('[Supabase] Échec de l\'initialisation du client:', initError);
+    return null;
+  }
+}
+
+/**
+ * Vérifie si Supabase est disponible (configuré et initialisable)
+ */
+export function isSupabaseAvailable(): boolean {
+  return getSupabase() !== null;
+}
+
+/**
+ * Réinitialise l'instance (pour les tests)
+ */
+export function resetSupabaseForTesting(): void {
+  supabaseInstance = null;
+  initError = null;
+}
 
 // Types pour la table matchmaking_queue
 export interface MatchmakingQueueEntry {
@@ -65,9 +116,13 @@ export interface MatchRound {
 
 /**
  * Rejoindre la file d'attente de matchmaking
+ * Retourne null si Supabase n'est pas disponible
  */
-export async function joinMatchmaking(userId: string, userName: string, userAvatar: string): Promise<string> {
-  const { data, error } = await supabase
+export async function joinMatchmaking(userId: string, userName: string, userAvatar: string): Promise<string | null> {
+  const client = getSupabase();
+  if (!client) return null;
+  
+  const { data, error } = await client
     .from('matchmaking_queue')
     .insert({
       user_id: userId,
@@ -84,22 +139,31 @@ export async function joinMatchmaking(userId: string, userName: string, userAvat
 
 /**
  * Quitter la file d'attente
+ * Retourne false si Supabase n'est pas disponible
  */
-export async function leaveMatchmaking(queueId: string): Promise<void> {
-  const { error } = await supabase
+export async function leaveMatchmaking(queueId: string): Promise<boolean> {
+  const client = getSupabase();
+  if (!client) return false;
+  
+  const { error } = await client
     .from('matchmaking_queue')
     .update({ status: 'cancelled' })
     .eq('id', queueId);
 
   if (error) throw error;
+  return true;
 }
 
 /**
  * Chercher un adversaire (ou créer un match avec un bot après 5s)
+ * Retourne null si Supabase n'est pas disponible ou personne trouvé
  */
 export async function findMatch(queueId: string, userId: string): Promise<{ matchId: string; isBot: boolean } | null> {
+  const client = getSupabase();
+  if (!client) return null;
+  
   // 1. Chercher un autre joueur en attente (pas nous-même)
-  const { data: otherPlayers, error: searchError } = await supabase
+  const { data: otherPlayers, error: searchError } = await client
     .from('matchmaking_queue')
     .select('id, user_id, user_name, user_avatar')
     .eq('status', 'waiting')
@@ -112,14 +176,15 @@ export async function findMatch(queueId: string, userId: string): Promise<{ matc
     // Joueur trouvé ! Créer le match
     const opponent = otherPlayers[0];
     const matchId = await createMatch(userId, opponent.user_id);
+    if (!matchId) return null;
     
     // Marquer les deux comme matched
-    await supabase
+    await client
       .from('matchmaking_queue')
       .update({ status: 'matched', matched_with: opponent.user_id })
       .eq('id', queueId);
     
-    await supabase
+    await client
       .from('matchmaking_queue')
       .update({ status: 'matched', matched_with: userId })
       .eq('id', opponent.id);
@@ -132,15 +197,20 @@ export async function findMatch(queueId: string, userId: string): Promise<{ matc
 
 /**
  * Créer un match multijoueur
+ * Retourne null si Supabase n'est pas disponible
  */
-export async function createMatch(player1Id: string, player2Id: string): Promise<string> {
-  const { data, error } = await supabase
+export async function createMatch(player1Id: string, player2Id: string): Promise<string | null> {
+  const client = getSupabase();
+  if (!client) return null;
+  
+  const { data, error } = await client
     .from('multiplayer_matches')
     .insert({
       player1_id: player1Id,
       player2_id: player2Id,
       player1_score: 0,
       player2_score: 0,
+      round_number: 0,
       current_turn: 'player1',
       status: 'active',
     })
@@ -153,18 +223,23 @@ export async function createMatch(player1Id: string, player2Id: string): Promise
 
 /**
  * Créer un match contre un bot
+ * Retourne null si Supabase n'est pas disponible
  */
-export async function createBotMatch(userId: string, userName: string, userAvatar: string): Promise<string> {
+export async function createBotMatch(userId: string, userName: string, userAvatar: string): Promise<string | null> {
+  const client = getSupabase();
+  if (!client) return null;
+  
   // Créer un "utilisateur bot" virtuel
   const botId = `bot_${crypto.randomUUID()}`;
   
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('multiplayer_matches')
     .insert({
       player1_id: userId,
       player2_id: botId,
       player1_score: 0,
       player2_score: 0,
+      round_number: 0,
       current_turn: 'player1',
       status: 'active',
     })
@@ -174,7 +249,7 @@ export async function createBotMatch(userId: string, userName: string, userAvata
   if (error) throw error;
   
   // Stocker les infos du bot pour l'affichage
-  await supabase
+  await client
     .from('bot_profiles')
     .upsert({
       bot_id: botId,
@@ -188,9 +263,13 @@ export async function createBotMatch(userId: string, userName: string, userAvata
 
 /**
  * Récupérer un match avec les infos des joueurs
+ * Retourne null si Supabase n'est pas disponible
  */
 export async function getMatch(matchId: string): Promise<MultiplayerMatch | null> {
-  const { data, error } = await supabase
+  const client = getSupabase();
+  if (!client) return null;
+  
+  const { data, error } = await client
     .from('multiplayer_matches')
     .select(`
       *,
@@ -206,9 +285,13 @@ export async function getMatch(matchId: string): Promise<MultiplayerMatch | null
 
 /**
  * S'abonner aux mises à jour d'un match (temps réel)
+ * Retourne null si Supabase n'est pas disponible
  */
 export function subscribeToMatch(matchId: string, callback: (payload: any) => void) {
-  return supabase
+  const client = getSupabase();
+  if (!client) return null;
+  
+  return client
     .channel(`match:${matchId}`)
     .on('postgres_changes', {
       event: '*',
@@ -221,9 +304,13 @@ export function subscribeToMatch(matchId: string, callback: (payload: any) => vo
 
 /**
  * S'abonner aux rounds d'un match
+ * Retourne null si Supabase n'est pas disponible
  */
 export function subscribeToRounds(matchId: string, callback: (payload: any) => void) {
-  return supabase
+  const client = getSupabase();
+  if (!client) return null;
+  
+  return client
     .channel(`rounds:${matchId}`)
     .on('postgres_changes', {
       event: 'INSERT',
@@ -236,6 +323,7 @@ export function subscribeToRounds(matchId: string, callback: (payload: any) => v
 
 /**
  * Jouer un tour (soumettre une réponse)
+ * Retourne false si Supabase n'est pas disponible
  */
 export async function submitRoundAnswer(
   matchId: string,
@@ -243,8 +331,11 @@ export async function submitRoundAnswer(
   playerId: string,
   answer: string,
   isCorrect: boolean
-): Promise<void> {
-  const { error } = await supabase
+): Promise<boolean> {
+  const client = getSupabase();
+  if (!client) return false;
+  
+  const { error } = await client
     .from('match_rounds')
     .insert({
       match_id: matchId,
@@ -257,42 +348,53 @@ export async function submitRoundAnswer(
 
   // Mettre à jour le score
   const scoreColumn = playerId === 'player1' ? 'player1_score' : 'player2_score';
-  await supabase.rpc('increment_score', { match_id: matchId, score_column: scoreColumn });
+  await client.rpc('increment_score', { match_id: matchId, score_column: scoreColumn });
+  return true;
 }
 
 /**
  * Passer au tour suivant
+ * Retourne false si Supabase n'est pas disponible
  */
-export async function nextTurn(matchId: string): Promise<void> {
-  const { data: match } = await supabase
+export async function nextTurn(matchId: string): Promise<boolean> {
+  const client = getSupabase();
+  if (!client) return false;
+  
+  const { data: match } = await client
     .from('multiplayer_matches')
     .select('current_turn, round_number')
     .eq('id', matchId)
     .single();
 
-  if (!match) return;
+  if (!match) return false;
 
   const nextTurn = match.current_turn === 'player1' ? 'player2' : 'player1';
   const nextRound = match.current_turn === 'player2' ? match.round_number + 1 : match.round_number;
 
-  await supabase
+  await client
     .from('multiplayer_matches')
     .update({
       current_turn: nextTurn,
       round_number: nextRound,
     })
     .eq('id', matchId);
+  return true;
 }
 
 /**
  * Terminer le match
+ * Retourne false si Supabase n'est pas disponible
  */
-export async function finishMatch(matchId: string, winnerId: string | null): Promise<void> {
-  await supabase
+export async function finishMatch(matchId: string, winnerId: string | null): Promise<boolean> {
+  const client = getSupabase();
+  if (!client) return false;
+  
+  await client
     .from('multiplayer_matches')
     .update({
       status: 'finished',
       winner_id: winnerId,
     })
     .eq('id', matchId);
+  return true;
 }

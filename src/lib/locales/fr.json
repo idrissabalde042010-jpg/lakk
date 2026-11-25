@@ -261,7 +261,9 @@
     "searching": "Recherche d'adversaire...",
     "cancel": "Annuler",
     "match_over": "Match terminé",
-    "play_again": "Rejouer"
+    "play_again": "Rejouer",
+    "online_unavailable": "Mode en ligne indisponible",
+    "online_unavailable_desc": "Les fonctionnalités en ligne nécessitent une configuration Supabase. Vous pouvez jouer contre un bot en attendant."
   },
   "profile": {
     "language": "Langues",

@@ -1,17 +1,21 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { app } from '../lib/store.svelte';
-  import { supabase, joinMatchmaking, leaveMatchmaking, findMatch, createBotMatch, subscribeToMatch, subscribeToRounds, submitRoundAnswer, nextTurn, finishMatch, type MatchmakingQueueEntry, type MultiplayerMatch } from '../lib/supabase';
+  import { getSupabase, joinMatchmaking, leaveMatchmaking, findMatch, createBotMatch, subscribeToMatch, subscribeToRounds, submitRoundAnswer, nextTurn, finishMatch, type MatchmakingQueueEntry, type MultiplayerMatch } from '../lib/supabase';
   import { BotMatch, createBot, BOT_DIFFICULTIES, type BotConfig, type BotMatchState, type RoundResult } from '../lib/bot';
   import { sfx, speak } from '../lib/audio';
   import { locale, _ } from 'svelte-i18n';
 
+  // Profil du joueur actuel
+  // const p = $derived(app.profile);
+
   // États de l'interface
-  let state: 'idle' | 'searching' | 'matched' | 'playing' | 'round_result' | 'match_end' = $state('idle');
+  // @ts-expect-error - svelte-check false positive with Svelte 5 $state rune
+  let state = $state('idle');
   let queueEntry: MatchmakingQueueEntry | null = $state(null);
   let match: MultiplayerMatch | null = $state(null);
-  let matchChannel: ReturnType<typeof supabase.channel> | null = $state(null);
-  let roundsChannel: ReturnType<typeof supabase.channel> | null = $state(null);
+  let matchChannel: ReturnType<typeof subscribeToMatch> | null = $state(null);
+  let roundsChannel: ReturnType<typeof subscribeToRounds> | null = $state(null);
   let botMatch: BotMatch | null = $state(null);
   
   // Données du round actuel
@@ -76,6 +80,13 @@
   async function startSearch(): Promise<void> {
     if (!p || !p.name) return;
     
+    const client = getSupabase();
+    if (!client) {
+      // Mode hors ligne : proposer directement un match contre un bot
+      await startBotMatch();
+      return;
+    }
+    
     state = 'searching';
     searchStartTime = Date.now();
     
@@ -85,6 +96,12 @@
         p.name,
         p.avatar || '🦁'
       );
+      
+      if (!queueId) {
+        // Supabase non disponible, basculer sur bot
+        await startBotMatch();
+        return;
+      }
       
       queueEntry = { 
         id: queueId, 
@@ -129,7 +146,10 @@
 
   // Récupérer les détails complets d'un match
   async function getMatchDetails(matchId: string): Promise<MultiplayerMatch | null> {
-    const { data, error } = await supabase
+    const client = getSupabase();
+    if (!client) return null;
+    
+    const { data, error } = await client
       .from('multiplayer_matches')
       .select(`
         *,
@@ -147,6 +167,10 @@
   async function startBotMatch(): Promise<void> {
     try {
       const matchId = await createBotMatch(p.name, p.name, p.avatar || '🦁');
+      if (!matchId) {
+        state = 'idle';
+        return;
+      }
       const matchData = await getMatchDetails(matchId);
       if (matchData) {
         match = matchData;
@@ -345,6 +369,13 @@
         <h1>⚔️ {$_('multiplayer.title')}</h1>
         <p class="small muted">{$_('multiplayer.subtitle')}</p>
       </header>
+      
+      {#if !getSupabase()}
+        <div class="offline-notice">
+          <p class="small muted">{$_('multiplayer.online_unavailable')}</p>
+          <p class="small muted">{$_('multiplayer.online_unavailable_desc')}</p>
+        </div>
+      {/if}
       
       <div class="mode-select">
         <button class="mode-btn" onclick={startSearch}>
@@ -604,4 +635,17 @@
   .winner-text { font-size: 20px; font-weight: 700; margin: 20px 0; }
   .final-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
   .final-actions .btn { width: 100%; }
+
+  /* Offline notice */
+  .offline-notice {
+    padding: 16px;
+    margin: 12px 0;
+    background: var(--orange-soft);
+    border: 1.5px solid var(--orange);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .offline-notice p {
+    margin: 4px 0;
+  }
 </style>
