@@ -1098,22 +1098,25 @@
   /* --- Badges de série --- */
   .badges-card {
     margin-bottom: 10px;
+    max-width: 100%;
+    overflow: hidden;
   }
   .badges-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    gap: 6px;
     margin-top: 10px;
+    justify-content: center;
   }
   .badge-slot {
     background: var(--card);
     border: 2px solid var(--line);
     border-radius: 14px;
-    padding: 12px 8px;
+    padding: 10px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     transition: border-color 0.2s, background 0.2s, transform 0.1s;
   }
   .badge-slot.earned {
