@@ -5,6 +5,16 @@
 
 use chrono::{DateTime, Duration, NaiveDate, Utc, Datelike};
 
+// Jalons de série (style Streak Society Duolingo).
+pub const STREAK_MILESTONES: &[u32] = &[7, 30, 50, 100, 365];
+
+/// Badge de série gagné.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StreakBadge {
+    pub days: u32,
+    pub earned_at: Option<DateTime<Utc>>,
+}
+
 /// Profil local d'un apprenant.
 #[derive(Debug, Clone)]
 pub struct LearnerProfile {
@@ -27,6 +37,8 @@ pub struct LearnerProfile {
     pub freeze_count: u32,
     /// Dernière semaine (ISO) où les gels ont été accordés.
     pub last_freeze_grant_week: Option<u32>,
+    /// Badges de série gagnés (clé = nombre de jours, ex: "7", "30").
+    pub badges: std::collections::HashMap<String, StreakBadge>,
     /// Mode gratuit : cœurs illimités (désactivable).
     pub unlimited_hearts: bool,
 }
@@ -46,8 +58,40 @@ impl LearnerProfile {
             gems: 0,
             freeze_count: 0,
             last_freeze_grant_week: None,
+            badges: std::collections::HashMap::new(),
             unlimited_hearts: true,
         }
+    }
+
+    /// Vérifie et attribue les nouveaux badges de série atteints.
+    /// Retourne la liste des badges nouvellement gagnés.
+    pub fn check_streak_badges(&mut self, now: DateTime<Utc>) -> Vec<u32> {
+        let mut new_badges = Vec::new();
+        for &milestone in STREAK_MILESTONES {
+            if self.streak_days >= milestone {
+                let key = milestone.to_string();
+                if !self.badges.contains_key(&key) {
+                    self.badges.insert(key.clone(), StreakBadge {
+                        days: milestone,
+                        earned_at: Some(now),
+                    });
+                    new_badges.push(milestone);
+                }
+            }
+        }
+        new_badges
+    }
+
+    /// Retourne true si un badge pour ce jalon a déjà été gagné.
+    pub fn has_badge(&self, days: u32) -> bool {
+        self.badges.contains_key(&days.to_string())
+    }
+
+    /// Retourne la liste des badges gagnés, triés par jours.
+    pub fn earned_badges(&self) -> Vec<&StreakBadge> {
+        let mut badges: Vec<_> = self.badges.values().collect();
+        badges.sort_by_key(|b| b.days);
+        badges
     }
 
     /// Accorde les gels de série hebdomadaires (2 par semaine, reset le lundi).
@@ -137,6 +181,8 @@ impl LearnerProfile {
 
         self.last_active = Some(today);
         self.refresh_hearts(now);
+        // Vérifie les badges de série après mise à jour de la streak.
+        let _ = self.check_streak_badges(now);
     }
 
     /// L'objectif quotidien est-il atteint ?
@@ -342,5 +388,101 @@ mod tests {
         // Gap de 6 jours (mercredi à lundi), 1 gel consommé
         p.register_lesson(day(12), 20);
         assert_eq!(p.freeze_count, 1);
+    }
+
+    #[test]
+    fn streak_badges_awarded_at_milestones() {
+        let mut p = LearnerProfile::new("Idrissa");
+        let now = day(0); // mercredi semaine 44
+
+        // Pas de badge au début
+        assert!(!p.has_badge(7));
+        assert!(!p.has_badge(30));
+        assert_eq!(p.earned_badges().len(), 0);
+
+        // Simule 7 jours consécutifs
+        for i in 0..7 {
+            p.register_lesson(day(i), 20);
+        }
+        // Badge 7 jours gagné
+        assert!(p.has_badge(7));
+        assert_eq!(p.earned_badges().len(), 1);
+        assert_eq!(p.earned_badges()[0].days, 7);
+
+        // Simule jusqu'à 30 jours
+        for i in 7..30 {
+            p.register_lesson(day(i), 20);
+        }
+        // Badge 30 jours gagné
+        assert!(p.has_badge(30));
+        assert_eq!(p.earned_badges().len(), 2);
+
+        // Simule jusqu'à 50 jours
+        for i in 30..50 {
+            p.register_lesson(day(i), 20);
+        }
+        // Badge 50 jours gagné
+        assert!(p.has_badge(50));
+        assert_eq!(p.earned_badges().len(), 3);
+
+        // Simule jusqu'à 100 jours
+        for i in 50..100 {
+            p.register_lesson(day(i), 20);
+        }
+        // Badge 100 jours gagné
+        assert!(p.has_badge(100));
+        assert_eq!(p.earned_badges().len(), 4);
+
+        // Simule jusqu'à 365 jours
+        for i in 100..365 {
+            p.register_lesson(day(i), 20);
+        }
+        // Badge 365 jours gagné
+        assert!(p.has_badge(365));
+        assert_eq!(p.earned_badges().len(), 5);
+    }
+
+    #[test]
+    fn streak_badges_not_duplicated() {
+        let mut p = LearnerProfile::new("Idrissa");
+        for i in 0..7 {
+            p.register_lesson(day(i), 20);
+        }
+        assert_eq!(p.earned_badges().len(), 1);
+
+        // Re-vérifie les badges (check_streak_badges appelé à chaque leçon)
+        p.register_lesson(day(7), 20);
+        assert_eq!(p.earned_badges().len(), 1); // Pas de doublon
+    }
+
+    #[test]
+    fn check_streak_badges_returns_new_badges() {
+        let mut p = LearnerProfile::new("Idrissa");
+        let now = day(0);
+
+        // Avant le jalon : pas de nouveaux badges
+        let new = p.check_streak_badges(now);
+        assert!(new.is_empty());
+
+        // Après 7 jours
+        p.streak_days = 7;
+        let new = p.check_streak_badges(now);
+        assert_eq!(new, vec![7]);
+
+        // Deuxième appel : pas de nouveaux badges
+        let new = p.check_streak_badges(now);
+        assert!(new.is_empty());
+    }
+
+    #[test]
+    fn badge_earned_at_has_timestamp() {
+        let mut p = LearnerProfile::new("Idrissa");
+        let now = day(0);
+        for i in 0..7 {
+            p.register_lesson(day(i), 20);
+        }
+        let badges = p.earned_badges();
+        assert!(badges[0].earned_at.is_some());
+        assert_eq!(badges[0].earned_at.unwrap(), day(6)); // 7e jour = day(6)
     }
 }

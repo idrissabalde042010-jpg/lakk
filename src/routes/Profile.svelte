@@ -218,6 +218,29 @@
     </div>
   </section>
 
+  <!-- Badges de série -->
+  <section class="card badges-card">
+    <p class="eyebrow">Tes badges de série</p>
+    <div class="badges-grid">
+      {#each [7, 30, 50, 100, 365] as milestone}
+        {@const badge = p.badges?.[milestone.toString()]}
+        <div class="badge-slot" class:earned={!!badge}>
+          <span class="badge-icon" aria-label={badge ? `Badge ${milestone} jours gagné le ${new Date(badge.earnedAt!).toLocaleDateString('fr-FR')}` : `Badge ${milestone} jours — pas encore gagné`}>
+            {milestone === 7 ? '🌱' : milestone === 30 ? '🌿' : milestone === 50 ? '🌳' : milestone === 100 ? '🏆' : '👑'}
+          </span>
+          <span class="badge-days">{milestone} j</span>
+          <span class="badge-label">{badge ? 'Gagné' : 'À débloquer'}</span>
+          {#if badge}
+            <span class="badge-date">{new Date(badge.earnedAt!).toLocaleDateString('fr-FR')}</span>
+          {:else}
+            <span class="badge-progress">{p.streakDays}/{milestone}</span>
+          {/if}
+        </div>
+      {/each}
+    </div>
+    <p class="small muted">Style Streak Society : 7, 30, 50, 100, 365 jours</p>
+  </section>
+
   <section class="grid">
     <div class="stat">
       <span class="v">{cards.length}</span>
@@ -1070,5 +1093,63 @@
   .freeze-label {
     font-size: 11px;
     color: var(--muted);
+  }
+
+  /* --- Badges de série --- */
+  .badges-card {
+    margin-bottom: 10px;
+  }
+  .badges-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .badge-slot {
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
+  }
+  .badge-slot.earned {
+    border-color: var(--mango);
+    background: var(--mango-soft);
+  }
+  .badge-icon {
+    font-size: 28px;
+    line-height: 1;
+    filter: grayscale(1);
+    transition: filter 0.2s;
+  }
+  .badge-slot.earned .badge-icon {
+    filter: grayscale(0);
+  }
+  .badge-days {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .badge-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-date {
+    font-size: 9px;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .badge-progress {
+    font-size: 9px;
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-weight: 600;
   }
 </style>

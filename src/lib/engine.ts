@@ -237,6 +237,14 @@ export function mastery(card: Card): { label: string; pct: number } {
 
 // ----------------------------- Profil / gamification -----------------------------
 
+// Jalons de série (style Streak Society Duolingo).
+export const STREAK_MILESTONES: readonly number[] = [7, 30, 50, 100, 365];
+
+export interface StreakBadge {
+  days: number;
+  earnedAt: number | null; // timestamp
+}
+
 export interface Profile {
   name: string;
   avatar: string;
@@ -256,6 +264,8 @@ export interface Profile {
   freezeCount: number;
   /** Dernière semaine ISO où les gels ont été accordés (ex: 2026-W45 -> 45) */
   lastFreezeGrantWeek: number | null;
+  /** Badges de série gagnés (clé = nombre de jours en string, ex: "7", "30") */
+  badges: Record<string, StreakBadge>;
 }
 
 export function newProfile(name: string): Profile {
@@ -275,6 +285,7 @@ export function newProfile(name: string): Profile {
     unlimitedEnergy: true,
     freezeCount: 0,
     lastFreezeGrantWeek: null,
+    badges: {},
   };
 }
 
@@ -312,6 +323,33 @@ export function grantWeeklyFreezes(p: Profile, now: number): boolean {
   return true;
 }
 
+/** Vérifie et attribue les nouveaux badges de série atteints.
+ * Retourne la liste des jours des badges nouvellement gagnés. */
+export function checkStreakBadges(p: Profile, now: number): number[] {
+  const newBadges: number[] = [];
+  for (const milestone of STREAK_MILESTONES) {
+    if (p.streakDays >= milestone) {
+      const key = milestone.toString();
+      if (!p.badges[key]) {
+        p.badges[key] = { days: milestone, earnedAt: now };
+        newBadges.push(milestone);
+      }
+    }
+  }
+  return newBadges;
+}
+
+/** Retourne true si un badge pour ce jalon a déjà été gagné. */
+export function hasBadge(p: Profile, days: number): boolean {
+  return !!p.badges[days.toString()];
+}
+
+/** Retourne la liste des badges gagnés, triés par jours. */
+export function earnedBadges(p: Profile): StreakBadge[] {
+  return Object.values(p.badges)
+    .sort((a, b) => a.days - b.days);
+}
+
 export function loseEnergy(p: Profile): boolean {
   if (p.unlimitedEnergy) return true;
   p.energy = Math.max(0, p.energy - 1);
@@ -347,6 +385,8 @@ export function registerLesson(p: Profile, now: number, xp: number): void {
     p.xpToday = xp;
   }
   p.lastActive = today;
+  // Vérifie les badges de série après mise à jour de la streak.
+  checkStreakBadges(p, now);
 }
 
 export function dailyGoalPercent(p: Profile): number {
