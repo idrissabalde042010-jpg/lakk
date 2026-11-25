@@ -3,5 +3,10 @@
   "identifier": "default",
   "description": "Capacités par défaut de Lakk",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "notification:allow-send",
+    "notification:allow-request-permission"
+  ]
 }

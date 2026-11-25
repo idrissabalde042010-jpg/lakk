@@ -10,6 +10,7 @@
   import { isBgmMuted, toggleBgmMuted } from '../lib/bgm.svelte';
   import { setLocale, SUPPORTED_LOCALES, LEARN_LANGUAGES } from '../lib/i18n';
   import { locale, _ } from 'svelte-i18n';
+  import { isDailyReminderEnabled, setDailyReminderEnabled, scheduleDailyReminder, cancelDailyReminder } from '../lib/notification';
 
   const p = $derived(app.profile);
   const cards = $derived(Object.values(app.data.cards));
@@ -121,6 +122,18 @@
       }
     }
     app.save();
+  }
+
+  async function toggleDailyReminder(): Promise<void> {
+    const enabled = !isDailyReminderEnabled();
+    setDailyReminderEnabled(enabled);
+    if (enabled) {
+      await scheduleDailyReminder();
+      app.notify($_( 'profile.daily_reminder_on' ));
+    } else {
+      await cancelDailyReminder();
+      app.notify($_( 'profile.daily_reminder_off' ));
+    }
   }
 
   async function handleAuth(): Promise<void> {
@@ -338,6 +351,23 @@
         onclick={toggleBgmMuted}
         aria-pressed={!isBgmMuted()}
         aria-label="Musique d'ambiance"
+      >
+        <span></span>
+      </button>
+    </div>
+
+    <div class="set-row">
+      <span>{$_( 'profile.notifications' )}</span>
+    </div>
+
+    <div class="set-row">
+      <span>{$_( 'profile.daily_reminder' )}<small class="muted">{$_( 'profile.daily_reminder_hint' )}</small></span>
+      <button
+        class="switch"
+        class:on={isDailyReminderEnabled()}
+        onclick={toggleDailyReminder}
+        aria-pressed={isDailyReminderEnabled()}
+        aria-label={$_( 'profile.daily_reminder' )}
       >
         <span></span>
       </button>
