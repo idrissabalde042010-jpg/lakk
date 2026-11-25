@@ -241,6 +241,12 @@ async fn synthesize_edge_tts(text: String, lang: Option<String>) -> Result<Vec<u
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Rustls : aws-lc-rs et ring sont tous deux tirés par les dépendances
+    // (reqwest, msedge-tts). Sans choix explicite, rustls panique au premier
+    // appel TLS ("Could not automatically determine the process-level
+    // CryptoProvider"). On installe `ring` AVANT toute connexion réseau.
+    let _ = rustls::crypto::ring::default_provider().install_default();
+
     #[cfg(target_os = "linux")]
     disable_dmabuf_renderer();
 

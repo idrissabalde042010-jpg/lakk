@@ -20,6 +20,11 @@ tauri-plugin-updater = { version = "2", features = [] }
 # Synthèse vocale neuronale Microsoft Edge (gratuite, sans clé API).
 msedge-tts = "0.4"
 
+# Fournisseur cryptographique explicite pour rustls.
+# Plusieurs deps (reqwest/msedge-tts) tirent à la fois `aws-lc-rs` et `ring` :
+# on force `ring` (plus léger à compiler) et on l'installe au démarrage.
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
+
 # Cœur métier Rust : contenu, SRS FSRS, gamification.
 lakk-core = { path = "../crates/lakk-core" }
 
