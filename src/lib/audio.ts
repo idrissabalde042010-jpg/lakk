@@ -124,6 +124,96 @@ async function speakNative(text: string, lang: string): Promise<boolean> {
   }
 }
 
+// ------------------- Moteur Edge TTS (voix neuronale) -------------------
+//
+// Microsoft Edge « Read Aloud » : voix neuronale très naturelle, gratuite,
+// sans clé API. On l'appelle via la commande Rust `synthesize_edge_tts`
+// (Tauri uniquement), on joue le MP3 reçu en Blob, et on retombe sur la voix
+// locale du système si le réseau est absent ou le service indisponible.
+
+let edgeAudioEl: HTMLAudioElement | null = null;
+let edgeObjectUrl: string | null = null;
+
+function stopEdgeAudio(): void {
+  if (edgeAudioEl) {
+    try {
+      edgeAudioEl.pause();
+      edgeAudioEl.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function revokeEdgeUrl(): void {
+  if (edgeObjectUrl) {
+    URL.revokeObjectURL(edgeObjectUrl);
+    edgeObjectUrl = null;
+  }
+}
+
+/**
+ * Synthétise et joue un texte avec la voix neuronale Microsoft Edge.
+ * Résout `true` si la lecture a abouti, `false` s'il faut basculer sur la
+ * voix locale (hors ligne, commande absente, format audio non supporté…).
+ */
+async function speakEdge(text: string, lang: string): Promise<boolean> {
+  if (!isTauri()) return false;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+
+    // Borne l'attente réseau : sans internet, on ne bloque pas l'app.
+    const bytes = await Promise.race([
+      invoke<number[] | Uint8Array>('synthesize_edge_tts', { text, lang }),
+      new Promise<never>((_, reject) =>
+        window.setTimeout(() => reject(new Error('délai Edge TTS dépassé')), 8000)
+      ),
+    ]);
+
+    const data = bytes instanceof Uint8Array ? bytes : Uint8Array.from(bytes);
+    if (data.length === 0) return false;
+
+    // Copie dans un ArrayBuffer standard (compatible BlobPart).
+    const buffer = new Uint8Array(data).buffer;
+    const blob = new Blob([buffer], { type: 'audio/mpeg' });
+    revokeEdgeUrl();
+    edgeObjectUrl = URL.createObjectURL(blob);
+
+    if (!edgeAudioEl) {
+      edgeAudioEl = new Audio();
+      edgeAudioEl.preload = 'auto';
+    }
+    stopEdgeAudio();
+    edgeAudioEl.src = edgeObjectUrl;
+
+    await new Promise<void>((resolve, reject) => {
+      const el = edgeAudioEl!;
+      const cleanup = (): void => {
+        el.onended = null;
+        el.onerror = null;
+      };
+      el.onended = () => {
+        cleanup();
+        resolve();
+      };
+      el.onerror = () => {
+        cleanup();
+        reject(new Error('lecture Edge TTS échouée'));
+      };
+      el.play().catch((err) => {
+        cleanup();
+        reject(err);
+      });
+    });
+
+    console.log('[audio] lecture Edge TTS :', text);
+    return true;
+  } catch (err) {
+    console.warn('[audio] Edge TTS indisponible → voix locale :', err);
+    return false;
+  }
+}
+
 // --------------------- Moteur Web Speech API ---------------------------
 
 /**
@@ -282,8 +372,9 @@ function processQueue(): void {
 /**
  * Prononce un texte (anglais par défaut).
  *
- * Ordre : Web Speech si des voix existent, sinon commande Rust native
- * (espeak-ng / espeak / spd-say). Résout toujours sans lever d'erreur.
+ * Ordre : voix neuronale Edge (Tauri) si le réseau répond, sinon Web Speech,
+ * sinon commande Rust native (espeak-ng / espeak / spd-say). Résout toujours
+ * sans lever d'erreur.
  */
 export async function speak(text: string, lang = 'en-US'): Promise<void> {
   if (!text.trim()) return;
@@ -294,6 +385,10 @@ export async function speak(text: string, lang = 'en-US'): Promise<void> {
     try { await ctx.resume(); } catch { /* ignore */ }
   }
 
+  // 1) Voix neuronale Microsoft Edge (haute qualité) sous Tauri.
+  if (await speakEdge(text, lang)) return;
+
+  // 2) Repli local : Web Speech puis moteur natif.
   if (hasSpeechSynthesis()) {
     await ensureVoicesLoaded();
     if (availableVoices.length > 0) {
@@ -316,6 +411,7 @@ export async function speak(text: string, lang = 'en-US'): Promise<void> {
 
 /** Arrête toute synthèse en cours. */
 export function cancelSpeech(): void {
+  stopEdgeAudio();
   if (hasSpeechSynthesis()) {
     window.speechSynthesis!.cancel();
     speakQueue = [];

@@ -191,6 +191,54 @@ fn stop_native_speech() {
     stop_child();
 }
 
+// ---------------------- Synthèse neuronale Edge TTS -----------------------
+//
+// Microsoft Edge « Read Aloud » fournit des voix neuronales de très haute
+// qualité, gratuitement et sans clé API. On l'utilise en priorité depuis le
+// frontend ; si le réseau est absent (ou le service indisponible), le
+// frontend bascule automatiquement sur la voix locale du système.
+
+/// Synthétise `text` avec une voix neuronale Microsoft Edge et renvoie les
+/// octets MP3. `lang` permet de choisir la voix (français par défaut).
+#[tauri::command]
+async fn synthesize_edge_tts(text: String, lang: Option<String>) -> Result<Vec<u8>, String> {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("texte vide".to_string());
+    }
+
+    // Voix neuronale française par défaut (Denise), anglaise si demandé.
+    let voice = match lang.as_deref() {
+        Some(l) if l.starts_with("en") => "en-US-AriaNeural",
+        _ => "fr-FR-DeniseNeural",
+    }
+    .to_string();
+
+    // Le client msedge-tts (feature `blocking`) est bloquant : on l'exécute
+    // sur un thread dédié pour ne pas bloquer le runtime async de Tauri.
+    tauri::async_runtime::spawn_blocking(move || {
+        use msedge_tts::tts::{client::connect, SpeechConfig};
+
+        let config = SpeechConfig {
+            voice_name: voice,
+            audio_format: "audio-24khz-48kbitrate-mono-mp3".to_string(),
+            pitch: 0,
+            rate: 0,
+            volume: 0,
+        };
+
+        let mut tts =
+            connect().map_err(|e| format!("connexion Edge TTS échouée : {e}"))?;
+        let audio = tts
+            .synthesize(&text, &config)
+            .map_err(|e| format!("synthèse Edge TTS échouée : {e}"))?;
+
+        Ok::<Vec<u8>, String>(audio.audio_bytes)
+    })
+    .await
+    .map_err(|e| format!("tâche Edge TTS interrompue : {e}"))?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
@@ -207,7 +255,8 @@ pub fn run() {
             log_error,
             tts_backend,
             speak_native,
-            stop_native_speech
+            stop_native_speech,
+            synthesize_edge_tts
         ])
         .run(tauri::generate_context!())
         .expect("erreur au démarrage de Lakk");
