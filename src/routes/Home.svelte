@@ -346,7 +346,14 @@
 
   <!-- Modal coffre -->
   {#if showChest}
-    <div class="chest-modal" onclick={closeChest}>
+    <div
+      class="chest-modal"
+      role="button"
+      tabindex="0"
+      onclick={closeChest}
+      onkeydown={(e) => { if (e.key === 'Escape' || e.key === ' ') closeChest(); }}
+      aria-label="Fermer le coffre"
+    >
       <div class="chest-content" onclick={(e) => e.stopPropagation()}>
         <div class="chest-animation">🎁</div>
         <h3>{showChest.type === 'bonus' ? 'Coffre Bonus !' : `Coffre ${showChest.type.charAt(0).toUpperCase() + showChest.type.slice(1)}`}</h3>
@@ -612,7 +619,6 @@
   .btn.orange { background: linear-gradient(135deg, var(--mango), var(--orange)); color: #fff; }
   .btn.orange:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn.block { width: 100%; }
-  .btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
   .fb { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
   .fb-text { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
   .fb-text strong { font-family: var(--font-display); }

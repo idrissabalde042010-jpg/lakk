@@ -235,6 +235,15 @@ export function mastery(card: Card): { label: string; pct: number } {
   return { label: 'À revoir', pct };
 }
 
+/** Retourne les mots faibles (maîtrise < 70%), triés du plus faible au plus fort, limités à 10.
+ * Exclut les cartes "Nouveau" (jamais révisées) qui sont gérées par le flux SRS normal. */
+export function weakCards(cards: Card[], limit = 10): Card[] {
+  return cards
+    .filter((c) => c.state !== 'new' && mastery(c).pct < 70)
+    .sort((a, b) => mastery(a).pct - mastery(b).pct)
+    .slice(0, limit);
+}
+
 // ----------------------------- Profil / gamification -----------------------------
 
 // Jalons de série (style Streak Society Duolingo).

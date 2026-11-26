@@ -1,18 +1,21 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
   import type { Card, Grade } from '../lib/engine';
-  import { mastery } from '../lib/engine';
+  import { mastery, weakCards as computeWeakCards } from '../lib/engine';
   import { speak, isSpeechAvailable } from '../lib/audio';
   import { shuffle, shuffledIndices } from '../lib/shuffle';
 
   let due = $state<Card[]>(app.dueCards());
+  let weakCards = $state<Card[]>([]);
+  let weakMode = $state(false);
   let revealed = $state(false);
   let reviewed = $state(0);
   const speechAvailable = $derived(isSpeechAvailable());
 
-  const current = $derived(due[0]);
+  const activeCards = $derived(weakMode ? weakCards : due);
+  const current = $derived(activeCards[0]);
   const total = $derived(app.cardCount());
-  const remaining = $derived(due.length);
+  const remaining = $derived(activeCards.length);
 
   const grades: { g: Grade; label: string; cls: string }[] = [
     { g: 1, label: 'Encore', cls: 'rose' },
@@ -28,6 +31,17 @@
     shuffledGradeIndices = shuffledIndices(grades.length);
   }
 
+    $effect(() => {
+    weakCards = computeWeakCards(Object.values(app.data.cards));
+  });
+
+  function toggleWeakMode(): void {
+    weakMode = !weakMode;
+    revealed = false;
+    reviewed = 0;
+    shuffleGrades();
+  }
+
   function reveal(): void {
     revealed = true;
     if (current && speechAvailable) speak(current.vocab.en);
@@ -39,12 +53,14 @@
     reviewed += 1;
     revealed = false;
     due = app.dueCards();
+    weakCards = computeWeakCards(Object.values(app.data.cards));
     shuffleGrades();
   }
 
   // Mélanger au premier affichage et après chaque réponse
   $effect(() => {
     due;
+    weakCards;
     shuffleGrades();
   });
 </script>
@@ -54,12 +70,19 @@
     <p class="eyebrow">Mémoire FSRS</p>
     <h1>Réviser</h1>
     <p class="small muted">
-      {#if remaining > 0}
+      {#if weakMode}
+        {remaining} mot{remaining > 1 ? 's' : ''} faible{remaining > 1 ? 's' : ''} à réviser · {total} en mémoire
+      {:else if remaining > 0}
         {remaining} carte{remaining > 1 ? 's' : ''} à revoir · {total} en mémoire
       {:else}
         {total} mot{total > 1 ? 's' : ''} en mémoire
       {/if}
     </p>
+    {#if weakCards.length > 0}
+      <button class="mini-btn" class:on={weakMode} onclick={toggleWeakMode} aria-label={weakMode ? 'Quitter le mode mots faibles' : 'Activer le mode mots faibles'}>
+        {weakMode ? '🔙 Tous les mots' : `🎯 ${weakCards.length} mots faibles`}
+      </button>
+    {/if}
   </header>
 
   {#if !current}
@@ -249,5 +272,25 @@
     margin-top: 8px;
     background: var(--blue);
     box-shadow: 0 4px 0 #2648b8;
+  }
+  .mini-btn {
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--teal);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .mini-btn:active {
+    transform: scale(0.97);
+  }
+  .mini-btn.on {
+    border-color: var(--mango);
+    background: var(--mango-soft);
+    color: var(--mango-deep);
   }
 </style>
