@@ -1,6 +1,6 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
-  import { answersMatch, dayKey, loseEnergy } from '../lib/engine';
+  import { answersMatch, dayKey } from '../lib/engine';
   import type { Grade, Exercise } from '../lib/engine';
   import { speak, isSpeechAvailable } from '../lib/audio';
   import { tagError } from '../lib/errors';
@@ -22,7 +22,6 @@
   let done = $state(false);
   let earnedXp = $state(0);
   let accuracy = $state(0);
-  let shake = $state(false);
   let showHint = $state(false);
 
   // État pour le mélange des choix (stable pendant l'exercice, remélangé à chaque tentative)
@@ -89,6 +88,24 @@
 
   const progress = $derived(Math.round((idx / total) * 100));
 
+  /** Règle d'encouragement courte selon le type d'exercice. */
+  const ruleText = $derived(
+    (() => {
+      switch (ex.kind) {
+        case 'multiple_choice':
+          return 'Relis attentivement les choix proposés.';
+        case 'translate':
+          return 'Vérifie la traduction mot à mot.';
+        case 'fill_blank':
+          return 'Quel mot manque à la phrase ?';
+        case 'order_words':
+          return 'Remets les mots dans l’ordre naturel de la phrase.';
+        default:
+          return 'Relis la phrase et essaie à nouveau.';
+      }
+    })(),
+  );
+
   function check(): void {
     if (!canCheck) return;
     ok = answersMatch(ex.answer, given, ex.accepted);
@@ -96,11 +113,8 @@
       correct += 1;
     } else {
       wrong += 1;
-      loseEnergy(app.profile);
       app.save();
-      shake = true;
-      window.setTimeout(() => (shake = false), 420);
-      // Enregistre l'erreur dans le Carnet de Traces.
+      // Enregistre l'erreur dans le Carnet de Traces (sans punition).
       app.recordError({
         prompt: ex.prompt,
         expected: ex.answer,
@@ -167,7 +181,7 @@
     <div class="energy" aria-label="Énergie">⚡ {app.profile.unlimitedEnergy ? '∞' : app.profile.energy}</div>
   </header>
 
-  <div class="body" class:shake>
+  <div class="body">
     <p class="eyebrow">Exercice {idx + 1} / {total}</p>
 
     {#if ex.kind === 'listen_type'}
@@ -298,8 +312,11 @@
   {:else}
     <div class="fb" class:good={ok} class:bad={!ok}>
       <div class="fb-text">
-        <strong>{ok ? '✓ Bien joué !' : '✕ Presque !'}</strong>
-        {#if !ok}<span>Bonne réponse : {ex.answer}</span>{/if}
+        <strong>{ok ? '✓ Bien joué !' : 'Ce n’est pas grave !'}</strong>
+        {#if !ok}
+          <p class="rule">{ruleText}</p>
+          <span>Bonne réponse : {ex.answer}</span>
+        {/if}
       </div>
       <button class="btn block" class:orange={!ok} onclick={next}>
         {idx + 1 >= total ? 'Terminer' : 'Continuer'}
@@ -539,6 +556,12 @@
     font-size: 13px;
     color: var(--muted);
   }
+  .rule {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
   .footer,
   .fb {
     position: sticky;
@@ -568,7 +591,7 @@
     background: var(--teal-soft);
   }
   .fb.bad {
-    background: var(--rose-soft);
+    background: var(--orange-soft);
   }
   .fb-text {
     display: flex;
@@ -584,16 +607,6 @@
   .fb-text span {
     font-size: 14px;
     color: var(--ink-soft);
-  }
-  .shake {
-    animation: shake 0.4s ease;
-  }
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-7px); }
-    40% { transform: translateX(7px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
   }
   /* -------- écran de fin -------- */
   .overlay {
