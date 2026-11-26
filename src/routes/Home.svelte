@@ -1,5 +1,15 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { app } from '../lib/store.svelte';
+  import { dayKey } from '../lib/engine';
+  import {
+    dailyMission,
+    completeMission,
+    loadMissionLog,
+    getMissionProof,
+    saveMissionProof,
+    type MissionLog,
+  } from '../lib/missions';
   import Baobab from '../components/Baobab.svelte';
   import ProgressRing from '../components/ProgressRing.svelte';
   import RegularityRing from '../components/RegularityRing.svelte';
@@ -31,6 +41,18 @@
   const pauseUntil = $derived(app.pauseUntil());
   const streakBroken = $derived(app.streakBroken());
   const crownRemaining = $derived(Math.max(0, ring.target - ring.activeCount));
+
+  // Mission du jour : tirage déterministe, preuve audio locale optionnelle.
+  const today = dayKey();
+  const mission = dailyMission(today);
+  let missionLog = $state<MissionLog>(loadMissionLog());
+  const missionDone = $derived(!!missionLog[today]);
+  let proofUrl = $state<string | null>(getMissionProof(today));
+  let recording = $state(false);
+  let proofError = $state<string | null>(null);
+  let recorder: MediaRecorder | null = null;
+  let stream: MediaStream | null = null;
+  let proofTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Texte dynamique selon la langue d'apprentissage
   const readyText = $derived($_( `home.ready_${p.learnLang}` ) || $_('home.ready'));
@@ -83,6 +105,79 @@
     app.cancelPause();
     app.notify('Pause annulée. On reprend !');
   }
+
+  function markMissionDone(): void {
+    missionLog = completeMission(today, mission.id);
+    app.notify('Mission du jour accomplie ! 🌿');
+  }
+
+  function blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function toggleProof(): Promise<void> {
+    if (recording) {
+      recorder?.stop();
+      return;
+    }
+    proofError = null;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      proofError = 'Enregistrement audio indisponible sur cet appareil.';
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const chunks: BlobPart[] = [];
+      const rec = new MediaRecorder(stream);
+      recorder = rec;
+      rec.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+      rec.onstop = async () => {
+        recording = false;
+        if (proofTimer) {
+          clearTimeout(proofTimer);
+          proofTimer = null;
+        }
+        stream?.getTracks().forEach((track) => track.stop());
+        stream = null;
+        const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+        if (blob.size === 0) return;
+        try {
+          const dataUrl = await blobToDataUrl(blob);
+          if (saveMissionProof(today, dataUrl)) {
+            proofUrl = dataUrl;
+            app.notify('Preuve de vie enregistrée sur cet appareil.');
+          } else {
+            proofError = 'Preuve trop lourde pour le stockage local.';
+          }
+        } catch {
+          proofError = 'Impossible de sauvegarder la preuve.';
+        }
+      };
+      rec.start();
+      recording = true;
+      proofTimer = setTimeout(() => {
+        if (rec.state === 'recording') rec.stop();
+      }, 10_000);
+    } catch {
+      proofError = 'Micro refusé ou indisponible.';
+      recording = false;
+      stream?.getTracks().forEach((track) => track.stop());
+      stream = null;
+    }
+  }
+
+  onDestroy(() => {
+    if (proofTimer) clearTimeout(proofTimer);
+    if (recorder && recorder.state === 'recording') recorder.stop();
+    stream?.getTracks().forEach((track) => track.stop());
+  });
 
   function open(u: number, l: number): void {
     if (app.isUnlocked(u, l)) {
@@ -254,6 +349,54 @@
           <button class="link" onclick={resumeFromPause}>Reprendre maintenant</button>
         {:else}
           <button class="link" onclick={planPause}>Planifier une pause de 7 jours</button>
+        {/if}
+      </div>
+    {/if}
+  </section>
+
+  <!-- Mission du jour : un petit transfert dans la vraie vie. -->
+  <section class="card mission-card">
+    <div class="mission-head">
+      <div class="grow">
+        <p class="eyebrow">Mission du jour</p>
+        <p class="mission-title">
+          <span class="mission-icon" aria-hidden="true">{mission.icon}</span>
+          <span>{mission.title}</span>
+        </p>
+      </div>
+      <span class="mission-duration">{mission.duration}</span>
+    </div>
+
+    <p class="small muted">{mission.hint}</p>
+
+    <button
+      class="mission-check"
+      class:done={missionDone}
+      onclick={markMissionDone}
+      disabled={missionDone}
+      aria-pressed={missionDone}
+    >
+      <span class="box" aria-hidden="true">{missionDone ? '✓' : ''}</span>
+      <span>{missionDone ? 'Mission accomplie' : 'J’ai accompli la mission'}</span>
+    </button>
+
+    {#if missionDone}
+      <div class="proof-row">
+        {#if proofUrl}
+          <audio class="proof-audio" controls preload="none" src={proofUrl}></audio>
+        {/if}
+        {#if recording}
+          <button class="link recording" onclick={toggleProof}>⏺ Arrêter l’enregistrement</button>
+        {:else}
+          <button class="link" onclick={toggleProof}>
+            {proofUrl ? '🎙️ Refaire la preuve (10 s)' : '🎙️ Ajouter une preuve de vie (10 s)'}
+          </button>
+        {/if}
+        {#if proofUrl && !recording}
+          <span class="small muted">Preuve audio gardée sur cet appareil.</span>
+        {/if}
+        {#if proofError}
+          <p class="small proof-error">{proofError}</p>
         {/if}
       </div>
     {/if}
@@ -443,7 +586,15 @@
       onkeydown={(e) => { if (e.key === 'Escape' || e.key === ' ') closeChest(); }}
       aria-label="Fermer le coffre"
     >
-      <div class="chest-content" onclick={(e) => e.stopPropagation()}>
+      <div
+        class="chest-content"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Récompense du coffre"
+        tabindex="-1"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+      >
         <div class="chest-animation">🎁</div>
         <h3>{showChest.type === 'bonus' ? 'Coffre Bonus !' : `Coffre ${showChest.type.charAt(0).toUpperCase() + showChest.type.slice(1)}`}</h3>
         <p class="chest-message">{showChest.message}</p>
@@ -576,6 +727,103 @@
     color: var(--muted);
     font-weight: 500;
     margin-left: 6px;
+  }
+
+  /* Mission du jour */
+  .mission-card {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mission-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .mission-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 4px 0 0;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .mission-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex: none;
+  }
+  .mission-duration {
+    flex: none;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .mission-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.08s;
+  }
+  .mission-check:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+  .mission-check .box {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    border: 2px solid var(--line);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .mission-check.done {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+    cursor: default;
+  }
+  .mission-check.done .box {
+    border-color: var(--teal);
+    background: var(--teal);
+  }
+  .proof-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 2px;
+  }
+  .proof-audio {
+    width: 100%;
+    height: 36px;
+  }
+  .proof-error {
+    color: var(--rose);
+  }
+  .link.recording {
+    color: var(--rose);
   }
 
   /* Onglets quêtes */

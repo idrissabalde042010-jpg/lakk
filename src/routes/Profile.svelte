@@ -4,6 +4,8 @@
   import { dayKey, mastery } from '../lib/engine';
   import Baobab from '../components/Baobab.svelte';
   import RegularityRing from '../components/RegularityRing.svelte';
+  import MissionPolaroid from '../components/MissionPolaroid.svelte';
+  import { missionHistory } from '../lib/missions';
   import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
   import { resetTour } from '../lib/tour';
@@ -26,6 +28,9 @@
   const paused = $derived(app.paused());
   const pauseUntil = $derived(app.pauseUntil());
   const crownRemaining = $derived(Math.max(0, ring.target - ring.activeCount));
+
+  // Carnet de terrain : polaroids des missions accomplies (100 % local).
+  const fieldMissions = missionHistory();
 
   let dark = $state(document.documentElement.classList.contains('dark'));
   function toggleDark(): void {
@@ -301,6 +306,27 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- Carnet de terrain : les missions de la vraie vie -->
+  <section class="card fieldbook">
+    <div class="row between">
+      <p class="eyebrow">Carnet de terrain</p>
+      <span class="small muted">
+        {fieldMissions.length} mission{fieldMissions.length > 1 ? 's' : ''}
+      </span>
+    </div>
+    {#if fieldMissions.length === 0}
+      <p class="small muted fieldbook-empty">
+        Tes missions accomplies apparaîtront ici, comme des polaroids. La première t’attend sur l’accueil. 🌿
+      </p>
+    {:else}
+      <div class="polaroid-grid">
+        {#each fieldMissions as item, i}
+          <MissionPolaroid {item} index={i} />
+        {/each}
+      </div>
+    {/if}
   </section>
 
   <!-- Badges de série -->
@@ -764,6 +790,19 @@
   }
   .streak-actions {
     margin-top: 8px;
+  }
+  .fieldbook {
+    margin-bottom: 10px;
+  }
+  .fieldbook-empty {
+    margin-top: 10px;
+  }
+  .polaroid-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 14px 10px;
+    margin-top: 14px;
+    padding: 4px 2px 2px;
   }
   .big {
     font-family: var(--font-display);
