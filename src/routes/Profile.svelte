@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { app } from '../lib/store.svelte';
   import { dayKey, mastery } from '../lib/engine';
   import Baobab from '../components/Baobab.svelte';
@@ -92,6 +92,10 @@
   let backupResult = $state<string | null>(null);
   let restoreFile = $state<File | null>(null);
 
+  // Segment utilisateur pour l'affichage
+  const userSegment = $derived(getUserSegment(authUser?.age ?? null));
+  const userSegmentLabel = $derived(userSegment ? segmentLabel(userSegment) : '—');
+
   // Édition prénom / âge (Supabase profiles)
   let editingProfile = $state(false);
   let editFirstName = $state('');
@@ -113,9 +117,10 @@
   });
 
   // --- Auth : session et écoute des changements ---
+  let authSubscription: { unsubscribe: () => void } | null = null;
   onMount(async () => {
+    const { getSession, onAuthStateChange } = await import('../lib/auth');
     try {
-      const { getSession } = await import('../lib/auth');
       const sessionUser = await getSession();
       authUser = sessionUser;
     } catch {
@@ -123,13 +128,12 @@
     } finally {
       authLoading = false;
     }
-
-    const { onAuthStateChange } = await import('../lib/auth');
-    const { data: subscription } = onAuthStateChange((user) => {
+    const { data } = onAuthStateChange((user: AuthUser | null) => {
       authUser = user;
     });
-    return () => subscription?.unsubscribe();
+    authSubscription = data.subscription;
   });
+  onDestroy(() => authSubscription?.unsubscribe());
 
   async function checkUpdates(): Promise<void> {
     updateCheckMessage = '';
@@ -638,7 +642,7 @@
         {#if authUser.first_name}
           <div class="row">
             <span class="small muted">Segment</span>
-            <strong>{getUserSegment(authUser.age) ? segmentLabel(getUserSegment(authUser.age)) : '—'}</strong>
+            <strong>{userSegmentLabel}</strong>
           </div>
         {/if}
         {#if editingProfile}

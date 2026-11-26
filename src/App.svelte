@@ -29,6 +29,7 @@
   // État d'authentification (Supabase)
   let authUser = $state<AuthUser | null>(null);
   let authLoading = $state(true);
+  const isAuthenticated = $derived(!!authUser);
 
   // État des écrans d'onboarding (app + langues)
   let showLanguageSelect = $state(false);
@@ -94,10 +95,7 @@
     maybeStartTour(500);
   }
 
-  /** L'utilisateur est-il authentifié (compte Supabase) ? */
-  get isAuthenticated(): boolean {
-    return !!authUser;
-  }
+
 </script>
 
 <div class="phone">

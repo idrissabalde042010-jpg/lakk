@@ -4,25 +4,25 @@
   import { _ } from 'svelte-i18n';
   import { introSeen, markIntroSeen } from '../lib/intro';
 
-  let mode: 'welcome' | 'register' | 'login' | 'reset' = 'welcome';
-  let loading = false;
-  let error: string | null = null;
+  let mode = $state<'welcome' | 'register' | 'login' | 'reset'>('welcome');
+  let loading = $state(false);
+  let error = $state<string | null>(null);
 
   // Register fields
-  let regFirstName = '';
-  let regAge = '';
-  let regEmail = '';
-  let regPassword = '';
-  let regConfirmPassword = '';
-  let regPrivacy = false;
-  let regParentConsent = false;
+  let regFirstName = $state('');
+  let regAge = $state('');
+  let regEmail = $state('');
+  let regPassword = $state('');
+  let regConfirmPassword = $state('');
+  let regPrivacy = $state(false);
+  let regParentConsent = $state(false);
 
   // Login fields
-  let loginEmail = '';
-  let loginPassword = '';
+  let loginEmail = $state('');
+  let loginPassword = $state('');
 
   // Reset field
-  let resetEmail = '';
+  let resetEmail = $state('');
 
   function setError(msg: string | null): void {
     error = msg;

@@ -9,6 +9,7 @@
     "notification:allow-notify",
     "notification:allow-request-permission",
     "updater:default",
-    "process:allow-restart"
+    "process:allow-restart",
+    "deep-link:default"
   ]
 }

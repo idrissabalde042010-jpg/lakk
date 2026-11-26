@@ -282,6 +282,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_deep_link::init())
         // Autorise l'accès au micro depuis le webview (nécessaire pour la preuve
         // de vie de la Mission du Jour sous WebKitGTK / Linux, où la permission
         // est refusée par défaut).
