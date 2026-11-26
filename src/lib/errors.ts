@@ -218,14 +218,14 @@ export function patternLabel(pattern: ErrorPattern): string {
   return labels[pattern];
 }
 
-/** Message pédagogique associé à un pattern. */
+/** Message pédagogique associé à un pattern (bienveillant, axé progression). */
 export function patternMessage(pattern: ErrorPattern): string {
   const messages: Record<ErrorPattern, string> = {
-    article: "Tu oublies souvent les articles (a, an, the).",
-    ordre: "L'ordre des mots dans la phrase n'est pas encore naturel.",
-    orthographe: "Quelques fautes d'orthographe à corriger.",
-    conjugaison: "Le temps du verbe pose parfois problème.",
-    sens: "Le sens de la phrase n'est pas encore tout à fait clair.",
+    article: "Tu progresses sur les articles (a, an, the) — continue !",
+    ordre: "L'ordre des mots devient plus naturel à chaque phrase.",
+    orthographe: "Ton orthographe s'affine peu à peu.",
+    conjugaison: "Tu maîtrises de plus en plus les temps de verbe.",
+    sens: "Tu saisis de mieux en mieux le sens des phrases.",
   };
   return messages[pattern];
 }
