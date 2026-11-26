@@ -13,6 +13,8 @@ export default defineConfig({
     watch: { ignored: ['**/src-tauri/**'] },
   },
   build: { target: 'es2021' },
+  // Les variables PUBLIC_ sont exposées au client (Supabase).
+  envPrefix: ['VITE_', 'PUBLIC_'],
   // Évite les imports dynamiques top-level qui peuvent bloquer le démarrage
   // dans des webviews anciens
   esbuild: { supported: { 'top-level-await': false } },
