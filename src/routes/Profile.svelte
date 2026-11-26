@@ -5,6 +5,7 @@
   import Baobab from '../components/Baobab.svelte';
   import RegularityRing from '../components/RegularityRing.svelte';
   import MissionPolaroid from '../components/MissionPolaroid.svelte';
+  import ErrorRadar from '../components/ErrorRadar.svelte';
   import { missionHistory } from '../lib/missions';
   import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
@@ -28,6 +29,9 @@
   const paused = $derived(app.paused());
   const pauseUntil = $derived(app.pauseUntil());
   const crownRemaining = $derived(Math.max(0, ring.target - ring.activeCount));
+
+  // Carnet de Traces : erreurs par pattern pour l'empreinte.
+  const errorCounts = $derived(app.errorsByPattern());
 
   // Carnet de terrain : polaroids des missions accomplies (100 % local).
   const fieldMissions = missionHistory();
@@ -351,6 +355,9 @@
     </div>
     <p class="small muted">Style Streak Society : 7, 30, 50, 100, 365 jours</p>
   </section>
+
+  <!-- Empreinte d'erreurs -->
+  <ErrorRadar counts={errorCounts} />
 
   <section class="grid">
     <div class="stat">

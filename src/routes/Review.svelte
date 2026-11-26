@@ -9,6 +9,12 @@
     marketExerciseFor,
     type MarketExercise,
   } from '../lib/phrases';
+  import {
+    generateDrills,
+    drillLabel,
+    type Drill,
+  } from '../lib/drills';
+  import type { ErrorPattern } from '../lib/errors';
 
   let due = $state<Card[]>(app.dueCards());
   let weakCards = $state<Card[]>([]);
@@ -34,6 +40,17 @@
   let marketAnswer = $state('');
   let marketRevealed = $state(false);
   let marketOk = $state(false);
+
+  // Drills d'entraînement ciblé
+  let drillPattern = $state<ErrorPattern | null>(null);
+  let drills = $state<Drill[]>([]);
+  let drillIndex = $state(0);
+  let drillAnswer = $state('');
+  let drillRevealed = $state(false);
+  let drillOk = $state(false);
+
+  const topErrorPattern = $derived(app.topPatterns(1)[0]?.pattern ?? null);
+  const drillLabelText = $derived(drillPattern ? drillLabel(drillPattern) : '');
 
   const grades: { g: Grade; label: string; cls: string }[] = [
     { g: 1, label: 'Encore', cls: 'rose' },
@@ -113,6 +130,60 @@
     marketAnswer = '';
     marketRevealed = false;
     marketOk = false;
+  }
+
+  // --- Drills ciblés ---
+  function startDrill(pattern: ErrorPattern): void {
+    drillPattern = pattern;
+    drills = generateDrills(pattern, app.course);
+    drillIndex = 0;
+    drillAnswer = '';
+    drillRevealed = false;
+    drillOk = false;
+  }
+
+  const currentDrill = $derived(drills[drillIndex]);
+
+  function checkDrill(): void {
+    if (!currentDrill || drillRevealed) return;
+    const given = drillAnswer.trim();
+    let ok = false;
+    if (currentDrill.kind === 'fill_blank') {
+      ok = given.toLowerCase() === (currentDrill.answer ?? '').toLowerCase();
+    } else if (currentDrill.kind === 'multiple_choice') {
+      ok = given === (currentDrill.answer ?? '');
+    } else if (currentDrill.kind === 'order_words') {
+      ok =
+        given
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}\s']/gu, ' ')
+          .split(/\s+/)
+          .filter(Boolean)
+          .join(' ') ===
+        (currentDrill.answer ?? '').toLowerCase();
+    } else {
+      ok = given.length > 0;
+    }
+    drillOk = ok;
+    drillRevealed = true;
+  }
+
+  function nextDrill(): void {
+    if (!currentDrill) return;
+    if (drillIndex + 1 < drills.length) {
+      drillIndex += 1;
+      drillAnswer = '';
+      drillRevealed = false;
+      drillOk = false;
+    } else {
+      drillPattern = null;
+      drills = [];
+    }
+  }
+
+  function closeDrill(): void {
+    drillPattern = null;
+    drills = [];
   }
 </script>
 
@@ -243,6 +314,146 @@
 
       <button class="btn ghost block" onclick={resetMarket} style="margin-top:8px">
         Autre phrase
+      </button>
+    </section>
+  {/if}
+
+  <!-- Drills ciblés -->
+  {#if drillPattern && drills.length > 0}
+    <section class="card drill-card">
+      <p class="eyebrow">Entraînement ciblé</p>
+      <p class="small muted">{drillLabelText}</p>
+
+      {#if currentDrill}
+        <p class="drill-body">{currentDrill.prompt}</p>
+
+        {#if currentDrill.kind === 'fill_blank'}
+          {#if drillRevealed}
+            <p class="result">
+              {drillOk ? '✓ Bien joué !' : '✕ La réponse était : ' + currentDrill.answer}
+            </p>
+          {:else}
+            <input
+              class="input"
+              bind:value={drillAnswer}
+              placeholder="Le mot manquant…"
+              onkeydown={(e) => e.key === 'Enter' && checkDrill()}
+            />
+            <div class="drill-actions">
+              <button
+                class="btn block"
+                onclick={checkDrill}
+                disabled={!drillAnswer.trim()}
+              >
+                Vérifier
+              </button>
+              <button class="btn ghost block" onclick={() => (drillRevealed = true)}>
+                Afficher la réponse
+              </button>
+            </div>
+          {/if}
+
+        {:else if currentDrill.kind === 'multiple_choice'}
+          {#if drillRevealed}
+            <p class="result">
+              {drillOk ? '✓ Bien joué !' : '✕ La réponse était : ' + currentDrill.answer}
+            </p>
+          {:else}
+            <div class="choices">
+              {#each currentDrill.choices ?? [] as choice}
+                <button
+                  class="choice"
+                  class:sel={drillAnswer === choice}
+                  onclick={() => (drillAnswer = choice)}
+                >
+                  {choice}
+                </button>
+              {/each}
+            </div>
+            <div class="drill-actions">
+              <button
+                class="btn block"
+                onclick={checkDrill}
+                disabled={!drillAnswer}
+              >
+                Vérifier
+              </button>
+              <button class="btn ghost block" onclick={() => (drillRevealed = true)}>
+                Afficher la réponse
+              </button>
+            </div>
+          {/if}
+
+        {:else if currentDrill.kind === 'order_words'}
+          {#if drillRevealed}
+            <p class="result">
+              {drillOk ? '✓ Bien joué !' : '✕ La phrase était : ' + currentDrill.answer}
+            </p>
+          {:else}
+            <div class="word-bank">
+              {#each currentDrill.word_bank ?? [] as w}
+                <button
+                  class="bank-word"
+                  onclick={() => (drillAnswer = drillAnswer ? `${drillAnswer} ${w}` : w)}
+                >
+                  {w}
+                </button>
+              {/each}
+            </div>
+            <input class="input" bind:value={drillAnswer} placeholder="Ta phrase…" />
+            <div class="drill-actions">
+              <button
+                class="btn block"
+                onclick={checkDrill}
+                disabled={!drillAnswer.trim()}
+              >
+                Vérifier
+              </button>
+              <button class="btn ghost block" onclick={() => (drillRevealed = true)}>
+                Afficher la réponse
+              </button>
+            </div>
+          {/if}
+
+        {:else if currentDrill.kind === 'translate'}
+          {#if drillRevealed}
+            <p class="result">{drillOk ? '✓ Bien joué !' : '✕ Traduis : ' + currentDrill.answer}</p>
+          {:else}
+            <input class="input" bind:value={drillAnswer} placeholder="Ta traduction…" />
+            <div class="drill-actions">
+              <button
+                class="btn block"
+                onclick={checkDrill}
+                disabled={!drillAnswer.trim()}
+              >
+                Vérifier
+              </button>
+              <button class="btn ghost block" onclick={() => (drillRevealed = true)}>
+                Afficher la réponse
+              </button>
+            </div>
+          {/if}
+        {/if}
+
+        {#if drillRevealed}
+          <button class="btn block" onclick={nextDrill} style="margin-top:8px">
+            {drillIndex + 1 < drills.length ? 'Suivant' : 'Terminer'}
+          </button>
+        {/if}
+      {/if}
+
+      <button class="btn ghost block" onclick={closeDrill}>
+        Fermer l'entraînement
+      </button>
+    </section>
+  {:else if topErrorPattern && app.errorsByPattern()[topErrorPattern]! > 0}
+    <section class="card drill-card">
+      <p class="eyebrow">Entraînement ciblé</p>
+      <p class="small muted">
+        Tu as des erreurs récurrentes : {drillLabel(topErrorPattern)}.
+      </p>
+      <button class="btn block" onclick={() => startDrill(topErrorPattern)}>
+        Générer un exercice ciblé
       </button>
     </section>
   {/if}
@@ -462,5 +673,52 @@
   .input:focus {
     outline: none;
     border-color: var(--orange);
+  }
+  .drill-card {
+    margin-top: 14px;
+    padding: 20px;
+  }
+  .drill-body {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    margin: 14px 0 14px;
+    color: var(--ink);
+  }
+  .drill-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0 14px;
+  }
+  .choice {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .choice.sel {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+    color: var(--teal-deep);
+  }
+  .result {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 6px;
+    text-align: center;
   }
 </style>

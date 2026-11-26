@@ -279,6 +279,7 @@ function mergePersist(local: Persist, remote: Persist): Persist {
     cards: { ...local.cards },
     completed: { ...local.completed, ...remote.completed },
     history: { ...local.history },
+    errors: [...local.errors, ...remote.errors],
   };
   // Cartes : garde la plus avancée (stabilité max)
   for (const [key, remoteCard] of Object.entries(remote.cards)) {
