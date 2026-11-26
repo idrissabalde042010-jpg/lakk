@@ -16,6 +16,7 @@ tauri = { version = "2", features = ["protocol-asset"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-updater = { version = "2", features = [] }
+tauri-plugin-process = "2"
 tauri-plugin-notification = { version = "2", features = [] }
 
 # Synthèse vocale neuronale Microsoft Edge (gratuite, sans clé API).

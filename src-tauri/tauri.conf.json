@@ -32,7 +32,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["deb", "appimage"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -44,11 +44,9 @@
   },
   "plugins": {
     "updater": {
-      "active": true,
       "endpoints": [
-        "https://github.com/nexus/lakk/releases/latest/download/{{target}}/{{arch}}/{{current_version}}.json"
+        "https://github.com/idrissabalde042010-jpg/lakk/releases/latest/download/latest.json"
       ],
-      "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU3REY4MTk4MUUyNDY4NDgKUldSSWFDUWVtSUhmNThkSk9UZzVKbHVBaHI5WG1DeHUxL29CbHJVUm5XdjlwQjFJbzU3OEoyUnMK"
     }
   }
