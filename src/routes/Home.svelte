@@ -50,6 +50,16 @@
     app.startLesson(target.u, target.l);
   }
 
+  /** Choisit une leçon au hasard parmi celles déjà complétées. */
+  function startRandomLesson(): void {
+    const completed = lessons.filter((r) => app.isCompleted(r.u, r.l));
+    if (completed.length === 0) return;
+    const target = completed[Math.floor(Math.random() * completed.length)];
+    app.startLesson(target.u, target.l);
+  }
+
+  const hasCompletedLessons = $derived(lessons.some((r) => app.isCompleted(r.u, r.l)));
+
   function open(u: number, l: number): void {
     if (app.isUnlocked(u, l)) {
       app.startLesson(u, l);
@@ -191,6 +201,15 @@
       <ProgressRing percent={percent} size={78} label={`${percent}%`} />
     </div>
     <button class="btn orange block" data-tour="start" onclick={continueLesson}>Continuer</button>
+    {#if hasCompletedLessons}
+      <button class="btn ghost block" onclick={startRandomLesson} aria-label="Leçon aléatoire">
+        🎲 Leçon aléatoire
+      </button>
+    {:else}
+      <button class="btn ghost block" disabled aria-label="Aucune leçon complétée">
+        🎲 Leçon aléatoire
+      </button>
+    {/if}
   </section>
 
   <!-- Barre de sélection des quêtes -->
@@ -619,6 +638,8 @@
   .btn.orange { background: linear-gradient(135deg, var(--mango), var(--orange)); color: #fff; }
   .btn.orange:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn.block { width: 100%; }
+  .btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .btn.ghost:disabled { opacity: 0.5; cursor: not-allowed; }
   .fb { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
   .fb-text { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
   .fb-text strong { font-family: var(--font-display); }
