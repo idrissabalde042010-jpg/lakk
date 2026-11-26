@@ -1,7 +1,7 @@
 {
   "name": "lakk",
   "private": true,
-  "version": "0.1.1",
+  "version": "1.1.0",
   "type": "module",
   "description": "Lakk — apprends l'anglais depuis le français, gratuit et hors ligne.",
   "scripts": {
