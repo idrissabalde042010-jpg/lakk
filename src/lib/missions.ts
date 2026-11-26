@@ -1,4 +1,4 @@
-// Missions du jour — transfert dans la vraie vie, 100 % local.
+// Missions du jour — transfert dans la vraie vie.
 // Le tirage est déterministe par date : même jour = même mission, sans serveur.
 // Aucune donnée ne quitte l'appareil : la preuve de vie est un audio local.
 

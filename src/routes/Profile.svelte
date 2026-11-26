@@ -33,7 +33,7 @@
   // Carnet de Traces : erreurs par pattern pour l'empreinte.
   const errorCounts = $derived(app.errorsByPattern());
 
-  // Carnet de terrain : polaroids des missions accomplies (100 % local).
+  // Carnet de terrain : polaroids des missions accomplies.
   const fieldMissions = missionHistory();
 
   let dark = $state(document.documentElement.classList.contains('dark'));
@@ -676,7 +676,7 @@
   </section>
 
   <button class="btn ghost block reset" onclick={reset}>Réinitialiser</button>
-  <p class="footer-note">Lakk · gratuit · sans compte</p>
+  <p class="footer-note">{$_('profile.footer')}</p>
 
   <!-- Modal Confidentialité & Transparence -->
   {#if showTransparency}
@@ -685,18 +685,17 @@
         <button class="transparency-close" onclick={toggleTransparency} aria-label="Fermer">✕</button>
         <h2>🔒 Confidentialité & Transparence</h2>
         <p>
-          Lakk est une application <strong>100 % locale</strong>. Aucune donnée n'est envoyée sur un serveur.
+          Lakk utilise un compte en ligne chez <strong>Supabase</strong> (serveurs en Europe, Irlande) pour stocker ton compte (email, prénom, âge). Tes données servent à faire fonctionner ton compte et à améliorer l'application.
         </p>
         <ul class="transparency-list">
-          <li><strong>Progression :</strong> tes leçons complétées, ton SRS (cartes de révision) et ton XP sont stockés uniquement sur cet appareil.</li>
+          <li><strong>Compte :</strong> ton email, prénom et âge sont stockés chez Supabase. Tu peux les modifier à tout moment dans ton profil.</li>
+          <li><strong>Progression :</strong> tes leçons complétées, ton SRS (cartes de révision) et ton XP restent sur cet appareil.</li>
           <li><strong>Erreurs (Carnet de Traces) :</strong> tes erreurs et leurs catégories sont enregistrées localement pour te proposer des exercices ciblés.</li>
           <li><strong>Missions :</strong> tes missions du jour et tes preuves audio sont conservées sur cet appareil uniquement.</li>
-          <li><strong>Sauvegarde :</strong> tu peux exporter/importer ton progression dans un fichier chiffré (optionnel).</li>
-          <li><strong>Pas de compte :</strong> aucun email, aucun mot de passe, aucune création de compte n'est requise.</li>
-          <li><strong>Pas de suivi :</strong> pas d'analytics, pas de publicité, pas de connexion réseau obligatoire.</li>
+          <li><strong>Supprimer mon compte :</strong> tu peux supprimer ton compte et toutes tes données associées depuis ton profil.</li>
         </ul>
         <p class="small muted">
-          Où sont les données ? Dans le <code>localStorage</code> de ton navigateur, ou dans le stockage local de l'application Tauri. Elles ne quittent jamais cet appareil.
+          Tes données personnelles ne sont jamais vendues ni partagées avec des tiers. Conformité RGPD.
         </p>
         <button class="btn block" onclick={toggleTransparency}>J'ai compris</button>
       </div>
@@ -1380,22 +1379,26 @@
   .transparency-modal {
     position: fixed;
     inset: 0;
-    background: color-mix(in srgb, var(--ink) 60%, transparent);
+    background: color-mix(in srgb, var(--ink) 45%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
-    z-index: 100;
-    backdrop-filter: blur(4px);
+    z-index: 200;
+    backdrop-filter: blur(6px);
+    cursor: pointer;
   }
   .transparency-content {
     background: var(--card);
     border-radius: 20px;
     padding: 24px;
-    max-width: 420px;
+    max-width: 460px;
+    max-height: 85vh;
     width: 100%;
     box-shadow: var(--shadow);
     position: relative;
+    overflow-y: auto;
+    cursor: default;
   }
   .transparency-close {
     position: absolute;
