@@ -195,17 +195,19 @@ export function generateRound(session: GameSession): GameRound | null {
     }
 
     case 'sentence_scramble': {
-      // Crée une phrase simple avec le mot
-      const templates = [
-        `I like ${vocab.en}.`,
-        `This is a ${vocab.en}.`,
-        `Do you have ${vocab.en}?`,
-        `The ${vocab.en} is here.`,
+      // Crée une phrase simple avec le mot (grammaire anglaise correcte).
+      const templates: Array<{ en: string; fr: string }> = [
+        { en: `I like ${vocab.en}.`, fr: `J'aime ${vocab.fr}.` },
+        { en: `This is a ${vocab.en}.`, fr: `Voici ${vocab.fr}.` },
+        { en: `Do you have a ${vocab.en}?`, fr: `As-tu ${vocab.fr} ?` },
+        { en: `The ${vocab.en} is here.`, fr: `${vocab.fr} est ici.` },
       ];
-      const sentence = templates[Math.floor(Math.random() * templates.length)];
-      const words = shuffle(sentence.replace(/[.?]/g, '').split(' '));
+      const t = templates[Math.floor(Math.random() * templates.length)];
+      const sentence = t.en;
+      // La ponctuation fait partie des jetons (ex: "friend?") pour qu'elle soit saisissable.
+      const words = shuffle(sentence.split(' '));
       return {
-        question: `Remets dans l'ordre : « ${vocab.fr} »`,
+        question: `Remets dans l'ordre : « ${t.fr} »`,
         answer: sentence,
         choices: words,
         audioText: sentence,
