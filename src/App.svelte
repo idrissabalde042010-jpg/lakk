@@ -14,8 +14,10 @@
   import BottomNav from './components/BottomNav.svelte';
   import IntroStory from './components/IntroStory.svelte';
   import LanguageSelect from './components/LanguageSelect.svelte';
+  import Onboarding from './components/Onboarding.svelte';
+  import { onAuthStateChange, getSession, type AuthUser } from './lib/auth';
   import { maybeStartTour } from './lib/guidedTour';
-  import { introSeen } from './lib/intro';
+  import { introSeen, markIntroSeen } from './lib/intro';
   import { _ } from 'svelte-i18n';
   import {
     updaterState,
@@ -24,8 +26,12 @@
     dismissUpdate,
   } from './lib/updater';
 
-  // État des écrans d'onboarding
-  let showLanguageSelect = $state(!introSeen() && !app.profile.uiLang);
+  // État d'authentification (Supabase)
+  let authUser = $state<AuthUser | null>(null);
+  let authLoading = $state(true);
+
+  // État des écrans d'onboarding (app + langues)
+  let showLanguageSelect = $state(false);
   let showIntro = $derived(app.introOpen || (!introSeen() && app.profile.uiLang));
 
   // Initialise la locale i18n depuis le profil au démarrage
@@ -56,6 +62,23 @@
     return () => clearTimeout(timer);
   });
 
+  // --- Auth : vérifie la session existante, puis écoute les changements ---
+  onMount(async () => {
+    try {
+      const sessionUser = await getSession();
+      authUser = sessionUser;
+    } catch {
+      authUser = null;
+    } finally {
+      authLoading = false;
+    }
+
+    const { data: subscription } = onAuthStateChange((user) => {
+      authUser = user;
+    });
+    return () => subscription?.unsubscribe();
+  });
+
   function finishLanguageSelect(): void {
     showLanguageSelect = false;
     // Si l'intro n'a pas été vue, on l'affiche ensuite
@@ -65,8 +88,14 @@
   }
 
   function finishIntro(): void {
+    markIntroSeen();
     app.closeIntro();
     maybeStartTour(500);
+  }
+
+  /** L'utilisateur est-il authentifié (compte Supabase) ? */
+  get isAuthenticated(): boolean {
+    return !!authUser;
   }
 </script>
 
@@ -114,7 +143,11 @@
     </div>
   {/if}
 
-  {#if showLanguageSelect}
+  {#if authLoading}
+    <!-- Authentification en cours, on n'affiche rien encore (évite le flash) -->
+  {:else if !isAuthenticated}
+    <Onboarding />
+  {:else if showLanguageSelect}
     <LanguageSelect onDone={finishLanguageSelect} />
   {:else if showIntro}
     <IntroStory onDone={finishIntro} />
