@@ -318,21 +318,26 @@ with open('content/fr-en-a1.json', 'w') as f:
 ### ÉTAPE 2 — Supabase Auth ✅
 - `@supabase/supabase-js` déjà présent.
 - `src/lib/supabase.ts` : `flowType: 'pkce'`, `autoRefreshToken`, `persistSession`.
-- `src/lib/auth.ts` : `signUp(email, password, firstName, age)` avec `options.data: { first_name, age }`, `signIn`, `signOut`, `resetPassword`, `getSession`, `onAuthStateChange`, `getProfile`, `updateProfile`.
-- Messages d'erreur en français : email déjà utilisé, mot de passe trop court, mauvais identifiants, réseau indisponible.
+- `src/lib/auth.ts` : `signUp(email, password, firstName, age)` avec `options.data: { first_name, age }` retourne `{ user, emailConfirmationRequired }`, `signIn`, `signOut`, `resetPassword`, `getSession`, `onAuthStateChange`, `getProfile`, `updateProfile`.
+- `src/lib/auth.ts` : `mapAuthError(err)` exportée, traduit les erreurs Supabase en français (email déjà utilisé, limite d'envoi d'emails, mot de passe trop faible, réseau indisponible, Database error saving new user, email non confirmé).
+- `src/lib/auth.test.ts` : 13 tests Vitest pour `mapAuthError`.
 - `.env.example` mis à jour sans valeurs réelles.
 
 ### ÉTAPE 3 — Onboarding obligatoire ✅
 - `src/components/Onboarding.svelte` : écran de bienvenue (2 boutons : « Créer un compte », « J'ai déjà un compte »).
 - Impossible d'accéder à l'app sans session (gate dans `App.svelte` via `isAuthenticated`).
-- Inscription : prénom, âge, email, mot de passe (+ confirmation), case de confidentialité. Refus âge < 13 (message bienveillant). 13-17 ans : accord parent requis.
+- Inscription : prénom, âge (nombre, pas de `.trim()`), email, mot de passe (+ confirmation), case de confidentialité. Refus âge < 13 (message bienveillant). 13-17 ans : accord parent requis.
 - Connexion : email + mot de passe + « Mot de passe oublié ».
 - Après connexion/inscription : si `lakk.intro_seen` absent → IntroStory, puis flag marqué ; sinon accueil.
 - Sessions suivantes : reconnexion automatique, pas d'écran de login.
 - Mode hors ligne : session existante + pas de réseau → app utilisable (session persistée localement par Supabase).
+- `src/lib/age.ts` : `parseAge(value: unknown): number | null` — entier 5-120, accepte nombre ou chaîne, jamais `.trim()` sur un nombre.
+- `src/lib/age.test.ts` : 13 tests Vitest pour `parseAge`.
+- Retour visuel : message erreur en rouge, message info/succès en vert, bouton désactivé + "Création…" pendant le chargement, try/catch autour de `signUp`.
+- Cas confirmation email : « Compte créé. Vérifie ta boîte mail… » + retour écran de connexion.
 
 ### ÉTAPE 4 — Profil et marketing ✅
-- Profil : affiche prénom, âge, email ; modification prénom et âge (`updateProfile`) ; bouton « Se déconnecter » ; bouton « Supprimer mon compte » (nécessite fonction serveur Supabase `deleteUser` — message affiché au lieu de bidouiller).
+- Profil : affiche prénom, âge, email ; modification prénom et âge (`updateProfile`, âge parsé via `parseAge`) ; bouton « Se déconnecter » ; bouton « Supprimer mon compte » (nécessite fonction serveur Supabase `deleteUser` — message affiché au lieu de bidouiller).
 - `src/lib/segment.ts` : `getUserSegment(age)` (ado 13-17, jeune adulte 18-29, adulte 30-59, senior 60+) + `segmentLabel()`.
 - `src/lib/segment.test.ts` : tests Vitest (12 cas + boundaries).
 - `src/lib/locales/*.json` : `footer` passé de "sans compte"/"no account" à juste "gratuit"/"free".
@@ -344,13 +349,19 @@ with open('content/fr-en-a1.json', 'w') as f:
 - `tauri.conf.json` : `fileAssociations` avec `mimeType: x-scheme-handler/lakk` pour le .deb/.desktop.
 - Email + mot de passe ne dépendent pas du deep link.
 
+### Correctifs post-validation ✅
+- Bug `regAge.trim()` sur `<input type="number">` (âge était un nombre) → corrigé via `parseAge()` dans Onboarding.svelte et Profile.svelte.
+- `mapAuthError` enrichie : limite d'envoi d'emails, Database error saving new user.
+- Deux styles de message : erreur (rouge) et info/succès (vert).
+- Bouton de chargement : « Création… » / « Connexion… » / « Envoi… ».
+
 ### Validation finale ✅
 - `cargo check` : OK
 - `cargo test --workspace` : 36/36 passed
 - `pnpm exec svelte-check` : 0 errors
 - `pnpm build` : SUCCESS
-- `pnpm exec vitest run` : 177/177 passed
+- `pnpm exec vitest run` : 208/208 passed (dont 13 age + 13 auth)
 - `git status` : propre (`.env` non suivi)
 
 ### Git
-- 6 commits sur `main` (setup, étape 1, étape 2, étape 3, étape 4, étape 5).
+- 7 commits sur `main` (setup, étape 1, étape 2, étape 3, étape 4, étape 5, correctifs âge/erreur).
