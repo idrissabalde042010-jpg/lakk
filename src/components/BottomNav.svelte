@@ -5,6 +5,7 @@
     { id: 'home', label: 'Parcours' },
     { id: 'review', label: 'Réviser' },
     { id: 'games', label: 'Jouer' },
+    { id: 'story', label: 'Conte' },
     { id: 'music', label: 'Musique' },
     { id: 'multiplayer', label: 'Multijoueur' },
     { id: 'profile', label: 'Profil' },
@@ -40,6 +41,12 @@
             <path d="M6 14h.01" />
             <path d="M18 14h.01" />
             <path d="M14 18h.01" />
+          </svg>
+        {:else if t.id === 'story'}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M12 12L2 7l10 5L22 7" />
           </svg>
         {:else if t.id === 'music'}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

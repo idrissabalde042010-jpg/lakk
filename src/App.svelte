@@ -9,6 +9,7 @@
   import Music from './routes/Music.svelte';
   import Profile from './routes/Profile.svelte';
   import Multiplayer from './routes/Multiplayer.svelte';
+  import Story from './routes/Story.svelte';
   import BottomNav from './components/BottomNav.svelte';
   import IntroStory from './components/IntroStory.svelte';
   import LanguageSelect from './components/LanguageSelect.svelte';
@@ -130,6 +131,8 @@
         <Music />
       {:else if app.screen === 'multiplayer'}
         <Multiplayer />
+      {:else if app.screen === 'story'}
+        <Story />
       {:else}
         <Profile />
       {/if}

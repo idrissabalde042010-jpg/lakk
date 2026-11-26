@@ -69,7 +69,7 @@ function loadState(): Persist {
   }
 }
 
-export type Screen = 'home' | 'lesson' | 'review' | 'games' | 'music' | 'profile' | 'multiplayer';
+export type Screen = 'home' | 'lesson' | 'review' | 'games' | 'music' | 'profile' | 'multiplayer' | 'story';
 
 /** Moteur qui fait autorité pour le contenu et la planification. */
 export type Engine = 'rust' | 'typescript';
