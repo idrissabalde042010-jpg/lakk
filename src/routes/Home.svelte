@@ -127,7 +127,7 @@
     }
     proofError = null;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      proofError = 'Enregistrement audio indisponible sur cet appareil.';
+      proofError = 'L\'enregistrement audio n\'est pas disponible sur cet appareil. Tu peux valider la mission sans preuve de vie.';
       return;
     }
     try {
@@ -165,8 +165,15 @@
       proofTimer = setTimeout(() => {
         if (rec.state === 'recording') rec.stop();
       }, 10_000);
-    } catch {
-      proofError = 'Micro refusé ou indisponible.';
+    } catch (e: unknown) {
+      const name = e instanceof DOMException ? e.name : String(e);
+      const message =
+        name === 'NotAllowedError' || name === 'PermissionDeniedError'
+          ? 'L\'accès au micro a été refusé. Tu peux valider la mission sans preuve de vie.'
+          : name === 'NotFoundError' || name === 'DevicesNotFoundError'
+            ? 'Aucun microphone détecté sur cet appareil. Tu peux valider la mission sans preuve de vie.'
+            : 'L\'enregistrement audio est indisponible pour l\'instant. Tu peux valider la mission sans preuve de vie.';
+      proofError = message;
       recording = false;
       stream?.getTracks().forEach((track) => track.stop());
       stream = null;

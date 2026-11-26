@@ -9,6 +9,7 @@
 use lakk_core::bridge::{self, CardWire, CourseStats};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, OnceLock};
+use tauri::webview::{PermissionKind, PermissionResponse};
 
 #[cfg(target_os = "linux")]
 fn disable_dmabuf_renderer() {
@@ -281,6 +282,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
+        // Autorise l'accès au micro depuis le webview (nécessaire pour la preuve
+        // de vie de la Mission du Jour sous WebKitGTK / Linux, où la permission
+        // est refusée par défaut).
+        .on_permission_request(|_, kind| match kind {
+            PermissionKind::Microphone => PermissionResponse::Allow,
+            _ => PermissionResponse::Default,
+        })
         .invoke_handler(tauri::generate_handler![
             app_info,
             course_json,
