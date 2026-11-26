@@ -1,6 +1,8 @@
 // État global de l'application (Svelte 5 runes) + persistance locale.
 import { defaultCourse, fallbackPhrases, lessonRefs, loadCourse, type LessonRef } from './content';
 import type { Card, CourseData, Grade, LessonData, Phrase, Profile, Vocab } from './engine';
+import type { ErrorEntry, ErrorPattern } from './errors';
+import { recordError as recordErrorFromLib } from './errors';
 import {
   cancelPause as engineCancelPause,
   dailyGoalPercent,
@@ -26,13 +28,14 @@ export interface Persist {
   cards: Record<string, Card>;
   completed: Record<string, boolean>;
   history: Record<string, number>; // YYYY-MM-DD -> graines
+  errors: ErrorEntry[]; // Journal des erreurs (Carnet de Traces)
 }
 
 const KEY = 'lakk.v1';
 const DAY = 86_400_000;
 
 function defaultState(): Persist {
-  return { profile: newProfile('Idrissa'), cards: {}, completed: {}, history: {} };
+  return { profile: newProfile('Idrissa'), cards: {}, completed: {}, history: {}, errors: [] };
 }
 
 function loadState(): Persist {
@@ -63,6 +66,7 @@ function loadState(): Persist {
       cards: parsed.cards ?? {},
       completed: parsed.completed ?? {},
       history: parsed.history ?? {},
+      errors: Array.isArray(parsed.errors) ? parsed.errors : [],
     };
   } catch {
     return defaultState();
@@ -217,6 +221,45 @@ class AppState {
 
   cardCount(): number {
     return Object.keys(this.data.cards).length;
+  }
+
+  // ------------------------------ Carnet de Traces (Erreurs) ------------------------------
+
+  /** Enregistre une erreur suite à une mauvaise réponse. */
+  recordError(entry: Omit<ErrorEntry, 'id'>): void {
+    const full = recordErrorFromLib(entry);
+    this.data.errors.unshift(full);
+    if (this.data.errors.length > 500) this.data.errors.length = 500;
+    this.save();
+  }
+
+  /** Toutes les erreurs, du plus récent au plus ancien. */
+  get errors(): ErrorEntry[] {
+    return [...this.data.errors];
+  }
+
+  /** Nombre d'erreurs par pattern. */
+  errorsByPattern(): Record<ErrorPattern, number> {
+    const counts: Record<ErrorPattern, number> = {
+      article: 0,
+      ordre: 0,
+      orthographe: 0,
+      conjugaison: 0,
+      sens: 0,
+    };
+    for (const e of this.data.errors) {
+      counts[e.pattern] = (counts[e.pattern] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  /** Top N des patterns les plus fréquents. */
+  topPatterns(limit = 3): Array<{ pattern: ErrorPattern; count: number }> {
+    return Object.entries(this.errorsByPattern())
+      .map(([pattern, count]) => ({ pattern: pattern as ErrorPattern, count }))
+      .filter((item) => item.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   }
 
   // ------------------------------ Divers ------------------------------

@@ -1,8 +1,9 @@
 <script lang="ts">
   import { app } from '../lib/store.svelte';
-  import { answersMatch, loseEnergy } from '../lib/engine';
+  import { answersMatch, dayKey, loseEnergy } from '../lib/engine';
   import type { Grade, Exercise } from '../lib/engine';
   import { speak, isSpeechAvailable } from '../lib/audio';
+  import { tagError } from '../lib/errors';
   import { shuffle, shuffledIndices } from '../lib/shuffle';
 
   const ctx = app.active!;
@@ -99,6 +100,15 @@
       app.save();
       shake = true;
       window.setTimeout(() => (shake = false), 420);
+      // Enregistre l'erreur dans le Carnet de Traces.
+      app.recordError({
+        prompt: ex.prompt,
+        expected: ex.answer,
+        given,
+        kind: ex.kind,
+        date: dayKey(),
+        pattern: tagError(ex.answer, given, ex.kind),
+      });
     }
     if (ex.vocab) {
       const g: Grade = ok ? 3 : 1;
