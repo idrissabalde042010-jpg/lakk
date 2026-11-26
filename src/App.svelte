@@ -10,6 +10,7 @@
   import Profile from './routes/Profile.svelte';
   import Multiplayer from './routes/Multiplayer.svelte';
   import Story from './routes/Story.svelte';
+  import Express from './routes/Express.svelte';
   import BottomNav from './components/BottomNav.svelte';
   import IntroStory from './components/IntroStory.svelte';
   import LanguageSelect from './components/LanguageSelect.svelte';
@@ -133,12 +134,14 @@
         <Multiplayer />
       {:else if app.screen === 'story'}
         <Story />
+      {:else if app.screen === 'express'}
+        <Express />
       {:else}
         <Profile />
       {/if}
     </main>
 
-    {#if app.screen !== 'lesson'}
+    {#if app.screen !== 'lesson' && app.screen !== 'express'}
       <BottomNav />
     {/if}
 
