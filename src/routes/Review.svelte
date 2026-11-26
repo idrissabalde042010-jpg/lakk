@@ -4,6 +4,11 @@
   import { mastery, weakCards as computeWeakCards } from '../lib/engine';
   import { speak, isSpeechAvailable } from '../lib/audio';
   import { shuffle, shuffledIndices } from '../lib/shuffle';
+  import {
+    extractPhrases,
+    marketExerciseFor,
+    type MarketExercise,
+  } from '../lib/phrases';
 
   let due = $state<Card[]>(app.dueCards());
   let weakCards = $state<Card[]>([]);
@@ -16,6 +21,19 @@
   const current = $derived(activeCards[0]);
   const total = $derived(app.cardCount());
   const remaining = $derived(activeCards.length);
+
+  // Marché des Phrases : exercices de cloze/construction à partir des phrases du cours.
+  const marketPhrases = $derived(extractPhrases(app.course));
+  const marketTarget = $derived(weakCards.length > 0 ? weakCards[0].vocab.en : null);
+  const marketExercise = $derived(
+    marketTarget && marketPhrases.length > 0
+      ? marketExerciseFor(marketTarget, marketPhrases)
+      : undefined,
+  );
+
+  let marketAnswer = $state('');
+  let marketRevealed = $state(false);
+  let marketOk = $state(false);
 
   const grades: { g: Grade; label: string; cls: string }[] = [
     { g: 1, label: 'Encore', cls: 'rose' },
@@ -63,6 +81,39 @@
     weakCards;
     shuffleGrades();
   });
+
+  // --- Marché des Phrases ---
+  function revealMarket(): void {
+    marketRevealed = true;
+    if (marketExercise && speechAvailable) speak(marketExercise.phrase);
+  }
+
+  function checkMarket(): void {
+    if (!marketExercise || marketRevealed) return;
+    const given = marketAnswer.trim();
+    if (marketExercise.kind === 'cloze') {
+      marketOk = given.toLowerCase() === (marketExercise.target ?? '').toLowerCase();
+    } else if (marketExercise.kind === 'construction') {
+      marketOk =
+        given
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}\s']/gu, ' ')
+          .split(/\s+/)
+          .filter(Boolean)
+          .join(' ') ===
+        marketExercise.phrase.toLowerCase();
+    } else {
+      marketOk = given.length > 0;
+    }
+    marketRevealed = true;
+    if (marketOk && speechAvailable) speak(marketExercise.phrase);
+  }
+
+  function resetMarket(): void {
+    marketAnswer = '';
+    marketRevealed = false;
+    marketOk = false;
+  }
 </script>
 
 <div class="review rise">
@@ -136,6 +187,64 @@
         Essaie de te souvenir avant de révéler — c’est ce qui fait progresser.
       </p>
     {/if}
+  {/if}
+
+  <!-- Marché des Phrases : cloze & construction sur un mot faible -->
+  {#if marketExercise && marketPhrases.length > 0}
+    <section class="card market">
+      <p class="eyebrow">Marché des phrases</p>
+      <p class="small muted">Mot du jour : {marketTarget}</p>
+
+      {#if marketExercise.kind === 'cloze'}
+        <p class="market-body">{marketExercise.body}</p>
+        {#if marketRevealed}
+          <p class="result">{marketOk ? '✓ Bien joué !' : '✕ Le mot était : ' + (marketExercise.target ?? '')}</p>
+        {:else}
+          <input
+            class="input"
+            bind:value={marketAnswer}
+            placeholder="Le mot manquant…"
+            onkeydown={(e) => e.key === 'Enter' && checkMarket()}
+          />
+          <div class="market-actions">
+            <button class="btn block" onclick={checkMarket} disabled={!marketAnswer.trim()}>
+              Vérifier
+            </button>
+            <button class="btn ghost block" onclick={revealMarket}>Afficher la réponse</button>
+          </div>
+        {/if}
+
+      {:else if marketExercise.kind === 'construction'}
+        <p class="market-body">Remettez les mots dans l’ordre :</p>
+        <div class="word-bank">
+          {#each marketExercise.body.split(' ') as w}
+            <button class="bank-word" onclick={() => { marketAnswer = marketAnswer ? `${marketAnswer} ${w}` : w; }}>
+              {w}
+            </button>
+          {/each}
+        </div>
+        {#if marketRevealed}
+          <p class="result">{marketOk ? '✓ Bien joué !' : '✕ La phrase était : ' + marketExercise.phrase}</p>
+        {:else}
+          <input class="input" bind:value={marketAnswer} placeholder="Ta phrase…" />
+          <div class="market-actions">
+            <button class="btn block" onclick={checkMarket} disabled={!marketAnswer.trim()}>
+              Vérifier
+            </button>
+            <button class="btn ghost block" onclick={revealMarket}>Afficher la réponse</button>
+          </div>
+        {/if}
+
+      {:else}
+        <p class="market-body">{marketExercise.phrase}</p>
+        <p class="small muted">Écoutez la phrase et répétez-la à voix haute.</p>
+        <button class="btn block" onclick={revealMarket}>🔊 Écouter la phrase</button>
+      {/if}
+
+      <button class="btn ghost block" onclick={resetMarket} style="margin-top:8px">
+        Autre phrase
+      </button>
+    </section>
   {/if}
 </div>
 
@@ -292,5 +401,66 @@
     border-color: var(--mango);
     background: var(--mango-soft);
     color: var(--mango-deep);
+  }
+  .market {
+    margin-top: 14px;
+    padding: 20px;
+  }
+  .market-body {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    margin: 14px 0 14px;
+    color: var(--ink);
+  }
+  .word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 10px 0 14px;
+  }
+  .bank-word {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .bank-word:active {
+    background: var(--orange-soft);
+  }
+  .market-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .result {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 6px;
+    text-align: center;
+  }
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--orange);
   }
 </style>
