@@ -6,7 +6,7 @@
   "permissions": [
     "core:default",
     "notification:default",
-    "notification:allow-send",
+    "notification:allow-notify",
     "notification:allow-request-permission"
   ]
 }
