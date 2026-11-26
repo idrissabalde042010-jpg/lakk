@@ -2,6 +2,7 @@
   import { app } from '../lib/store.svelte';
   import Baobab from '../components/Baobab.svelte';
   import ProgressRing from '../components/ProgressRing.svelte';
+  import RegularityRing from '../components/RegularityRing.svelte';
   import PathNode from '../components/PathNode.svelte';
   import { speak, warmUpSpeech, isSpeechAvailable } from '../lib/audio';
   import { _ } from 'svelte-i18n';
@@ -22,6 +23,14 @@
   const course = $derived(app.course);
   const lessons = $derived(app.lessons);
   const speechAvailable = $derived(isSpeechAvailable());
+
+  // Série Vivante : anneau de régularité, joker et pause.
+  const ring = $derived(app.regularityRing());
+  const jokerAvailable = $derived(app.jokerAvailable());
+  const paused = $derived(app.paused());
+  const pauseUntil = $derived(app.pauseUntil());
+  const streakBroken = $derived(app.streakBroken());
+  const crownRemaining = $derived(Math.max(0, ring.target - ring.activeCount));
 
   // Texte dynamique selon la langue d'apprentissage
   const readyText = $derived($_( `home.ready_${p.learnLang}` ) || $_('home.ready'));
@@ -59,6 +68,21 @@
   }
 
   const hasCompletedLessons = $derived(lessons.some((r) => app.isCompleted(r.u, r.l)));
+
+  /** Reprendre après un jour manqué : une leçon suffit. */
+  function startRecovery(): void {
+    app.startRecoveryLesson();
+  }
+
+  function planPause(): void {
+    app.startPause(7);
+    app.notify('Pause de 7 jours activée. Ta série est protégée.');
+  }
+
+  function resumeFromPause(): void {
+    app.cancelPause();
+    app.notify('Pause annulée. On reprend !');
+  }
 
   function open(u: number, l: number): void {
     if (app.isUnlocked(u, l)) {
@@ -179,15 +203,61 @@
         <p class="eyebrow">Salut, {p.name}</p>
         <h1>{@html readyText}</h1>
       </div>
-      <Baobab streak={p.streakDays} size={72} />
+      <RegularityRing ring={ring} size={82} />
     </div>
     <div class="chips">
+      <span class="chip cyan">🌿 {ring.activeCount}/7</span>
       <span class="chip mango">🔥 {p.streakDays} j</span>
-      <span class="chip rose">⚡ {p.unlimitedEnergy ? '∞' : p.energy}</span>
       <span class="chip blue">◆ {p.gems}</span>
       <span class="chip cyan">❄️ {p.freezeCount}/2</span>
+      <span class="chip rose">⚡ {p.unlimitedEnergy ? '∞' : p.energy}</span>
     </div>
   </header>
+
+  <!-- Série Vivante : la régularité plutôt qu'une chaîne fragile. -->
+  <section class="card streak-card">
+    <div class="streak-main">
+      <Baobab streak={p.streakDays} size={64} />
+      <div class="grow">
+        <p class="eyebrow">Série vivante</p>
+        <p class="big"><strong>{ring.activeCount}</strong><span class="den">/ 7 jours actifs</span></p>
+        <p class="small muted">
+          {#if ring.crown}
+            Couronne de régularité ! Ta semaine est complète. 🌿
+          {:else}
+            Encore {crownRemaining} jour{crownRemaining > 1 ? 's' : ''} pour ta couronne.
+          {/if}
+        </p>
+      </div>
+    </div>
+
+    <div class="streak-meta">
+      <span class="chip mango">🔥 {p.streakDays} j de suite</span>
+      <span class="chip" class:cyan={jokerAvailable} class:rose={!jokerAvailable}>
+        🎟️ {jokerAvailable ? 'Joker du mois prêt' : 'Joker du mois utilisé'}
+      </span>
+      {#if paused}
+        <span class="chip blue">⏸ Pause jusqu’au {pauseUntil}</span>
+      {/if}
+    </div>
+
+    {#if streakBroken}
+      <div class="recover">
+        <p class="small">
+          Un jour manqué ? Une leçon de 2 minutes suffit : ta série revient à 50 %.
+        </p>
+        <button class="btn orange block" onclick={startRecovery}>Reprendre en 2 min</button>
+      </div>
+    {:else}
+      <div class="pause-row">
+        {#if paused}
+          <button class="link" onclick={resumeFromPause}>Reprendre maintenant</button>
+        {:else}
+          <button class="link" onclick={planPause}>Planifier une pause de 7 jours</button>
+        {/if}
+      </div>
+    {/if}
+  </section>
 
   <section class="card hero">
     <div class="hero-row">
@@ -460,6 +530,39 @@
     display: flex;
     align-items: center;
     gap: 12px;
+  }
+
+  /* Série Vivante */
+  .streak-card {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .streak-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .streak-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .streak-meta .chip {
+    font-size: 11px;
+  }
+  .recover {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--orange-soft);
+    border: 1px solid color-mix(in srgb, var(--orange) 30%, transparent);
+  }
+  .pause-row {
+    text-align: right;
   }
   .big {
     font-family: var(--font-display);

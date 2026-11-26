@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { app } from '../lib/store.svelte';
-  import { dayKey, mastery, yesterdayKey, repairStreak as engineRepairStreak } from '../lib/engine';
+  import { dayKey, mastery } from '../lib/engine';
   import Baobab from '../components/Baobab.svelte';
+  import RegularityRing from '../components/RegularityRing.svelte';
   import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
   import { resetTour } from '../lib/tour';
@@ -18,6 +19,13 @@
   const cards = $derived(Object.values(app.data.cards));
   const solid = $derived(cards.filter((c) => mastery(c).pct >= 70).length);
   const due = $derived(app.dueCards().length);
+
+  // Série Vivante
+  const ring = $derived(app.regularityRing());
+  const jokerAvailable = $derived(app.jokerAvailable());
+  const paused = $derived(app.paused());
+  const pauseUntil = $derived(app.pauseUntil());
+  const crownRemaining = $derived(Math.max(0, ring.target - ring.activeCount));
 
   let dark = $state(document.documentElement.classList.contains('dark'));
   function toggleDark(): void {
@@ -125,28 +133,14 @@
     app.openIntro();
   }
 
-  function repairStreak(): void {
-    const now = Date.now();
-    const success = engineRepairStreak(app.profile, now);
-    if (success) {
-      app.notify($_( 'profile.streak_repair_success' ));
-    } else {
-      // Détermine la raison de l'échec
-      const today = dayKey(now);
-      const yesterday = yesterdayKey(now);
-      if (app.profile.gems < 50) {
-        app.notify($_( 'profile.streak_repair_fail_gems' ));
-      } else if (app.profile.streakDays > 0) {
-        app.notify($_( 'profile.streak_repair_fail_not_lost' ));
-      } else if (app.profile.lastActive === today || app.profile.lastActive === yesterday) {
-        app.notify($_( 'profile.streak_repair_fail_not_lost' ));
-      } else if (!app.profile.lastActive) {
-        app.notify($_( 'profile.streak_repair_fail_not_lost' ));
-      } else {
-        app.notify('Impossible de réparer pour le moment');
-      }
-    }
-    app.save();
+  function planPause(): void {
+    app.startPause(7);
+    app.notify('Pause de 7 jours activée. Ta série est protégée.');
+  }
+
+  function resumeFromPause(): void {
+    app.cancelPause();
+    app.notify('Pause annulée. On reprend !');
   }
 
   async function toggleDailyReminder(): Promise<void> {
@@ -280,6 +274,35 @@
     </div>
   </section>
 
+  <!-- Série Vivante -->
+  <section class="card streak-live">
+    <div class="row between">
+      <p class="eyebrow">Série vivante</p>
+      <span class="small muted">{ring.activeCount}/{ring.target} jours actifs</span>
+    </div>
+    <div class="streak-live-row">
+      <RegularityRing ring={ring} size={96} />
+      <div class="grow">
+        <p class="small muted">
+          {#if ring.crown}
+            Couronne de régularité ! Ta semaine est complète. 🌿
+          {:else}
+            Encore {crownRemaining} jour{crownRemaining > 1 ? 's' : ''} pour ta couronne.
+          {/if}
+        </p>
+        <p class="small muted">🎟️ Joker mensuel : {jokerAvailable ? 'disponible' : 'utilisé ce mois-ci'}</p>
+        <p class="small muted">⏸ Pause : {paused ? `jusqu’au ${pauseUntil}` : 'aucune'}</p>
+        <div class="streak-actions">
+          {#if paused}
+            <button class="mini-btn" onclick={resumeFromPause}>Reprendre</button>
+          {:else}
+            <button class="mini-btn" onclick={planPause}>Pause 7 jours</button>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Badges de série -->
   <section class="card badges-card">
     <p class="eyebrow">Tes badges de série</p>
@@ -408,18 +431,6 @@
         aria-label="Énergie illimitée"
       >
         <span></span>
-      </button>
-    </div>
-
-    <div class="set-row">
-      <span>{$_( 'profile.streak_repair' )}<small class="muted">{$_( 'profile.streak_repair_hint' )}</small></span>
-      <button
-        class="mini-btn"
-        onclick={repairStreak}
-        disabled={p.gems < 50 || p.streakDays > 0 || (!!p.lastActive && (dayKey(Date.now()) === p.lastActive || yesterdayKey(Date.now()) === p.lastActive))}
-        aria-label={$_( 'profile.streak_repair' )}
-      >
-        {p.gems < 50 ? '💎' : '🔧'}
       </button>
     </div>
 
@@ -741,6 +752,18 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 10px;
+  }
+  .streak-live {
+    margin-bottom: 10px;
+  }
+  .streak-live-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 10px;
+  }
+  .streak-actions {
+    margin-top: 8px;
   }
   .big {
     font-family: var(--font-display);

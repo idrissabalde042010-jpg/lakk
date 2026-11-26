@@ -2,13 +2,20 @@
 import { defaultCourse, fallbackPhrases, lessonRefs, loadCourse, type LessonRef } from './content';
 import type { Card, CourseData, Grade, LessonData, Phrase, Profile, Vocab } from './engine';
 import {
+  cancelPause as engineCancelPause,
   dailyGoalPercent,
   dayKey,
   isDue,
+  isJokerAvailable,
+  isPaused,
+  isStreakBroken,
   newCard,
   newProfile,
   registerLesson,
+  regularityRing as computeRegularityRing,
   reviewCard,
+  startPause as engineStartPause,
+  type RegularityRingData,
 } from './engine';
 import { isTauri, nativeCourse, nativeReview, nativeStats, type NativeStats } from './native';
 import { DEFAULT_AVATAR, isValidAvatar, sanitizeName } from './profile';
@@ -36,6 +43,21 @@ function loadState(): Persist {
     const base = defaultState();
     const profile = { ...base.profile, ...(parsed.profile ?? {}) };
     if (!isValidAvatar(profile.avatar)) profile.avatar = DEFAULT_AVATAR;
+
+    // Migration douce : les profils créés avant la Série Vivante n'ont pas
+    // encore de journal de jours actifs. On le reconstruit depuis l'historique.
+    if (!Array.isArray(profile.activeDays)) profile.activeDays = [];
+    if (profile.activeDays.length === 0) {
+      const fromHistory = Object.keys(parsed.history ?? {})
+        .filter((k) => (parsed.history?.[k] ?? 0) > 0)
+        .slice(-60);
+      profile.activeDays = fromHistory;
+      if (profile.lastActive && !profile.activeDays.includes(profile.lastActive)) {
+        profile.activeDays.push(profile.lastActive);
+        profile.activeDays.sort();
+      }
+    }
+
     return {
       profile,
       cards: parsed.cards ?? {},
@@ -201,6 +223,50 @@ class AppState {
 
   goalPercent(): number {
     return dailyGoalPercent(this.data.profile);
+  }
+
+  // ------------------------------ Série Vivante ------------------------------
+
+  /** Anneau de régularité : X/7 jours actifs sur une semaine glissante. */
+  regularityRing(): RegularityRingData {
+    return computeRegularityRing(this.data.profile.activeDays, Date.now());
+  }
+
+  /** Un joker automatique est disponible ce mois-ci. */
+  jokerAvailable(): boolean {
+    return isJokerAvailable(this.data.profile, Date.now());
+  }
+
+  /** Une pause planifiée couvre-t-elle aujourd'hui ? */
+  paused(): boolean {
+    return isPaused(this.data.profile, Date.now());
+  }
+
+  pauseUntil(): string | null {
+    return this.data.profile.pauseUntil;
+  }
+
+  /** Un jour a été manqué : proposer « Reprendre en 2 min ». */
+  streakBroken(): boolean {
+    return isStreakBroken(this.data.profile, Date.now());
+  }
+
+  startPause(days = 7): void {
+    engineStartPause(this.data.profile, Date.now(), days);
+    this.save();
+  }
+
+  cancelPause(): void {
+    engineCancelPause(this.data.profile);
+    this.save();
+  }
+
+  /** Démarre la leçon de reprise (2 minutes suffisent). */
+  startRecoveryLesson(): void {
+    const next =
+      this.lessons.find((r) => !this.isCompleted(r.u, r.l) && this.isUnlocked(r.u, r.l)) ??
+      this.lessons[0];
+    if (next) this.startLesson(next.u, next.l);
   }
 
   setGoal(xp: number): void {

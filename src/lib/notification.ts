@@ -92,7 +92,7 @@ export async function scheduleDailyReminder(): Promise<void> {
 
     await sendNotification({
       title: NOTIFICATION_TITLE,
-      body: 'L\'objectif quotidien n\'est pas encore atteint. Viens faire ta leçon ! 🔥',
+      body: 'Ta prochaine graine t’attend — 2 minutes suffisent. 🌿',
       schedule,
     });
   } catch (e) {
@@ -122,10 +122,17 @@ export async function sendConditionalDailyReminder(): Promise<void> {
   if (!isDailyReminderEnabled()) return;
   if (isDailyGoalReached()) return; // Objectif déjà atteint, pas de rappel
 
-  await sendNotification(
-    NOTIFICATION_TITLE,
-    `Ta flamme de ${app.profile.streakDays} jours est en danger ! Viens faire ta leçon sur Lakk. 🔥`
-  );
+  // Message positif : on célèbre la régularité, on ne menace jamais de punir.
+  const ring = app.regularityRing();
+  const remaining = Math.max(0, ring.target - ring.activeCount);
+  const body =
+    remaining === 0
+      ? '7/7 cette semaine ! Ta couronne de régularité brille. 🌿'
+      : ring.activeCount > 0
+        ? `${ring.activeCount} jour(s) cette semaine — encore ${remaining} pour ta couronne. 🌿`
+        : 'Une leçon de 2 minutes pour planter ta première graine de la semaine. 🌱';
+
+  await sendNotification(NOTIFICATION_TITLE, body);
 }
 
 /** Initialise le système de notifications au démarrage de l'app. */

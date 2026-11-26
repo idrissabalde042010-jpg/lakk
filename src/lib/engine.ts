@@ -266,6 +266,16 @@ export interface Profile {
   xpToday: number;
   streakDays: number;
   lastActive: string | null; // YYYY-MM-DD
+  /** Jours actifs (YYYY-MM-DD) pour l'anneau de régularité. */
+  activeDays: string[];
+  /** Mois (YYYY-MM) où le joker automatique a été consommé. */
+  jokerUsedMonth: string | null;
+  /** Dernier jour couvert par une pause planifiée (incluse), ou null. */
+  pauseUntil: string | null;
+  /** Série visuelle avant la dernière interruption (reprise à 50 %). */
+  streakBeforeLapse: number | null;
+  /** Vrai si la dernière leçon a restauré une série interrompue à 50 %. */
+  recoveredFromLapse: boolean;
   energy: number;
   maxEnergy: number;
   gems: number;
@@ -288,6 +298,11 @@ export function newProfile(name: string): Profile {
     xpToday: 0,
     streakDays: 0,
     lastActive: null,
+    activeDays: [],
+    jokerUsedMonth: null,
+    pauseUntil: null,
+    streakBeforeLapse: null,
+    recoveredFromLapse: false,
     energy: 5,
     maxEnergy: 5,
     gems: 0,
@@ -307,6 +322,116 @@ export function dayKey(ts = Date.now()): string {
 
 export function yesterdayKey(ts = Date.now()): string {
   return dayKey(ts - DAY);
+}
+
+// ----------------------------- Série Vivante -----------------------------
+
+/** Nombre de jours affichés dans l'anneau de régularité. */
+export const REGULARITY_DAYS = 7;
+/** Nombre maximum de jours de pause planifiée. */
+export const MAX_PAUSE_DAYS = 7;
+/** Nombre de jours actifs conservés dans le profil. */
+const ACTIVE_DAYS_KEEP = 60;
+
+export interface RingDay {
+  /** Date locale YYYY-MM-DD. */
+  key: string;
+  active: boolean;
+}
+
+export interface RegularityRingData {
+  days: RingDay[];
+  activeCount: number;
+  target: number;
+  percent: number;
+  crown: boolean;
+}
+
+/** Décale une clé YYYY-MM-DD de `delta` jours (à midi, pour éviter les pièges DST). */
+export function shiftDayKey(key: string, delta: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1, 12, 0, 0, 0);
+  dt.setDate(dt.getDate() + delta);
+  return dayKey(dt.getTime());
+}
+
+/** Différence en jours entre deux clés YYYY-MM-DD (b - a). */
+export function daysBetweenKeys(a: string, b: string): number {
+  const [ay, am, ad] = a.split('-').map(Number);
+  const [by, bm, bd] = b.split('-').map(Number);
+  const ta = Date.UTC(ay, (am ?? 1) - 1, ad ?? 1);
+  const tb = Date.UTC(by, (bm ?? 1) - 1, bd ?? 1);
+  return Math.round((tb - ta) / DAY);
+}
+
+/** Clé de mois locale YYYY-MM. */
+export function monthKey(ts = Date.now()): string {
+  return dayKey(ts).slice(0, 7);
+}
+
+/** Ajoute un jour actif (dédupliqué, borné aux 60 derniers jours). */
+export function addActiveDay(p: Profile, key: string): void {
+  if (!p.activeDays.includes(key)) p.activeDays.push(key);
+  p.activeDays.sort();
+  if (p.activeDays.length > ACTIVE_DAYS_KEEP) {
+    p.activeDays = p.activeDays.slice(-ACTIVE_DAYS_KEEP);
+  }
+}
+
+/** Calcule l'anneau de régularité sur les 7 derniers jours (aujourd'hui inclus). */
+export function regularityRing(activeDays: readonly string[], now = Date.now()): RegularityRingData {
+  const today = dayKey(now);
+  const days: RingDay[] = [];
+  for (let i = REGULARITY_DAYS - 1; i >= 0; i--) {
+    const key = shiftDayKey(today, -i);
+    days.push({ key, active: activeDays.includes(key) });
+  }
+  const activeCount = days.filter((d) => d.active).length;
+  return {
+    days,
+    activeCount,
+    target: REGULARITY_DAYS,
+    percent: Math.round((activeCount / REGULARITY_DAYS) * 100),
+    crown: activeCount >= REGULARITY_DAYS,
+  };
+}
+
+/** Un joker automatique est disponible chaque mois civil. */
+export function isJokerAvailable(p: Profile, now = Date.now()): boolean {
+  return p.jokerUsedMonth !== monthKey(now);
+}
+
+/** Consomme le joker du mois. Retourne true s'il était disponible. */
+export function consumeMonthlyJoker(p: Profile, now = Date.now()): boolean {
+  if (!isJokerAvailable(p, now)) return false;
+  p.jokerUsedMonth = monthKey(now);
+  return true;
+}
+
+/** Active une pause planifiée (1 à 7 jours, aujourd'hui inclus). */
+export function startPause(p: Profile, now = Date.now(), days = MAX_PAUSE_DAYS): void {
+  const span = Math.min(MAX_PAUSE_DAYS, Math.max(1, Math.floor(days)));
+  p.pauseUntil = shiftDayKey(dayKey(now), span - 1);
+}
+
+/** Annule la pause planifiée. */
+export function cancelPause(p: Profile): void {
+  p.pauseUntil = null;
+}
+
+/** Vrai si la pause couvre aujourd'hui. */
+export function isPaused(p: Profile, now = Date.now()): boolean {
+  return p.pauseUntil != null && p.pauseUntil >= dayKey(now);
+}
+
+/**
+ * Vrai si un jour a été manqué (dernière activité avant hier) et qu'aucune
+ * pause n'est active. L'utilisateur peut alors « reprendre en 2 min ».
+ */
+export function isStreakBroken(p: Profile, now = Date.now()): boolean {
+  return p.lastActive != null
+    && p.lastActive < yesterdayKey(now)
+    && !isPaused(p, now);
 }
 
 /** Retourne le numéro de semaine ISO (1-53) pour un timestamp. */
@@ -394,28 +519,57 @@ export function registerLesson(p: Profile, now: number, xp: number): void {
 
   const today = dayKey(now);
   const yesterday = yesterdayKey(now);
+  const last = p.lastActive;
 
   p.xpTotal += xp;
   p.gems += Math.floor(xp / 5);
 
-  if (p.lastActive === today) {
+  if (last === today) {
+    // Deuxième leçon du jour : la série ne bouge pas.
     p.xpToday += xp;
-  } else if (p.lastActive === yesterday) {
-    p.streakDays += 1;
-    p.xpToday = xp;
-  } else if (p.lastActive == null) {
-    p.streakDays = 1;
-    p.xpToday = xp;
   } else {
-    if (p.freezeCount > 0) {
+    const gap = last == null ? null : daysBetweenKeys(last, today);
+
+    if (last == null) {
+      // Premier jour : la série démarre.
+      p.streakDays = 1;
+      p.recoveredFromLapse = false;
+    } else if (gap === 1) {
+      // Jour consécutif.
+      p.streakDays += 1;
+      p.recoveredFromLapse = false;
+    } else if (p.pauseUntil != null && p.pauseUntil >= yesterday) {
+      // La pause planifiée couvre le trou : aucune pénalité.
+      p.streakDays = Math.max(1, p.streakDays + 1);
+      p.recoveredFromLapse = false;
+    } else if (p.freezeCount > 0) {
+      // Gel hebdomadaire (compatibilité avec l'ancien système).
       p.freezeCount -= 1;
       p.streakDays += 1;
+      p.recoveredFromLapse = false;
+    } else if (gap === 2 && consumeMonthlyJoker(p, now)) {
+      // Joker mensuel automatique : un jour manqué est pardonné.
+      p.streakDays += 1;
+      p.recoveredFromLapse = false;
+    } else if (gap === 2) {
+      // Never miss twice : la série visuelle revient à 50 %, pas à zéro.
+      p.streakBeforeLapse = p.streakDays;
+      p.streakDays = Math.max(1, Math.floor(p.streakDays / 2));
+      p.recoveredFromLapse = p.streakDays > 1;
     } else {
+      // Interruption plus longue : on repart, mais on garde une trace.
+      p.streakBeforeLapse = p.streakDays;
       p.streakDays = 1;
+      p.recoveredFromLapse = false;
     }
+
     p.xpToday = xp;
   }
+
   p.lastActive = today;
+  addActiveDay(p, today);
+  // Une pause terminée n'a plus besoin d'être conservée.
+  if (p.pauseUntil != null && p.pauseUntil < today) p.pauseUntil = null;
   // Vérifie les badges de série après mise à jour de la streak.
   checkStreakBadges(p, now);
 }
