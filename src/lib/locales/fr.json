@@ -314,6 +314,21 @@
     "oauth_apple": "Continuer avec Apple",
     "oauth_coming_soon": "Bientôt disponible (connexion Google/Apple à refaire avec Supabase)"
   },
+  "updater": {
+    "available": "Nouvelle version {version} disponible",
+    "update": "Mettre à jour",
+    "later": "Plus tard",
+    "downloading": "Téléchargement de la mise à jour… {progress} %",
+    "ready": "Mise à jour installée, redémarrage…",
+    "error": "Échec de la mise à jour",
+    "check": "Vérifier les mises à jour",
+    "checking": "Vérification…",
+    "current_version": "Version actuelle : {version}",
+    "check_hint": "Lakk se met à jour automatiquement",
+    "up_to_date": "Lakk est à jour.",
+    "available_short": "Version {version} disponible.",
+    "check_failed": "Vérification impossible (hors ligne ?)."
+  },
   "common": {
     "loading": "Chargement…",
     "error": "Erreur",

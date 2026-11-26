@@ -314,6 +314,21 @@
     "oauth_apple": "Continue with Apple",
     "oauth_coming_soon": "Coming soon (Google/Apple sign-in to be redone with Supabase)"
   },
+  "updater": {
+    "available": "New version {version} available",
+    "update": "Update now",
+    "later": "Later",
+    "downloading": "Downloading update… {progress}%",
+    "ready": "Update installed, restarting…",
+    "error": "Update failed",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "current_version": "Current version: {version}",
+    "check_hint": "Lakk updates automatically",
+    "up_to_date": "Lakk is up to date.",
+    "available_short": "Version {version} available.",
+    "check_failed": "Check failed (offline?)."
+  },
   "common": {
     "loading": "Loading…",
     "error": "Error",

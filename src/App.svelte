@@ -14,18 +14,17 @@
   import LanguageSelect from './components/LanguageSelect.svelte';
   import { maybeStartTour } from './lib/guidedTour';
   import { introSeen } from './lib/intro';
-  import { check } from '@tauri-apps/plugin-updater';
-  import type { Update } from '@tauri-apps/plugin-updater';
+  import { _ } from 'svelte-i18n';
+  import {
+    updaterState,
+    checkForUpdates,
+    downloadAndInstallUpdate,
+    dismissUpdate,
+  } from './lib/updater';
 
   // État des écrans d'onboarding
   let showLanguageSelect = $state(!introSeen() && !app.profile.uiLang);
   let showIntro = $derived(app.introOpen || (!introSeen() && app.profile.uiLang));
-
-  // État pour la mise à jour
-  let updateAvailable = $state(false);
-  let updateDownloading = $state(false);
-  let updateProgress = $state(0);
-  let updateError = $state<string | null>(null);
 
   // Initialise la locale i18n depuis le profil au démarrage
   onMount(() => {
@@ -46,53 +45,14 @@
     if (!app.introOpen && introSeen()) maybeStartTour();
   });
 
-  // Vérification de mise à jour 5 secondes après le lancement
+  // Vérification en arrière-plan, sans bloquer l'interface.
+  // Toute erreur réseau est ignorée silencieusement (l'app reste utilisable hors ligne).
   onMount(() => {
-    const timer = setTimeout(async () => {
-      try {
-        const update = await check();
-        if (update) {
-          updateAvailable = true;
-        }
-      } catch (e) {
-        console.warn('[Updater] Erreur vérification mise à jour:', e);
-      }
-    }, 5000);
+    const timer = setTimeout(() => {
+      void checkForUpdates({ silent: true });
+    }, 3000);
     return () => clearTimeout(timer);
   });
-
-  async function downloadAndInstallUpdate(): Promise<void> {
-    updateDownloading = true;
-    updateProgress = 0;
-    updateError = null;
-
-    try {
-      const update = await check();
-      if (!update) {
-        updateError = 'Aucune mise à jour disponible';
-        updateDownloading = false;
-        return;
-      }
-
-      await update.downloadAndInstall((event) => {
-        if (event && event.event === 'Progress') {
-          updateProgress = Math.min(100, updateProgress + 5); // Approximation
-        } else if (event && event.event === 'Started' && event.data.contentLength) {
-          // Started downloading
-        }
-      });
-
-      // Sur macOS/Linux, il faut relancer l'app manuellement
-      // Sur Windows, l'installateur gère le redémarrage
-    } catch (e) {
-      updateError = e instanceof Error ? e.message : 'Erreur lors de la mise à jour';
-      updateDownloading = false;
-    }
-  }
-
-  function dismissUpdate(): void {
-    updateAvailable = false;
-  }
 
   function finishLanguageSelect(): void {
     showLanguageSelect = false;
@@ -109,31 +69,46 @@
 </script>
 
 <div class="phone">
-  {#if updateAvailable && !updateDownloading}
+  {#if $updaterState.status === 'available'}
     <div class="update-banner" role="alert">
       <div class="update-info">
         <span class="update-icon">🔄</span>
-        <span class="update-text">Une nouvelle version de Lakk est disponible.</span>
+        <span class="update-text">
+          {$_('updater.available', { values: { version: $updaterState.version ?? '' } })}
+        </span>
       </div>
       <div class="update-actions">
-        <button class="btn ghost" onclick={dismissUpdate}>Plus tard</button>
-        <button class="btn orange" onclick={downloadAndInstallUpdate}>Mettre à jour</button>
+        <button class="btn ghost" onclick={dismissUpdate}>{$_('updater.later')}</button>
+        <button class="btn orange" onclick={downloadAndInstallUpdate}>{$_('updater.update')}</button>
       </div>
     </div>
   {/if}
 
-  {#if updateDownloading}
+  {#if $updaterState.status === 'downloading' || $updaterState.status === 'ready'}
     <div class="update-banner downloading" role="status" aria-live="polite">
       <div class="update-info">
         <span class="update-icon">⬇</span>
-        <span class="update-text">Téléchargement de la mise à jour… {updateProgress}%</span>
+        <span class="update-text">
+          {$updaterState.status === 'ready'
+            ? $_('updater.ready')
+            : $_('updater.downloading', { values: { progress: Math.round($updaterState.progress) } })}
+        </span>
       </div>
       <div class="update-progress-bar">
-        <div class="update-progress-fill" style="width: {updateProgress}%"></div>
+        <div class="update-progress-fill" style="width: {$updaterState.progress}%"></div>
       </div>
-      {#if updateError}
-        <div class="update-error">{updateError}</div>
-      {/if}
+    </div>
+  {/if}
+
+  {#if $updaterState.status === 'error' && $updaterState.error}
+    <div class="update-banner error" role="alert">
+      <div class="update-info">
+        <span class="update-icon">⚠</span>
+        <span class="update-text">{$_('updater.error')} : {$updaterState.error}</span>
+      </div>
+      <div class="update-actions">
+        <button class="btn ghost" onclick={dismissUpdate}>{$_('common.close')}</button>
+      </div>
     </div>
   {/if}
 
@@ -204,6 +179,9 @@
   .update-banner.downloading {
     border-color: var(--teal);
   }
+  .update-banner.error {
+    border-color: var(--rose);
+  }
   @keyframes slideDown {
     from {
       opacity: 0;
@@ -246,10 +224,5 @@
     border-radius: 999px;
     background: linear-gradient(90deg, var(--teal), var(--orange));
     transition: width 0.3s ease;
-  }
-  .update-error {
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--rose);
   }
 </style>

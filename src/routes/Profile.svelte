@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { app } from '../lib/store.svelte';
   import { dayKey, mastery, yesterdayKey, repairStreak as engineRepairStreak } from '../lib/engine';
   import Baobab from '../components/Baobab.svelte';
@@ -11,6 +12,7 @@
   import { setLocale, SUPPORTED_LOCALES, LEARN_LANGUAGES } from '../lib/i18n';
   import { locale, _ } from 'svelte-i18n';
   import { isDailyReminderEnabled, setDailyReminderEnabled, scheduleDailyReminder, cancelDailyReminder } from '../lib/notification';
+  import { updaterState, checkForUpdates, getCurrentVersion } from '../lib/updater';
 
   const p = $derived(app.profile);
   const cards = $derived(Object.values(app.data.cards));
@@ -72,6 +74,29 @@
   // --- Nom & avatar ---
   let editingName = $state(false);
   let draftName = $state('');
+
+  // --- Mises à jour ---
+  let appVersion = $state('');
+  let updateCheckMessage = $state('');
+  const checkingUpdates = $derived($updaterState.status === 'checking');
+
+  onMount(() => {
+    void getCurrentVersion().then((version) => {
+      appVersion = version;
+    });
+  });
+
+  async function checkUpdates(): Promise<void> {
+    updateCheckMessage = '';
+    const result = await checkForUpdates({ silent: false });
+    if (result.status === 'available' && result.version) {
+      updateCheckMessage = $_( 'updater.available_short', { values: { version: result.version } });
+    } else if (result.error) {
+      updateCheckMessage = $_( 'updater.check_failed' );
+    } else {
+      updateCheckMessage = $_( 'updater.up_to_date' );
+    }
+  }
 
   function startEditName(): void {
     draftName = p.name;
@@ -433,6 +458,19 @@
       <span>Histoire d'introduction<small class="muted">revoir l'histoire de Lakk</small></span>
       <button class="mini-btn" onclick={replayIntro}>Revoir</button>
     </div>
+
+    <div class="set-row updater-row">
+      <span>
+        {$_('updater.current_version', { values: { version: appVersion || '…' } })}
+        <small class="muted">{$_('updater.check_hint')}</small>
+      </span>
+      <button class="mini-btn" onclick={checkUpdates} disabled={checkingUpdates}>
+        {checkingUpdates ? $_('updater.checking') : $_('updater.check')}
+      </button>
+    </div>
+    {#if updateCheckMessage}
+      <p class="small muted updater-message">{updateCheckMessage}</p>
+    {/if}
   </section>
 
   <!-- Compte & Synchronisation -->
@@ -577,7 +615,7 @@
     </div>
     <div class="about-row">
       <span>Version</span>
-      <strong>0.1.0 · MIT</strong>
+      <strong>{appVersion || '…'} · MIT</strong>
     </div>
   </section>
 
@@ -802,6 +840,16 @@
   .set-row small {
     font-size: 11px;
     font-weight: 400;
+  }
+  .updater-row {
+    flex-wrap: wrap;
+  }
+  .updater-row .mini-btn {
+    white-space: nowrap;
+  }
+  .updater-message {
+    margin: -8px 0 0;
+    text-align: right;
   }
   .goals {
     display: flex;
