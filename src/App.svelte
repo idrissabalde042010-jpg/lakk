@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { app } from './lib/store.svelte';
   import { locale, setLocale } from './lib/i18n';
   import Home from './routes/Home.svelte';
@@ -63,6 +63,7 @@
   });
 
   // --- Auth : vérifie la session existante, puis écoute les changements ---
+  let authSubscription: { unsubscribe: () => void } | null = null;
   onMount(async () => {
     try {
       const sessionUser = await getSession();
@@ -72,12 +73,12 @@
     } finally {
       authLoading = false;
     }
-
-    const { data: subscription } = onAuthStateChange((user) => {
+    const { data } = onAuthStateChange((user) => {
       authUser = user;
     });
-    return () => subscription?.unsubscribe();
+    authSubscription = data.subscription;
   });
+  onDestroy(() => authSubscription?.unsubscribe());
 
   function finishLanguageSelect(): void {
     showLanguageSelect = false;

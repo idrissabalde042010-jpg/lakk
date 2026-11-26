@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { app } from '../lib/store.svelte';
   import { dayKey } from '../lib/engine';
+  import { getSession, onAuthStateChange, type AuthUser } from '../lib/auth';
   import {
     dailyMission,
     completeMission,
@@ -33,6 +34,28 @@
   const course = $derived(app.course);
   const lessons = $derived(app.lessons);
   const speechAvailable = $derived(isSpeechAvailable());
+
+  // Utilisateur Supabase (prénom pour l'accueil)
+  let authUser = $state<AuthUser | null>(null);
+  let authSubscription: { unsubscribe: () => void } | null = null;
+  onMount(async () => {
+    try {
+      const sessionUser = await getSession();
+      authUser = sessionUser;
+    } catch {
+      authUser = null;
+    }
+    const { data } = onAuthStateChange((user) => {
+      authUser = user;
+    });
+    authSubscription = data.subscription;
+  });
+  onDestroy(() => authSubscription?.unsubscribe());
+
+  /** Prénom affiché : prénom Supabase, sinon nom local, sinon "Apprenant". */
+  const greetingName = $derived(
+    authUser?.first_name ?? p.name ?? 'Apprenant',
+  );
 
   // Série Vivante : anneau de régularité, joker et pause.
   const ring = $derived(app.regularityRing());
@@ -307,7 +330,7 @@
   <header class="head wax">
     <div class="head-top">
       <div>
-        <p class="eyebrow">Salut, {p.name}</p>
+        <p class="eyebrow">Salut, {greetingName}</p>
         <h1>{@html readyText}</h1>
       </div>
       <RegularityRing ring={ring} size={82} />

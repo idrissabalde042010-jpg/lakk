@@ -7,8 +7,9 @@
   import MissionPolaroid from '../components/MissionPolaroid.svelte';
   import ErrorRadar from '../components/ErrorRadar.svelte';
   import { missionHistory } from '../lib/missions';
-  import { getAccount, getAuthState, getSyncStatus, getLastError, login, createAccount, logout, syncToCloud, syncFromCloud, backupNow, restoreBackup, updateSettings, isAnon } from '../lib/account.svelte.ts';
+  import { signUp, signIn, signOut, resetPassword, getProfile, updateProfile, type AuthUser } from '../lib/auth';
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
+  import { getUserSegment, segmentLabel } from '../lib/segment';
   import { resetTour } from '../lib/tour';
   import { startTour } from '../lib/guidedTour';
   import { resetIntro } from '../lib/intro';
@@ -71,23 +72,30 @@
       : `${app.lessons.length} leçons · ${app.lessons.reduce((n, l) => n + l.data.exercises.length, 0)} exercices`,
   );
 
-  // --- Compte ---
-  const account = $derived(getAccount());
-  const auth = $derived(getAuthState());
-  const syncStatus = $derived(getSyncStatus());
-  const lastError = $derived(getLastError());
+  // --- Compte (Supabase) ---
+  let authUser = $state<AuthUser | null>(null);
+  let authLoading = $state(true);
+  let authError = $state<string | null>(null);
 
   let showAuth = $state(false);
   let authMode = $state<'login' | 'register'>('login');
   let authEmail = $state('');
   let authPassword = $state('');
-  let authError = $state<string | null>(null);
-  let authLoading = $state(false);
-  let showBackup = $state(false);
+  let regFirstName = $state('');
+  let regAge = $state('');
+  let regConfirmPassword = $state('');
+  let regPrivacy = $state(false);
+  let regParentConsent = $state(false);
+
   let showTransparency = $state(false);
   let backupPassword = $state('');
   let backupResult = $state<string | null>(null);
   let restoreFile = $state<File | null>(null);
+
+  // Édition prénom / âge (Supabase profiles)
+  let editingProfile = $state(false);
+  let editFirstName = $state('');
+  let editAge = $state('');
 
   // --- Nom & avatar ---
   let editingName = $state(false);
@@ -102,6 +110,25 @@
     void getCurrentVersion().then((version) => {
       appVersion = version;
     });
+  });
+
+  // --- Auth : session et écoute des changements ---
+  onMount(async () => {
+    try {
+      const { getSession } = await import('../lib/auth');
+      const sessionUser = await getSession();
+      authUser = sessionUser;
+    } catch {
+      authUser = null;
+    } finally {
+      authLoading = false;
+    }
+
+    const { onAuthStateChange } = await import('../lib/auth');
+    const { data: subscription } = onAuthStateChange((user) => {
+      authUser = user;
+    });
+    return () => subscription?.unsubscribe();
   });
 
   async function checkUpdates(): Promise<void> {
@@ -174,13 +201,24 @@
     authLoading = true;
     try {
       if (authMode === 'login') {
-        await login(authEmail, authPassword);
+        await signIn({ email: authEmail, password: authPassword });
       } else {
-        await createAccount(authEmail, authPassword);
+        const age = parseInt(regAge, 10);
+        await signUp({
+          email: authEmail,
+          password: authPassword,
+          firstName: regFirstName,
+          age,
+        });
       }
       showAuth = false;
       authEmail = '';
       authPassword = '';
+      regFirstName = '';
+      regAge = '';
+      regConfirmPassword = '';
+      regPrivacy = false;
+      regParentConsent = false;
     } catch (e) {
       authError = e instanceof Error ? e.message : 'Erreur';
     } finally {
@@ -188,22 +226,30 @@
     }
   }
 
-  function handleLogout(): void {
+  async function handleLogout(): Promise<void> {
     if (confirm('Déconnexion ? Tes données restent sur cet appareil.')) {
-      logout();
+      try {
+        await signOut();
+      } catch {
+        /* ignore */
+      }
     }
   }
 
-  async function handleSyncUp(): Promise<void> {
-    await syncToCloud();
-  }
-
-  async function handleSyncDown(): Promise<void> {
-    await syncFromCloud();
+  async function handleDeleteAccount(): Promise<void> {
+    if (!confirm('Supprimer définitivement ton compte et toutes tes données ? Cette action est irréversible.')) return;
+    try {
+      // Supabase Auth ne permet pas la suppression de compte côté client sans fonction serveur.
+      // L'utilisateur doit être invité à contacter le support ou utiliser le dashboard Supabase.
+      authError = 'La suppression de compte nécessite une fonction serveur Supabase (deleteUser). Contacte le support pour demander la suppression de ton compte.';
+    } catch (e) {
+      authError = e instanceof Error ? e.message : 'Erreur lors de la suppression.';
+    }
   }
 
   async function handleBackup(): Promise<void> {
     try {
+      const { backupNow } = await import('../lib/account.svelte.ts');
       const json = await backupNow(backupPassword || undefined);
       backupResult = json;
     } catch (e) {
@@ -215,11 +261,38 @@
     if (!restoreFile) return;
     const text = await restoreFile.text();
     try {
+      const { restoreBackup } = await import('../lib/account.svelte.ts');
       await restoreBackup(text, backupPassword || undefined);
       backupResult = 'Restauré avec succès !';
       restoreFile = null;
     } catch (e) {
       backupResult = 'Erreur : ' + (e instanceof Error ? e.message : 'inconnue');
+    }
+  }
+
+  function editProfile(): void {
+    editFirstName = authUser?.first_name ?? '';
+    editAge = authUser?.age?.toString() ?? '';
+    editingProfile = true;
+  }
+
+  async function saveProfile(): Promise<void> {
+    if (!authUser) return;
+    const updates: { first_name?: string; age?: number } = {};
+    if (editFirstName.trim()) updates.first_name = editFirstName.trim();
+    const age = parseInt(editAge, 10);
+    if (!Number.isNaN(age) && age >= 1) updates.age = age;
+    try {
+      await updateProfile(authUser.id, updates);
+      editingProfile = false;
+      // Rafraîchir l'utilisateur via getProfile
+      const profile = await getProfile(authUser.id);
+      if (profile && authUser) {
+        authUser.first_name = profile.first_name;
+        authUser.age = profile.age;
+      }
+    } catch (e) {
+      authError = e instanceof Error ? e.message : 'Erreur lors de la mise à jour du profil.';
     }
   }
 
@@ -529,71 +602,70 @@
     {/if}
   </section>
 
-  <!-- Compte & Synchronisation -->
+  <!-- Compte (Supabase) -->
   <section class="card account">
     <div class="row between">
       <p class="eyebrow">Compte</p>
-      {#if auth}
-        <span class="badge sync" class:synced={syncStatus === 'synced'} class:error={syncStatus === 'error'} class:pending={syncStatus === 'syncing'}>
-          {syncStatus === 'synced' ? '✓ Synchronisé' : syncStatus === 'syncing' ? '⟳ Sync…' : syncStatus === 'error' ? '⚠ Erreur' : '☁ Cloud'}
-        </span>
+      {#if authUser}
+        <span class="badge sync synced">✓ Connecté</span>
       {/if}
     </div>
 
-    {#if !auth}
+    {#if !authUser}
       <div class="auth-panel">
-        <p class="small muted">Crée un compte pour synchroniser ta progression sur plusieurs appareils (optionnel, gratuit).</p>
-
-        <!-- OAuth Buttons (désactivés, bientôt disponibles) -->
-        <div class="oauth-buttons">
-          <button
-            class="btn oauth google block"
-            disabled
-            aria-disabled="true"
-            title={$_( 'profile.oauth_coming_soon' )}
-          >
-            <svg class="oauth-icon" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.02-3.02C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <span>{$_( 'profile.oauth_google' )}</span>
-          </button>
-          <button
-            class="btn oauth apple block"
-            disabled
-            aria-disabled="true"
-            title={$_( 'profile.oauth_coming_soon' )}
-          >
-            <svg class="oauth-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.05 20.697c-.878.266-1.836.405-2.817.405-1.733 0-3.27-1.047-3.86-2.64-.03-.08-.05-.173-.05-.254 0-.094.033-.18.05-.26.586-1.58 2.12-2.63 3.86-2.63.98 0 1.94.14 2.82.4.88.26 1.68.65 2.38 1.16l.57-.57c-.56-.6-1.27-1.32-1.84-2.1-.64-.88-1.1-1.93-1.38-3.14h-.03c.4-1.55 1.07-2.95 2.03-4.18.12-.16.23-.32.33-.49l-.6-.6c-.15.25-.32.5-.52.74-1.22 1.48-2.06 3.33-2.06 5.46 0 3.17 1.29 5.8 3.3 7.78.25.25.56.4 1 .42l.63-.62zM12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.75.22-1.55.33-2.38.33-.79 0-1.55-.14-2.27-.4l.59-.58c.72.4 1.48.66 2.27.66 1.84 0 3.35-1.33 3.76-3.37.04-.25.06-.5.06-.76 0-.25-.02-.5-.06-.75-.52-.84-1.27-1.55-2.18-2.14l.6-.6c1.33 1.07 2.2 2.5 2.59 4.2.16.68.2 1.37.18 2.06-.04 1.78-.72 3.4-2.05 4.77l.6.6c1.44-1.3 2.27-3.15 2.27-5.2 0-2.73-1.2-5.1-3.14-6.73-.1-.1-.22-.19-.34-.26l-.57.57c.24 1.15.7 2.26 1.38 3.26.07.1.14.2.2.31.93-.4 1.63-1.05 2.04-2.06l.6.6c-.72 1.8-1.84 3.4-3.24 4.72-.22.2-.46.33-.7.33z"/>
-            </svg>
-            <span>{$_( 'profile.oauth_apple' )}</span>
-          </button>
-        </div>
-
+        <p class="small muted">Un compte est requis pour utiliser Lakk. Crée un compte ou connecte-toi.</p>
         <button class="btn block" onclick={() => { showAuth = true; authMode = 'register'; }}>Créer un compte</button>
         <button class="btn ghost block" onclick={() => { showAuth = true; authMode = 'login'; }}>Se connecter</button>
       </div>
     {:else}
       <div class="account-info">
         <div class="row">
-          <span class="small muted">Connecté en tant que</span>
-          <strong>{account?.email}</strong>
+          <span class="small muted">Email</span>
+          <strong>{authUser.email}</strong>
         </div>
-        <div class="row">
-          <span class="small muted">Dernière sync</span>
-          <strong>{account?.lastSync ? new Date(account.lastSync).toLocaleString('fr-FR') : 'Jamais'}</strong>
-        </div>
-        <div class="sync-actions">
-          <button class="btn block" onclick={handleSyncUp} disabled={syncStatus === 'syncing'}>☁ Sauvegarder (cloud)</button>
-          <button class="btn ghost block" onclick={handleSyncDown} disabled={syncStatus === 'syncing'}>⬇ Restaurer (cloud)</button>
-        </div>
-        {#if lastError}
-          <p class="small muted" style="color: var(--rose);">{lastError}</p>
+        {#if authUser.first_name}
+          <div class="row">
+            <span class="small muted">Prénom</span>
+            <strong>{authUser.first_name}</strong>
+          </div>
+        {/if}
+        {#if authUser.age !== null && authUser.age !== undefined}
+          <div class="row">
+            <span class="small muted">Âge</span>
+            <strong>{authUser.age} ans</strong>
+          </div>
+        {/if}
+        {#if authUser.first_name}
+          <div class="row">
+            <span class="small muted">Segment</span>
+            <strong>{getUserSegment(authUser.age) ? segmentLabel(getUserSegment(authUser.age)) : '—'}</strong>
+          </div>
+        {/if}
+        {#if editingProfile}
+          <div class="edit-profile-form">
+            <label>
+              <span class="small">Prénom</span>
+              <input type="text" bind:value={editFirstName} placeholder="Prénom" />
+            </label>
+            <label>
+              <span class="small">Âge</span>
+              <input type="number" bind:value={editAge} min="1" max="120" placeholder="Âge" />
+            </label>
+            <div class="row">
+              <button class="btn ghost block" onclick={() => { editingProfile = false; }}>Annuler</button>
+              <button class="btn orange block" onclick={saveProfile}>Enregistrer</button>
+            </div>
+          </div>
+        {:else}
+          <div class="edit-profile">
+            <button class="mini-btn" onclick={editProfile}>Modifier prénom et âge</button>
+          </div>
+        {/if}
+        {#if authError}
+          <p class="small muted" style="color: var(--rose);">{authError}</p>
         {/if}
         <button class="btn ghost block" onclick={handleLogout}>Se déconnecter</button>
+        <button class="btn ghost block" style="color: var(--rose)" onclick={handleDeleteAccount}>Supprimer mon compte</button>
       </div>
     {/if}
 
@@ -604,21 +676,73 @@
           <span class="small">Email</span>
           <input type="email" bind:value={authEmail} placeholder="toi@exemple.com" required autocomplete="email" />
         </label>
-        <label>
-          <span class="small">Mot de passe</span>
-          <input type="password" bind:value={authPassword} placeholder="••••••••" required minlength={6} autocomplete={authMode === 'login' ? 'current-password' : 'new-password'} />
-        </label>
+        {#if authMode === 'register'}
+          <label>
+            <span class="small">Prénom</span>
+            <input type="text" bind:value={regFirstName} placeholder="Ton prénom" required autocomplete="given-name" />
+          </label>
+          <label>
+            <span class="small">Âge</span>
+            <input type="number" bind:value={regAge} min="1" max="120" required placeholder="Ton âge" />
+          </label>
+          <label>
+            <span class="small">Mot de passe</span>
+            <input type="password" bind:value={authPassword} placeholder="••••••••" required minlength={6} autocomplete="new-password" />
+          </label>
+          <label>
+            <span class="small">Confirmer le mot de passe</span>
+            <input type="password" bind:value={regConfirmPassword} placeholder="••••••••" required autocomplete="new-password" />
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" bind:checked={regPrivacy} required />
+            J'accepte la <button class="privacy-link" type="button" onclick={() => app.openIntro()}>politique de confidentialité</button>.
+          </label>
+          {#if regAge && !Number.isNaN(parseInt(regAge, 10)) && parseInt(regAge, 10) >= 13 && parseInt(regAge, 10) <= 17}
+            <label class="checkbox-label">
+              <input type="checkbox" bind:checked={regParentConsent} />
+              J'ai l'accord d'un parent ou d'un tuteur pour créer ce compte.
+            </label>
+          {/if}
+        {:else}
+          <label>
+            <span class="small">Mot de passe</span>
+            <input type="password" bind:value={authPassword} placeholder="••••••••" required autocomplete="current-password" />
+          </label>
+          <p class="forgot">
+            <button class="text-link" type="button" onclick={() => { app.notify('Réinitialisation mot de passe : fonction à venir via Supabase.'); }}>Mot de passe oublié ?</button>
+          </p>
+        {/if}
         {#if authError}
           <p class="small" style="color: var(--rose);">{authError}</p>
         {/if}
         <div class="row">
-          <button class="btn orange block" type="submit" disabled={authLoading || !authEmail || !authPassword}>
+          <button class="btn ghost block" type="button" onclick={() => { showAuth = false; authError = null; }}>Annuler</button>
+          <button class="btn orange block" type="submit" disabled={authLoading}>
             {authLoading ? '⟳' : authMode === 'login' ? 'Se connecter' : 'Créer le compte'}
           </button>
-          <button class="btn ghost block" type="button" onclick={() => { showAuth = false; authError = null; }}>Annuler</button>
         </div>
       </form>
     {/if}
+
+    <details class="backup-section">
+      <summary>💾 Sauvegarde locale (fichier chiffré)</summary>
+      <p class="small muted">Exporte ou importe ta progression complète (profil + vocabulaire + historique) dans un fichier JSON chiffré.</p>
+      <label>
+        <span class="small">Mot de passe (optionnel, pour chiffrer)</span>
+        <input type="password" bind:value={backupPassword} placeholder="Laisser vide = non chiffré" autocomplete="new-password" />
+      </label>
+      <div class="row">
+        <button class="btn block" onclick={handleBackup}>Exporter la sauvegarde</button>
+        <label class="btn ghost block">
+          Importer
+          <input type="file" accept=".json" onchange={(e) => { const t = e.target as HTMLInputElement; restoreFile = t.files?.[0] ?? null; handleRestore(); }} style="display:none" />
+        </label>
+      </div>
+      {#if backupResult}
+        <textarea class="backup-output" readonly>{backupResult}</textarea>
+        <button class="btn ghost block" onclick={() => { if (backupResult) navigator.clipboard.writeText(backupResult); backupResult = 'Copié !'; }}>Copier</button>
+      {/if}
+    </details>
 
     <details class="backup-section">
       <summary>💾 Sauvegarde locale (fichier chiffré)</summary>
