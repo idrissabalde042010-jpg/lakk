@@ -297,3 +297,60 @@ with open('content/fr-en-a1.json', 'w') as f:
   - La voix suffit pour le feedback (bien/mal) : plus naturel pour un apprentissage.
   - Moins de bruit, moins de code, moins de problèmes de contexte audio suspendu.
   - L'utilisateur a demandé : « je veut le son que pour lhistoire ».
+
+---
+
+## Phase 5 — Mode EN LIGNE avec comptes obligatoires (Supabase)
+
+### Sécurité & configuration
+- `vite.config.ts` : `envPrefix: ['VITE_', 'PUBLIC_']` ajouté pour exposer `PUBLIC_SUPABASE_URL` et `PUBLIC_SUPABASE_ANON_KEY` au client.
+- `.env` : `PUBLIC_GOOGLE_CLIENT_SECRET` et `PUBLIC_APPLE_CLIENT_SECRET` supprimés (un secret préfixé `PUBLIC_` est embarqué dans l'appli). Seul `PUBLIC_GOOGLE_CLIENT_ID` et `PUBLIC_APPLE_CLIENT_ID` conservés (préparés, non bloquants). Valeurs Supabase intactes.
+- `.env.example` : idem, sans valeurs réales.
+- `.env` n'est pas suivi par git (`.gitignore`).
+
+### ÉTAPE 1 — Modal confidentialité centré ✅
+- Overlay `position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;` avec fond semi-transparent.
+- Contenu `max-width`/`max-height` + scroll interne (`overflow-y: auto`).
+- Fermeture par clic sur overlay, bouton ✕, touche Échap.
+- Texte réécrit : Lakk n'est plus 100 % local. Compte (email, prénom, âge) stocké chez Supabase (Irlande, UE). Progression sur l'appareil. Données pour faire fonctionner le compte et améliorer l'app. Modification de profil + suppression de compte possibles.
+- Retrait de « 100 % local / aucune donnée envoyée » dans `fr.json`, `en.json`, `Profile.svelte`, `missions.ts`.
+
+### ÉTAPE 2 — Supabase Auth ✅
+- `@supabase/supabase-js` déjà présent.
+- `src/lib/supabase.ts` : `flowType: 'pkce'`, `autoRefreshToken`, `persistSession`.
+- `src/lib/auth.ts` : `signUp(email, password, firstName, age)` avec `options.data: { first_name, age }`, `signIn`, `signOut`, `resetPassword`, `getSession`, `onAuthStateChange`, `getProfile`, `updateProfile`.
+- Messages d'erreur en français : email déjà utilisé, mot de passe trop court, mauvais identifiants, réseau indisponible.
+- `.env.example` mis à jour sans valeurs réelles.
+
+### ÉTAPE 3 — Onboarding obligatoire ✅
+- `src/components/Onboarding.svelte` : écran de bienvenue (2 boutons : « Créer un compte », « J'ai déjà un compte »).
+- Impossible d'accéder à l'app sans session (gate dans `App.svelte` via `isAuthenticated`).
+- Inscription : prénom, âge, email, mot de passe (+ confirmation), case de confidentialité. Refus âge < 13 (message bienveillant). 13-17 ans : accord parent requis.
+- Connexion : email + mot de passe + « Mot de passe oublié ».
+- Après connexion/inscription : si `lakk.intro_seen` absent → IntroStory, puis flag marqué ; sinon accueil.
+- Sessions suivantes : reconnexion automatique, pas d'écran de login.
+- Mode hors ligne : session existante + pas de réseau → app utilisable (session persistée localement par Supabase).
+
+### ÉTAPE 4 — Profil et marketing ✅
+- Profil : affiche prénom, âge, email ; modification prénom et âge (`updateProfile`) ; bouton « Se déconnecter » ; bouton « Supprimer mon compte » (nécessite fonction serveur Supabase `deleteUser` — message affiché au lieu de bidouiller).
+- `src/lib/segment.ts` : `getUserSegment(age)` (ado 13-17, jeune adulte 18-29, adulte 30-59, senior 60+) + `segmentLabel()`.
+- `src/lib/segment.test.ts` : tests Vitest (12 cas + boundaries).
+- `src/lib/locales/*.json` : `footer` passé de "sans compte"/"no account" à juste "gratuit"/"free".
+- `Home.svelte` : salut utilise le prénom Supabase (`greetingName`).
+
+### ÉTAPE 5 — Linux Deep Link ✅
+- `tauri-plugin-deep-link` ajouté (`Cargo.toml`, `lib.rs`, `tauri.conf.json` schemes `["lakk"]`).
+- `capabilities/default.json` : `deep-link:default` ajouté.
+- `tauri.conf.json` : `fileAssociations` avec `mimeType: x-scheme-handler/lakk` pour le .deb/.desktop.
+- Email + mot de passe ne dépendent pas du deep link.
+
+### Validation finale ✅
+- `cargo check` : OK
+- `cargo test --workspace` : 36/36 passed
+- `pnpm exec svelte-check` : 0 errors
+- `pnpm build` : SUCCESS
+- `pnpm exec vitest run` : 177/177 passed
+- `git status` : propre (`.env` non suivi)
+
+### Git
+- 6 commits sur `main` (setup, étape 1, étape 2, étape 3, étape 4, étape 5).
