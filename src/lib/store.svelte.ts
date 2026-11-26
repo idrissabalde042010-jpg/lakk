@@ -1,9 +1,10 @@
 // État global de l'application (Svelte 5 runes) + persistance locale.
 import { defaultCourse, fallbackPhrases, lessonRefs, loadCourse, type LessonRef } from './content';
-import type { Card, CourseData, Grade, LessonData, Phrase, Profile, Vocab } from './engine';
+import type { Card, CourseData, Exercise, Grade, LessonData, Phrase, Profile, Vocab } from './engine';
 import type { ErrorEntry, ErrorPattern } from './errors';
 import { recordError as recordErrorFromLib } from './errors';
 import {
+  answersMatch,
   cancelPause as engineCancelPause,
   dailyGoalPercent,
   dayKey,
@@ -19,6 +20,7 @@ import {
   startPause as engineStartPause,
   type RegularityRingData,
 } from './engine';
+import { shuffle } from './shuffle';
 import { isTauri, nativeCourse, nativeReview, nativeStats, type NativeStats } from './native';
 import { DEFAULT_AVATAR, isValidAvatar, sanitizeName } from './profile';
 import { introSeen } from './intro';
@@ -73,7 +75,7 @@ function loadState(): Persist {
   }
 }
 
-export type Screen = 'home' | 'lesson' | 'review' | 'games' | 'music' | 'profile' | 'multiplayer' | 'story';
+export type Screen = 'home' | 'lesson' | 'review' | 'games' | 'music' | 'profile' | 'multiplayer' | 'story' | 'express';
 
 /** Moteur qui fait autorité pour le contenu et la planification. */
 export type Engine = 'rust' | 'typescript';
@@ -180,6 +182,57 @@ class AppState {
   startLesson(u: number, l: number): void {
     this.active = { u, l };
     this.screen = 'lesson';
+  }
+
+  // ------------------------------ Séance Express ------------------------------
+
+  expressExercises = $state<{ u: number; l: number; exercise: Exercise }[]>([]);
+  expressIndex = $state(0);
+  expressCorrect = $state(0);
+  expressDone = $state(false);
+
+  /** Lance une séance express de 3 exercices tirés au hasard parmi les leçons débloquées. */
+  startExpress(): void {
+    const available = this.lessons.filter((r) => this.isUnlocked(r.u, r.l));
+    if (available.length === 0) return;
+    const picked = shuffle([...available]).slice(0, 3);
+    this.expressExercises = picked.map((r) => ({
+      u: r.u,
+      l: r.l,
+      exercise: r.data.exercises[Math.floor(Math.random() * r.data.exercises.length)],
+    }));
+    this.expressIndex = 0;
+    this.expressCorrect = 0;
+    this.expressDone = false;
+    this.screen = 'express';
+  }
+
+  /** Vérifie la réponse de l'exercice express courant. */
+  checkExpress(given: string): boolean {
+    const current = this.expressExercises[this.expressIndex];
+    if (!current) return false;
+    const ok = answersMatch(current.exercise.answer, given, current.exercise.accepted);
+    if (ok) this.expressCorrect += 1;
+    return ok;
+  }
+
+  /** Passe à l'exercice suivant ou termine la séance. */
+  nextExpress(): void {
+    if (this.expressIndex + 1 < this.expressExercises.length) {
+      this.expressIndex += 1;
+    } else {
+      this.expressDone = true;
+    }
+  }
+
+  /** Termine la séance express et retourne à l'accueil. */
+  finishExpress(xp: number): void {
+    const today = dayKey();
+    this.data.history[today] = (this.data.history[today] ?? 0) + xp;
+    registerLesson(this.data.profile, Date.now(), xp);
+    this.save();
+    this.screen = 'home';
+    this.expressDone = false;
   }
 
   completeLesson(u: number, l: number, xp: number, _accuracy: number): void {

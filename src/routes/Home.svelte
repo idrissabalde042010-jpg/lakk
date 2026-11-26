@@ -96,6 +96,11 @@
     app.startRecoveryLesson();
   }
 
+  /** Lance une séance express de 3 exercices rapides. */
+  function startExpress(): void {
+    app.startExpress();
+  }
+
   function planPause(): void {
     app.startPause(7);
     app.notify('Pause de 7 jours activée. Ta série est protégée.');
@@ -430,6 +435,20 @@
         🎲 Leçon aléatoire
       </button>
     {/if}
+  </section>
+
+  <!-- Séance Express -->
+  <section class="card express-card">
+    <div class="express-row">
+      <div class="grow">
+        <p class="eyebrow">Séance rapide</p>
+        <p class="express-title">⚡ Séance Express (2 min)</p>
+        <p class="small muted">3 exercices ciblés pour avancer sans pression.</p>
+      </div>
+      <button class="btn orange block" onclick={startExpress}>
+        Commencer
+      </button>
+    </div>
   </section>
 
   <!-- Barre de sélection des quêtes -->
@@ -831,6 +850,36 @@
   }
   .link.recording {
     color: var(--rose);
+  }
+
+  /* Séance Express */
+  .express-card {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .express-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px;
+  }
+  .express-row .grow {
+    flex: 1;
+    min-width: 0;
+  }
+  .express-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    margin: 2px 0 4px;
+    color: var(--ink);
+  }
+  .express-card .btn {
+    flex: none;
+    min-width: 110px;
   }
 
   /* Onglets quêtes */
