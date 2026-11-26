@@ -10,6 +10,7 @@
   import { signUp, signIn, signOut, resetPassword, getProfile, updateProfile, type AuthUser } from '../lib/auth';
   import { AVATARS, DEFAULT_AVATAR, displayName } from '../lib/profile';
   import { getUserSegment, segmentLabel } from '../lib/segment';
+  import { parseAge } from '../lib/age';
   import { resetTour } from '../lib/tour';
   import { startTour } from '../lib/guidedTour';
   import { resetIntro } from '../lib/intro';
@@ -82,7 +83,7 @@
   let authEmail = $state('');
   let authPassword = $state('');
   let regFirstName = $state('');
-  let regAge = $state('');
+  let regAge = $state<number | null>(null);
   let regConfirmPassword = $state('');
   let regPrivacy = $state(false);
   let regParentConsent = $state(false);
@@ -96,10 +97,15 @@
   const userSegment = $derived(getUserSegment(authUser?.age ?? null));
   const userSegmentLabel = $derived(userSegment ? segmentLabel(userSegment) : '—');
 
+  function ageIsTeenager(): boolean {
+    const a = parseAge(regAge);
+    return a !== null && a >= 13 && a <= 17;
+  }
+
   // Édition prénom / âge (Supabase profiles)
   let editingProfile = $state(false);
   let editFirstName = $state('');
-  let editAge = $state('');
+  let editAge = $state<number | null>(null);
 
   // --- Nom & avatar ---
   let editingName = $state(false);
@@ -207,7 +213,11 @@
       if (authMode === 'login') {
         await signIn({ email: authEmail, password: authPassword });
       } else {
-        const age = parseInt(regAge, 10);
+        const age = parseAge(regAge);
+        if (age === null) {
+          authError = 'Âge requis (entre 5 et 120 ans).';
+          return;
+        }
         await signUp({
           email: authEmail,
           password: authPassword,
@@ -219,7 +229,7 @@
       authEmail = '';
       authPassword = '';
       regFirstName = '';
-      regAge = '';
+      regAge = null;
       regConfirmPassword = '';
       regPrivacy = false;
       regParentConsent = false;
@@ -276,7 +286,7 @@
 
   function editProfile(): void {
     editFirstName = authUser?.first_name ?? '';
-    editAge = authUser?.age?.toString() ?? '';
+    editAge = authUser?.age ?? null;
     editingProfile = true;
   }
 
@@ -284,8 +294,8 @@
     if (!authUser) return;
     const updates: { first_name?: string; age?: number } = {};
     if (editFirstName.trim()) updates.first_name = editFirstName.trim();
-    const age = parseInt(editAge, 10);
-    if (!Number.isNaN(age) && age >= 1) updates.age = age;
+    const age = parseAge(editAge);
+    if (age !== null) updates.age = age;
     try {
       await updateProfile(authUser.id, updates);
       editingProfile = false;
@@ -701,7 +711,7 @@
             <input type="checkbox" bind:checked={regPrivacy} required />
             J'accepte la <button class="privacy-link" type="button" onclick={() => app.openIntro()}>politique de confidentialité</button>.
           </label>
-          {#if regAge && !Number.isNaN(parseInt(regAge, 10)) && parseInt(regAge, 10) >= 13 && parseInt(regAge, 10) <= 17}
+          {#if ageIsTeenager()}
             <label class="checkbox-label">
               <input type="checkbox" bind:checked={regParentConsent} />
               J'ai l'accord d'un parent ou d'un tuteur pour créer ce compte.

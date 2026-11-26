@@ -15,27 +15,55 @@ export interface ProfileUpdates {
   age?: number;
 }
 
+/** Résultat de l'inscription : indique si une confirmation email est requise. */
+export interface SignUpResult {
+  user: AuthUser;
+  emailConfirmationRequired: boolean;
+}
+
 /*────────────────────────── Messages d’erreur (fr) ────────────────────────*/
 
-function mapAuthError(err: unknown): string {
+/**
+ * Traduit une erreur Supabase (ou JS) en message lisible en français.
+ * Fonction pure, exportée pour pouvoir être testée.
+ */
+export function mapAuthError(err: unknown): string {
   if (err === null || err === undefined) {
     return 'Erreur inconnue.';
   }
   const message = (err as Error).message?.toLowerCase() ?? '';
   const code = (err as { code?: string }).code;
+  const status = (err as { status?: number }).status;
 
   // Réseau indisponible
   if (
     message.includes('failed to fetch') ||
     message.includes('network') ||
     message.includes('fetch') ||
-    message.includes('network error')
+    message.includes('network error') ||
+    status === 0
   ) {
     return 'Réseau indisponible. Vérifie ta connexion.';
   }
 
+  // Limite d'envoi d'emails atteinte (rate limit)
+  if (
+    message.includes('rate limit') ||
+    message.includes('too many requests') ||
+    message.includes('email rate limit') ||
+    message.includes('send email rate') ||
+    code === 'rate_limit'
+  ) {
+    return 'Limite d’envoi d’emails atteinte. Réessaie plus tard.';
+  }
+
   // Email déjà utilisé
-  if (code === 'user_already_exists' || message.includes('user already exists')) {
+  if (
+    code === 'user_already_exists' ||
+    message.includes('user already exists') ||
+    message.includes('email already exists') ||
+    message.includes('utilisateur existe déjà')
+  ) {
     return 'Cet email est déjà utilisé. Essaie de te connecter.';
   }
 
@@ -44,7 +72,8 @@ function mapAuthError(err: unknown): string {
     code === 'weak_password' ||
     message.includes('password should be at least') ||
     message.includes('weak password') ||
-    message.includes('mot de passe trop court')
+    message.includes('mot de passe trop court') ||
+    message.includes('mot de passe trop faible')
   ) {
     return 'Mot de passe trop court. Utilise au moins 6 caractères.';
   }
@@ -55,9 +84,20 @@ function mapAuthError(err: unknown): string {
     code === 'Invalid login' ||
     message.includes('invalid login') ||
     message.includes('incorrect email or password') ||
-    message.includes('email ou mot de passe incorrect')
+    message.includes('email ou mot de passe incorrect') ||
+    message.includes('invalid credentials')
   ) {
     return 'Mauvais identifiants. Vérifie ton email et ton mot de passe.';
+  }
+
+  // Erreur base de données lors de l'enregistrement du nouvel utilisateur
+  if (
+    message.includes('database error') ||
+    message.includes('error saving new user') ||
+    message.includes('database error saving') ||
+    code === 'database_error'
+  ) {
+    return 'Database error saving new user. Réessaie ou contacte le support.';
   }
 
   // Email non confirmé (désactivé pour les tests, mais au cas où)
@@ -85,7 +125,7 @@ export async function signUp(params: {
   password: string;
   firstName: string;
   age: number;
-}): Promise<AuthUser> {
+}): Promise<SignUpResult> {
   const supabase = client();
   const { data, error } = await supabase.auth.signUp({
     email: params.email.trim().toLowerCase(),
@@ -100,12 +140,17 @@ export async function signUp(params: {
   if (error) throw mapAuthError(error);
   if (!data.user) throw mapAuthError(new Error('Aucun utilisateur créé.'));
 
-  return {
+  // Si pas de session, la confirmation d'email est requise (email confirmations activé côté Supabase).
+  const emailConfirmationRequired = !data.session;
+
+  const user: AuthUser = {
     id: data.user.id,
     email: data.user.email ?? null,
     first_name: (data.user.user_metadata as { first_name?: string })?.first_name ?? null,
     age: (data.user.user_metadata as { age?: number })?.age ?? null,
   };
+
+  return { user, emailConfirmationRequired };
 }
 
 /*───────────────────────────────── signIn ─────────────────────────────────*/

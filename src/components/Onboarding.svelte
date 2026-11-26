@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { signUp, signIn, resetPassword, type AuthUser } from '../lib/auth';
+  import { signUp, signIn, resetPassword, type SignUpResult, type AuthUser } from '../lib/auth';
   import { app } from '../lib/store.svelte';
   import { _ } from 'svelte-i18n';
   import { introSeen, markIntroSeen } from '../lib/intro';
+  import { parseAge } from '../lib/age';
 
   let mode = $state<'welcome' | 'register' | 'login' | 'reset'>('welcome');
   let loading = $state(false);
   let error = $state<string | null>(null);
+  let info = $state<string | null>(null);
 
   // Register fields
   let regFirstName = $state('');
-  let regAge = $state('');
+  let regAge = $state<number | null>(null);
   let regEmail = $state('');
   let regPassword = $state('');
   let regConfirmPassword = $state('');
@@ -26,20 +28,25 @@
 
   function setError(msg: string | null): void {
     error = msg;
+    info = null;
+  }
+
+  function setInfo(msg: string | null): void {
+    info = msg;
+    error = null;
   }
 
   async function handleRegister(): Promise<void> {
     error = null;
+    info = null;
     const firstName = regFirstName.trim();
-    const ageStr = regAge.trim();
+    const age = parseAge(regAge);
     const email = regEmail.trim();
     const password = regPassword;
     const confirmPassword = regConfirmPassword;
 
     if (!firstName) { setError('Prénom requis.'); return; }
-    if (!ageStr) { setError('Âge requis.'); return; }
-    const age = parseInt(ageStr, 10);
-    if (Number.isNaN(age) || age < 1) { setError('Âge invalide.'); return; }
+    if (age === null) { setError('Âge requis (entre 5 et 120 ans).'); return; }
     if (age < 13) {
       setError("Désolé, Lakk est réservé aux personnes de 13 ans et plus. Reviens quand tu seras plus grand !");
       return;
@@ -55,9 +62,15 @@
 
     loading = true;
     try {
-      await signUp({ email, password, firstName, age });
-      mode = 'welcome';
-      // On laisse App.svelte gérer la suite (intro ou home)
+      const result: SignUpResult = await signUp({ email, password, firstName, age });
+      if (result.emailConfirmationRequired) {
+        // Confirmation d'email activée côté Supabase : aucun utilisateur connecté.
+        setInfo('Compte créé. Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.');
+        mode = 'login';
+      } else {
+        // Session créée : on laisse App.svelte gérer la suite (intro ou home).
+        mode = 'welcome';
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la création du compte.');
     } finally {
@@ -67,6 +80,7 @@
 
   async function handleLogin(): Promise<void> {
     error = null;
+    info = null;
     const email = loginEmail.trim();
     const password = loginPassword;
     if (!email.includes('@')) { setError('Email invalide.'); return; }
@@ -85,12 +99,13 @@
 
   async function handleReset(): Promise<void> {
     error = null;
+    info = null;
     const email = resetEmail.trim();
     if (!email.includes('@')) { setError('Email invalide.'); return; }
     loading = true;
     try {
       await resetPassword(email);
-      setError('Un email de réinitialisation a été envoyé (si le compte existe).');
+      setInfo('Un email de réinitialisation a été envoyé (si le compte existe).');
       mode = 'login';
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la réinitialisation.');
@@ -99,24 +114,33 @@
     }
   }
 
+  function ageIsTeenager(): boolean {
+    const a = parseAge(regAge);
+    return a !== null && a >= 13 && a <= 17;
+  }
+
   function goWelcome(): void {
     mode = 'welcome';
     error = null;
+    info = null;
   }
 
   function goRegister(): void {
     mode = 'register';
     error = null;
+    info = null;
   }
 
   function goLogin(): void {
     mode = 'login';
     error = null;
+    info = null;
   }
 
   function goReset(): void {
     mode = 'reset';
     error = null;
+    info = null;
   }
 </script>
 
@@ -155,6 +179,8 @@
       </div>
       {#if error}
         <p class="error-msg">{error}</p>
+      {:else if info}
+        <p class="info-msg">{info}</p>
       {/if}
       <form onsubmit={(e) => { e.preventDefault(); handleRegister(); }}>
         <label>
@@ -163,7 +189,7 @@
         </label>
         <label>
           <span class="label">Âge</span>
-          <input type="number" bind:value={regAge} min="1" max="120" required placeholder="Ton âge" />
+          <input type="number" bind:value={regAge} min="5" max="120" required placeholder="Ton âge" />
         </label>
         <label>
           <span class="label">Email</span>
@@ -179,9 +205,9 @@
         </label>
         <label class="checkbox-label">
           <input type="checkbox" bind:checked={regPrivacy} required />
-          J'ai lu et j'accepte la <a href="#" onclick={(e) => { e.preventDefault(); }} class="privacy-link">politique de confidentialité</a>.
+          J'ai lu et j'accepte la <button class="privacy-link" type="button" onclick={() => app.openIntro()}>politique de confidentialité</button>.
         </label>
-        {#if regAge && !Number.isNaN(parseInt(regAge, 10)) && parseInt(regAge, 10) >= 13 && parseInt(regAge, 10) <= 17}
+        {#if ageIsTeenager()}
           <label class="checkbox-label">
             <input type="checkbox" bind:checked={regParentConsent} />
             J'ai l'accord d'un parent ou d'un tuteur pour créer ce compte.
@@ -189,8 +215,8 @@
         {/if}
         <div class="form-actions">
           <button class="btn ghost block" type="button" onclick={goWelcome}>Annuler</button>
-          <button class="btn orange block" type="submit" disabled={loading || !regPrivacy}>
-            {loading ? '⟳' : 'Créer le compte'}
+          <button class="btn orange block" type="submit" disabled={loading || !regPrivacy || regAge === null}>
+            {loading ? 'Création…' : 'Créer le compte'}
           </button>
         </div>
       </form>
@@ -207,6 +233,8 @@
       </div>
       {#if error}
         <p class="error-msg">{error}</p>
+      {:else if info}
+        <p class="info-msg">{info}</p>
       {/if}
       <form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
         <label>
@@ -220,7 +248,7 @@
         <div class="form-actions">
           <button class="btn ghost block" type="button" onclick={goWelcome}>Annuler</button>
           <button class="btn orange block" type="submit" disabled={loading}>
-            {loading ? '⟳' : 'Se connecter'}
+            {loading ? 'Connexion…' : 'Se connecter'}
           </button>
         </div>
         <p class="forgot">
@@ -237,6 +265,8 @@
       </div>
       {#if error}
         <p class="error-msg">{error}</p>
+      {:else if info}
+        <p class="info-msg">{info}</p>
       {/if}
       <form onsubmit={(e) => { e.preventDefault(); handleReset(); }}>
         <label>
@@ -246,7 +276,7 @@
         <div class="form-actions">
           <button class="btn ghost block" type="button" onclick={goLogin}>Annuler</button>
           <button class="btn orange block" type="submit" disabled={loading}>
-            {loading ? '⟳' : 'Envoyer l\'email'}
+            {loading ? 'Envoi…' : 'Envoyer l\'email'}
           </button>
         </div>
       </form>
@@ -355,12 +385,28 @@
   .privacy-link {
     color: var(--orange);
     text-decoration: underline;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+  }
+  .privacy-link:hover {
+    color: var(--orange-deep);
   }
   .error-msg {
     color: var(--rose);
     font-size: 13px;
     margin: 0 0 12px;
     background: color-mix(in srgb, var(--rose) 15%, transparent);
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+  .info-msg {
+    color: var(--teal);
+    font-size: 13px;
+    margin: 0 0 12px;
+    background: color-mix(in srgb, var(--teal) 15%, transparent);
     padding: 8px 12px;
     border-radius: 8px;
   }
