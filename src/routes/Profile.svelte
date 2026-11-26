@@ -84,6 +84,7 @@
   let authError = $state<string | null>(null);
   let authLoading = $state(false);
   let showBackup = $state(false);
+  let showTransparency = $state(false);
   let backupPassword = $state('');
   let backupResult = $state<string | null>(null);
   let restoreFile = $state<File | null>(null);
@@ -140,6 +141,10 @@
     resetIntro();
     app.setScreen('home');
     app.openIntro();
+  }
+
+  function toggleTransparency(): void {
+    showTransparency = !showTransparency;
   }
 
   function planPause(): void {
@@ -503,6 +508,13 @@
       <button class="mini-btn" onclick={replayIntro}>Revoir</button>
     </div>
 
+    <div class="set-row">
+      <span>Confidentialité & transparence<small class="muted">tes données, cet appareil seulement</small></span>
+      <button class="mini-btn" onclick={toggleTransparency}>
+        {showTransparency ? 'Masquer' : 'Voir'}
+      </button>
+    </div>
+
     <div class="set-row updater-row">
       <span>
         {$_('updater.current_version', { values: { version: appVersion || '…' } })}
@@ -665,6 +677,31 @@
 
   <button class="btn ghost block reset" onclick={reset}>Réinitialiser</button>
   <p class="footer-note">Lakk · gratuit · sans compte</p>
+
+  <!-- Modal Confidentialité & Transparence -->
+  {#if showTransparency}
+    <div class="transparency-modal" role="dialog" aria-modal="true" aria-label="Confidentialité et transparence" tabindex="0" onclick={toggleTransparency} onkeydown={(e) => { if (e.key === 'Escape') toggleTransparency(); }}>
+      <div class="transparency-content" role="presentation" onclick={(e) => e.stopPropagation()}>
+        <button class="transparency-close" onclick={toggleTransparency} aria-label="Fermer">✕</button>
+        <h2>🔒 Confidentialité & Transparence</h2>
+        <p>
+          Lakk est une application <strong>100 % locale</strong>. Aucune donnée n'est envoyée sur un serveur.
+        </p>
+        <ul class="transparency-list">
+          <li><strong>Progression :</strong> tes leçons complétées, ton SRS (cartes de révision) et ton XP sont stockés uniquement sur cet appareil.</li>
+          <li><strong>Erreurs (Carnet de Traces) :</strong> tes erreurs et leurs catégories sont enregistrées localement pour te proposer des exercices ciblés.</li>
+          <li><strong>Missions :</strong> tes missions du jour et tes preuves audio sont conservées sur cet appareil uniquement.</li>
+          <li><strong>Sauvegarde :</strong> tu peux exporter/importer ton progression dans un fichier chiffré (optionnel).</li>
+          <li><strong>Pas de compte :</strong> aucun email, aucun mot de passe, aucune création de compte n'est requise.</li>
+          <li><strong>Pas de suivi :</strong> pas d'analytics, pas de publicité, pas de connexion réseau obligatoire.</li>
+        </ul>
+        <p class="small muted">
+          Où sont les données ? Dans le <code>localStorage</code> de ton navigateur, ou dans le stockage local de l'application Tauri. Elles ne quittent jamais cet appareil.
+        </p>
+        <button class="btn block" onclick={toggleTransparency}>J'ai compris</button>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -1337,5 +1374,73 @@
     color: var(--muted);
     font-family: var(--font-display);
     font-weight: 600;
+  }
+
+  /* Modal Confidentialité & Transparence */
+  .transparency-modal {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--ink) 60%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  .transparency-content {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .transparency-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: none;
+    border: 0;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .transparency-close:hover {
+    color: var(--ink);
+  }
+  .transparency-content h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    color: var(--ink);
+  }
+  .transparency-content p {
+    margin: 0 0 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .transparency-content p strong {
+    color: var(--ink);
+  }
+  .transparency-list {
+    margin: 0 0 16px;
+    padding-left: 16px;
+    color: var(--ink-soft);
+  }
+  .transparency-list li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .transparency-list li strong {
+    color: var(--ink);
+  }
+  code {
+    background: var(--line);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--ink);
   }
 </style>
