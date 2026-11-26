@@ -1,15 +1,18 @@
 // Contes du Baobab — histoires personnalisées générées localement.
-// Chaque conte est un gabarit avec des trous remplis par le vocabulaire de l'utilisateur.
+// Chaque conte est un gabarit en ANGLAIS (langue cible du cours A1) avec des
+// trous remplis par le vocabulaire anglais de l'utilisateur.
+// Une traduction française est fournie pour chaque gabarit.
 // Répartition des mots insérés : 60 % faibles, 30 % solides, 10 % nouveaux.
 
 import type { Card, Vocab } from './engine';
-import { mastery, newCard } from './engine';
+import { mastery } from './engine';
 import { shuffledIndices } from './shuffle';
 
 export interface StoryTemplate {
   id: string;
-  title: string;
-  /** Chaque trou est une clé : `{{cle}}` remplacée par un mot. */
+  title: string; // titre anglais
+  translation: string; // traduction française du sens
+  /** Chaque trou est une clé : `{word}` remplacée par un mot anglais. */
   template: string;
   /** Nombre de mots à insérer. */
   slots: number;
@@ -18,142 +21,162 @@ export interface StoryTemplate {
 export const STORY_TEMPLATES: readonly StoryTemplate[] = [
   {
     id: 'marche',
-    title: 'Au marché',
+    title: 'At the market',
+    translation: "Aujourd'hui je vais au marché. J'achète des objets. Le vendeur dit le prix. Je paie et je rentre à la maison.",
     template:
-      "Aujourd'hui je vais au {{lieu}}. J'achète {{objet1}} et {{objet2}}. Le vendeur dit : « C'est {{prix}} ! » Je paie et je rentre à la {{maison}}.",
+      "Today I go to the {place}. I buy {object1} and {object2}. The seller says: \"It is {price}!\" I pay and I go home.",
     slots: 4,
   },
   {
     id: 'famille',
-    title: 'En famille',
+    title: 'In the family',
+    translation: "Ma {person1} et ma {person2} habitent dans une maison. Le {day} nous mangeons {food} ensemble. C'est {adjective}.",
     template:
-      "Ma {{personne1}} et ma {{personne2}} habitent dans une {{maison}}. Le {{jour}} nous mangeons {{nourriture}} ensemble. C'est {{adjectif}}.",
+      "My {person1} and my {person2} live in a {house}. On {day} we eat {food} together. It is {adjective}.",
     slots: 5,
   },
   {
     id: 'voyage',
-    title: 'Un voyage',
+    title: 'A trip',
+    translation: "Je voyage en {transport} vers {place}. Je vois {object1} et {object2}. Je dis bonjour à {person1}. Le voyage est {adjective}.",
     template:
-      "Je pars en {{transport}} vers {{lieu}}. Je vois {{objet1}} et {{objet2}}. Je dis bonjour à {{personne1}}. Le voyage est {{adjectif}}.",
+      "I travel by {transport} to {place}. I see {object1} and {object2}. I say hello to {person1}. The trip is {adjective}.",
     slots: 5,
   },
   {
     id: 'ecole',
-    title: 'Une journée à l’école',
+    title: 'A day at school',
+    translation: "Le {day} je vais à l'école avec {person1}. J'apprends {object1}. Le professeur est {adjective}. Je mange {food} à midi.",
     template:
-      "Le {{jour}} je vais à l’école avec {{personne1}}. J'apprends {{objet1}}. Le professeur est {{adjectif}}. Je mange {{nourriture}} à midi.",
+      "On {day} I go to school with {person1}. I learn {object1}. The teacher is {adjective}. I eat {food} at noon.",
     slots: 5,
   },
   {
     id: 'maison',
-    title: 'À la maison',
+    title: 'At home',
+    translation: "Je suis chez moi dans la maison. Je bois {drink} et je mange {food}. {person1} lit un livre. C'est {adjective} ici.",
     template:
-      "Je suis chez moi dans la {{maison}}. Je bois {{boisson}} et je mange {{nourriture}}. {{personne1}} lit un livre. C'est {{adjectif}} ici.",
+      "I am at home in the {house}. I drink {drink} and I eat {food}. {person1} reads a book. It is {adjective} here.",
     slots: 5,
   },
   {
     id: 'weekend',
-    title: 'Le week-end',
+    title: 'The weekend',
+    translation: "Le {day} je reste à la maison. Je regarde {object1}. Je parle avec {person1}. Le temps est {adjective}.",
     template:
-      "Le {{jour}} je reste à la {{maison}}. Je regarde {{objet1}}. Je parle avec {{personne1}}. Le temps est {{adjectif}}.",
+      "On {day} I stay at home. I watch {object1}. I talk with {person1}. The weather is {adjective}.",
     slots: 4,
   },
   {
     id: 'ville',
-    title: 'Dans la ville',
+    title: 'In the city',
+    translation: "Je marche dans la ville. Je vois {object1} et {object2}. Je demande le chemin à {person1}. La ville est {adjective}.",
     template:
-      "Je marche dans {{lieu}}. Je vois {{objet1}} et {{objet2}}. Je demande le chemin à {{personne1}}. La ville est {{adjectif}}.",
+      "I walk in the {place}. I see {object1} and {object2}. I ask the way to {person1}. The city is {adjective}.",
     slots: 5,
   },
   {
     id: 'restaurant',
-    title: 'Au restaurant',
+    title: 'At the restaurant',
+    translation: "Je vais au restaurant avec {person1}. Je commande {food} et {drink}. Le serveur est {adjective}. C'est {price}.",
     template:
-      "Je vais au {{lieu}} avec {{personne1}}. Je commande {{nourriture}} et {{boisson}}. Le serveur est {{adjectif}}. C'est {{prix}}.",
+      "I go to the {place} with {person1}. I order {food} and {drink}. The waiter is {adjective}. It is {price}.",
     slots: 5,
   },
   {
     id: 'soiree',
-    title: 'Une soirée',
+    title: 'An evening',
+    translation: "Le {day} soir, {person1} et {person2} vont au {place}. Ils boivent {drink}. Ils rient. C'est {adjective}.",
     template:
-      "Le {{jour}} soir, {{personne1}} et {{personne2}} vont au {{lieu}}. Ils boivent {{boisson}}. Ils rient. C'est {{adjectif}}.",
+      "On {day} evening, {person1} and {person2} go to the {place}. They drink {drink}. They laugh. It is {adjective}.",
     slots: 5,
   },
   {
     id: 'sport',
-    title: 'Le sport',
+    title: 'Sport',
+    translation: "Je fais du {sport} avec {person1}. C'est {adjective}. Je bois {drink} après. Le {day} nous gagnons.",
     template:
-      "Je fais du {{sport}} avec {{personne1}}. C'est {{adjectif}}. Je bois {{boisson}} après. Le {{jour} nous gagnons.",
+      "I do {sport} with {person1}. It is {adjective}. I drink {drink} after. On {day} we win.",
     slots: 4,
   },
   {
     id: 'temps',
-    title: 'Le temps qu’il fait',
+    title: 'The weather',
+    translation: "Aujourd'hui le temps est {adjective}. Je porte {object1}. Je vais à la {place}. {person1} est avec moi.",
     template:
-      "Aujourd’hui le temps est {{adjectif}}. Je porte {{objet1}}. Je vais à {{lieu}}. {{personne1}} est avec moi.",
+      "Today the weather is {adjective}. I wear {object1}. I go to the {place}. {person1} is with me.",
     slots: 4,
   },
   {
     id: 'animaux',
-    title: 'Les animaux',
+    title: 'Animals',
+    translation: "Au {place} je vois {object1} et {object2}. {person1} dit que c'est {adjective}. Je donne {food} à l'animal.",
     template:
-      "À {{lieu}} je vois {{objet1}} et {{objet2}}. {{personne1}} dit que c'est {{adjectif}}. Je donne {{nourriture}} à l'animal.",
+      "At the {place} I see {object1} and {object2}. {person1} says it is {adjective}. I give {food} to the animal.",
     slots: 5,
   },
   {
     id: 'musique',
-    title: 'La musique',
+    title: 'Music',
+    translation: "J'écoute {object1} avec {person1}. La chanson est {adjective}. Je chante toute la {day}.",
     template:
-      "J'écoute {{objet1}} avec {{personne1}}. La chanson est {{adjectif}}. Je chante toute la {{journee}}.",
+      "I listen to {object1} with {person1}. The song is {adjective}. I sing all {day}.",
     slots: 4,
   },
   {
     id: 'amitie',
-    title: 'L’amitié',
+    title: 'Friendship',
+    translation: "{person1} et {person2} sont amis. Ils vont à la {place}. Ils parlent de {object1}. C'est {adjective}.",
     template:
-      "{{personne1}} et {{personne2}} sont amis. Ils vont à {{lieu}}. Ils parlent de {{objet1}}. C'est {{adjectif}}.",
+      "{person1} and {person2} are friends. They go to the {place}. They talk about {object1}. It is {adjective}.",
     slots: 4,
   },
   {
     id: 'matin',
-    title: 'Le matin',
+    title: 'Morning',
+    translation: "Le {day} matin je me lève. Je bois {drink}. Je mange {food}. Je vais à la {place}. C'est {adjective}.",
     template:
-      "Le {{jour}} matin je me lève. Je bois {{boisson}}. Je mange {{nourriture}}. Je vais à {{lieu}}. C'est {{adjectif}}.",
+      "On {day} morning I get up. I drink {drink}. I eat {food}. I go to the {place}. It is {adjective}.",
     slots: 5,
   },
   {
     id: 'nuit',
-    title: 'La nuit',
+    title: 'Night',
+    translation: "La {day} est finie. Je vais à la maison. Je dis bonne nuit à {person1}. Je dors. C'est {adjective}.",
     template:
-      "La {{journee}} est finie. Je vais à la {{maison}}. Je dis bonne nuit à {{personne1}}. Je dors. C'est {{adjectif}}.",
+      "The {day} is finished. I go home. I say good night to {person1}. I sleep. It is {adjective}.",
     slots: 4,
   },
   {
     id: 'vacances',
-    title: 'Les vacances',
+    title: 'Holidays',
+    translation: "Pendant les {day} je vais à la {place} en {transport}. Je vois {object1}. {person1} est heureux. C'est {adjective}.",
     template:
-      "Pendant les {{journee}} je vais à {{lieu}} en {{transport}}. Je vois {{objet1}}. {{personne1}} est heureux. C'est {{adjectif}}.",
+      "During the {day} I go to the {place} by {transport}. I see {object1}. {person1} is happy. It is {adjective}.",
     slots: 5,
   },
   {
     id: 'cadeau',
-    title: 'Un cadeau',
+    title: 'A gift',
+    translation: "Je donne {object1} à {person1}. {person2} est content. C'est pour le {day}. Le cadeau est {adjective}.",
     template:
-      "Je donne {{objet1}} à {{personne1}}. {{personne2}} est content. C'est pour le {{jour}}. Le cadeau est {{adjectif}}.",
+      "I give {object1} to {person1}. {person2} is happy. It is for {day}. The gift is {adjective}.",
     slots: 4,
   },
   {
     id: 'soin',
-    title: 'Prendre soin de soi',
+    title: 'Taking care of myself',
+    translation: "Je bois {drink}. Je me lave à la maison. {person1} dit : « Tu es {adjective} ! ». Je me sens bien.",
     template:
-      "Je bois {{boisson}}. Je me lave à la {{maison}}. {{personne1}} dit : « Tu es {{adjectif}} ! ». Je me sens bien.",
+      "I drink {drink}. I wash at home. {person1} says: \"You are {adjective}!\" I feel well.",
     slots: 4,
   },
   {
     id: 'shopping',
-    title: 'Faire du shopping',
+    title: 'Shopping',
+    translation: "Je vais à la {place} pour acheter {object1}. Le prix est {price}. {person1} m'aide. C'est {adjective}.",
     template:
-      "Je vais au {{lieu}} pour acheter {{objet1}}. Le prix est {{prix}}. {{personne1}} m'aide. C'est {{adjectif}}.",
+      "I go to the {place} to buy {object1}. The price is {price}. {person1} helps me. It is {adjective}.",
     slots: 4,
   },
 ];
@@ -173,11 +196,12 @@ export function pickDistribution(slots: number): WordPick[] {
   return shuffledIndices(picks.length).map((i) => picks[i]);
 }
 
-/** Génère un conte en remplissant les trous avec du vocabulaire. */
+/** Génère un conte en remplissant les trous avec du vocabulaire anglais. */
 export interface GeneratedStory {
   id: string;
   title: string;
-  text: string; // texte avec les mots insérés
+  translation: string;
+  text: string; // texte anglais avec les mots insérés
   words: Vocab[]; // mots utilisés (dans l'ordre des trous)
 }
 
@@ -193,7 +217,7 @@ export function generateStory(
   const solid = cards.filter((c) => c.state !== 'new' && mastery(c).pct >= 70);
 
   // Nombre de trous réels dans le gabarit.
-  const placeholderCount = (template.template.match(/\{\{[^}]+\}\}/g) ?? []).length;
+  const placeholderCount = (template.template.match(/\{[^}]+\}/g) ?? []).length;
   const picks = pickDistribution(placeholderCount);
   const usedWeak = [...weak];
   const usedSolid = [...solid];
@@ -221,11 +245,17 @@ export function generateStory(
       vocab = { en: 'thing', fr: 'chose' };
     }
     words.push(vocab);
-    // Remplace le premier trou restant {{cle}} par le mot (anglais affiché).
-    text = text.replace(/\{\{[^}]+\}\}/, vocab.en);
+    // Remplace le premier trou restant {word} par le mot anglais.
+    text = text.replace(/\{[^}]+\}/, vocab.en);
   }
 
-  return { id: template.id, title: template.title, text, words };
+  return {
+    id: template.id,
+    title: template.title,
+    translation: template.translation,
+    text,
+    words,
+  };
 }
 
 /** Génère le « conte du jour » : tirage déterministe par date. */

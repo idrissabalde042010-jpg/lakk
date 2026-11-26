@@ -153,7 +153,7 @@ function stopEdgeAudio(): void {
 async function speakEdge(text: string, lang: string): Promise<boolean> {
   if (!isTauri()) return false;
   try {
-    console.log('TTS: Début appel Edge');
+    console.log(`TTS: Appel Edge TTS avec lang=${lang} : ${text}`);
     const { invoke, convertFileSrc } = await import('@tauri-apps/api/core');
 
     // Borne l'attente réseau : sans internet, on ne bloque pas l'app.
@@ -205,7 +205,7 @@ async function speakEdge(text: string, lang: string): Promise<boolean> {
     console.log('TTS: Lecture terminée');
     return true;
   } catch (err) {
-    console.error('TTS: Échec, fallback vers voix système', err);
+    console.error(`TTS: Échec Edge TTS (${lang}) :`, err);
     return false;
   }
 }
@@ -382,7 +382,11 @@ export async function speak(text: string, lang = 'en-US'): Promise<void> {
   }
 
   // 1) Voix neuronale Microsoft Edge (haute qualité) sous Tauri.
-  if (await speakEdge(text, lang)) return;
+  const edgeOk = await speakEdge(text, lang);
+  if (!edgeOk) {
+    console.warn(`TTS: Edge TTS échoué pour "${text}", utilisation du fallback système`);
+  }
+  if (edgeOk) return;
 
   // 2) Repli local : Web Speech puis moteur natif.
   if (hasSpeechSynthesis()) {

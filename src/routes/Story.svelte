@@ -14,11 +14,18 @@
 
   let reading = $state(false);
   let sentenceIndex = $state(0);
+  let showTranslation = $state(false);
   let answered = $state(0);
   let score = $state(0);
 
   const sentences = $derived(
     story ? story.text.split(/[.!?]+/).filter(Boolean).map((s) => s.trim()) : [],
+  );
+
+  const translations = $derived(
+    story
+      ? story.translation.split(/[.!?]+/).filter(Boolean).map((s) => s.trim())
+      : [],
   );
 
   const totalSentences = $derived(sentences.length);
@@ -41,7 +48,7 @@
           {
             q: 'Quel est le titre de l’histoire ?',
             a: story.title,
-            options: [story.title, 'Le marché', 'La nuit'],
+            options: [story.title, 'At the market', 'Night'],
           },
         ]
       : [],
@@ -51,6 +58,7 @@
     const s = sentences[sentenceIndex];
     if (!s) return;
     reading = true;
+    // Voix anglaise (en-US) pour le texte anglais.
     await speak(s, 'en-US');
     reading = false;
     sentenceIndex += 1;
@@ -80,6 +88,10 @@
     if (answered <= qi) return '';
     return opt === q.a ? `✓ ${q.a}` : `✕ ${q.a}`;
   }
+
+  function toggleTranslation(): void {
+    showTranslation = !showTranslation;
+  }
 </script>
 
 <div class="story rise">
@@ -93,7 +105,7 @@
 
   {#if story && story.text}
     <section class="card story-text">
-      <p class="eyebrow">Lisez et écoutez :</p>
+      <p class="eyebrow">Lisez et écoutez (en anglais) :</p>
       <p class="story-body">
         {#each sentences as s, i}
           <span
@@ -104,10 +116,20 @@
             tabindex="0"
             aria-label={`Lire la phrase ${i + 1}`}
             onclick={() => { sentenceIndex = i; void readSentence(); }}
-            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sentenceIndex = i; void readSentence(); } }}
+            onkeydown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                sentenceIndex = i;
+                void readSentence();
+              }
+            }}
           >
             {s}{i < sentences.length - 1 ? '. ' : ''}
           </span>
+          {#if showTranslation && translations[i]}
+            <br />
+            <span class="translation">{translations[i]}{i < sentences.length - 1 ? '. ' : ''}</span>
+          {/if}
         {/each}
       </p>
       <div class="story-actions">
@@ -116,6 +138,13 @@
         </button>
         <button class="btn ghost block" disabled={isReading} onclick={readAll}>
           🔊 Tout écouter
+        </button>
+        <button
+          class="btn ghost block"
+          onclick={toggleTranslation}
+          class:on={showTranslation}
+        >
+          {showTranslation ? 'Masquer la traduction' : 'Traduire en français'}
         </button>
       </div>
       <p class="small muted words-list">
@@ -184,6 +213,13 @@
     font-size: 20px;
     margin: 14px 0 22px;
     color: var(--ink);
+  }
+  .translation {
+    display: block;
+    font-size: 15px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-top: 6px;
   }
   .sentence {
     cursor: pointer;

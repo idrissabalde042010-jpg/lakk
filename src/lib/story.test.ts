@@ -21,12 +21,23 @@ describe('Conte du Baobab — modèles', () => {
     expect(STORY_TEMPLATES.length).toBeLessThanOrEqual(30);
   });
 
-  it('chaque gabarit a un id, un titre et des trous', () => {
+  it('chaque gabarit a un id, un titre, une traduction et des trous', () => {
     for (const t of STORY_TEMPLATES) {
       expect(t.id.trim()).not.toBe('');
       expect(t.title.trim()).not.toBe('');
-      expect(t.template.includes('{{')).toBe(true);
+      expect(t.translation.trim()).not.toBe('');
+      expect(t.template.includes('{')).toBe(true);
       expect(t.slots).toBeGreaterThan(0);
+    }
+  });
+
+  it('les titres des gabarits sont en anglais (pas de mots français)', () => {
+    const frenchWords = ['le', 'la', 'les', 'un', 'une', 'et', 'avec', 'à', 'au', 'du'];
+    for (const t of STORY_TEMPLATES) {
+      const words = t.title.toLowerCase().split(/\s+/);
+      for (const w of words) {
+        expect(frenchWords).not.toContain(w);
+      }
     }
   });
 
@@ -44,7 +55,6 @@ describe('Conte du Baobab — répartition des mots', () => {
       const solid = picks.filter((p: 'weak' | 'solid' | 'new') => p === 'solid').length;
       const nw = picks.filter((p: 'weak' | 'solid' | 'new') => p === 'new').length;
       expect(weak + solid + nw).toBe(slots);
-      // Le nombre de faibles doit être proche de 60 % (arrondi).
       expect(weak).toBeGreaterThanOrEqual(Math.floor(slots * 0.5));
       expect(weak).toBeLessThanOrEqual(Math.ceil(slots * 0.7));
     }
@@ -64,7 +74,7 @@ describe('Conte du Baobab — génération', () => {
   it('génère un conte avec tous les trous remplis', () => {
     const s = generateStory('marche', cards, newWords);
     expect(s).toBeDefined();
-    expect(s!.text.includes('{{')).toBe(false); // tous les trous remplis
+    expect(s!.text.includes('{')).toBe(false); // tous les trous remplis
     expect(s!.words.length).toBeGreaterThan(0);
   });
 
@@ -72,12 +82,44 @@ describe('Conte du Baobab — génération', () => {
     const s = generateStory('marche', cards, newWords);
     expect(s!).toBeDefined();
     for (const w of s!.words) {
-      expect(cards.some((c) => c.vocab.en === w.en || newWords.some((nw) => nw.en === w.en))).toBe(true);
+      expect(
+        cards.some((c) => c.vocab.en === w.en) || newWords.some((nw) => nw.en === w.en),
+      ).toBe(true);
+    }
+  });
+
+  it('l\'histoire générée ne contient que de l\'anglais (pas de mots français isolés)', () => {
+    const frenchStopWords = [
+      'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'et', 'avec', 'à', 'au',
+      'aux', 'je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles', 'suis',
+      'est', 'sont', 'a', 'ai', 'as', 'avons', 'avez', 'ont', 'chez', 'dans',
+      'pour', 'sur', 'sous', 'par', 'sans', 'mais', 'donc', 'or', 'ni', 'car',
+      'que', 'qui', 'quoi', 'dont', 'où', 'ce', 'cette', 'ces', 'mon', 'ma',
+      'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'votre', 'leur',
+      'leurs', 'aujourd', "hui", 'matin', 'soir', 'nuit',
+    ];
+    for (const t of STORY_TEMPLATES) {
+      const s = generateStory(t.id, cards, newWords);
+      expect(s).toBeDefined();
+      const text = s!.text.toLowerCase();
+      const words = text.split(/\s+/);
+      for (const w of words) {
+        const clean = w.replace(/[.,!?:"' ]/g, '');
+        if (clean.length > 1) {
+          expect(frenchStopWords).not.toContain(clean);
+        }
+      }
     }
   });
 
   it('retourne undefined pour un gabarit inconnu', () => {
     expect(generateStory('inconnu', cards, newWords)).toBeUndefined();
+  });
+
+  it('chaque conte généré a une traduction française', () => {
+    const s = generateStory('marche', cards, newWords);
+    expect(s).toBeDefined();
+    expect(s!.translation.trim()).not.toBe('');
   });
 });
 
